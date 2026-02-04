@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'screens/starting_page.dart';
 import 'screens/home_page.dart';
+import 'screens/email_verification_page.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -39,7 +40,9 @@ void main() async {
       debugPrint('');
       debugPrint('See WEB_LOGIN_FIX.md for detailed instructions');
     } else {
-      debugPrint('For Android: Ensure google-services.json is in android/app/ folder');
+      debugPrint(
+        'For Android: Ensure google-services.json is in android/app/ folder',
+      );
     }
     debugPrint('═══════════════════════════════════════════════════════');
   }
@@ -66,7 +69,12 @@ class MyApp extends StatelessWidget {
             );
           }
           if (snapshot.hasData && snapshot.data != null) {
-            return const HomePage();
+            // Check if email is verified
+            if (snapshot.data!.emailVerified) {
+              return const HomePage();
+            } else {
+              return const EmailVerificationPage();
+            }
           }
           return const StartingPage();
         },

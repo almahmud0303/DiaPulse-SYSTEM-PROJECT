@@ -88,4 +88,33 @@ class AuthService {
       rethrow;
     }
   }
+
+  /// Send email verification to current user.
+  Future<void> sendEmailVerification() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        // Configure action code settings for better link handling
+        final actionCodeSettings = ActionCodeSettings(
+          // URL to redirect to after verification
+          // Replace with your app's URL or use a custom domain
+          url: 'https://diapulse-project.firebaseapp.com/__/auth/action',
+          // This must be true for email link sign-in
+          handleCodeInApp: false,
+          // iOS bundle ID
+          iOSBundleId: 'com.example.diapulse',
+          // Android package name
+          androidPackageName: 'com.example.diapulse',
+          // Install app if not already installed
+          androidInstallApp: true,
+          // Minimum version of the app
+          androidMinimumVersion: '12',
+        );
+
+        await user.sendEmailVerification(actionCodeSettings);
+      }
+    } on FirebaseAuthException {
+      rethrow;
+    }
+  }
 }

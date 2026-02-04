@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'home_page.dart';
+import 'email_verification_page.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -45,11 +45,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
         email: _emailController.text,
         password: _passwordController.text,
         displayName: _nameController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
       );
+      // Send email verification
+      await _authService.sendEmailVerification();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {
@@ -63,9 +67,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
+      appBar: AppBar(title: const Text('Register')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -123,7 +125,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -132,7 +136,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Enter password';
-                    if (v.length < 6) return 'Password must be at least 6 characters';
+                    if (v.length < 6)
+                      return 'Password must be at least 6 characters';
                     return null;
                   },
                 ),
@@ -146,7 +151,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirm ? Icons.visibility : Icons.visibility_off,
+                        _obscureConfirm
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() => _obscureConfirm = !_obscureConfirm);
@@ -154,7 +161,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                   validator: (v) {
-                    if (v != _passwordController.text) return 'Passwords do not match';
+                    if (v != _passwordController.text)
+                      return 'Passwords do not match';
                     return null;
                   },
                 ),
@@ -162,7 +170,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   const SizedBox(height: 16),
                   Text(
                     _errorMessage!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 24),
