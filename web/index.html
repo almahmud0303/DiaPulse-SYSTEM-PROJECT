@@ -31,6 +31,35 @@
 
   <title>dia_plus</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Configuration -->
+  <!-- 
+    IMPORTANT: Get your web config from Firebase Console:
+    1. Go to Firebase Console → Project Overview
+    2. Click Web icon (</>) or "Add app" → Web
+    3. Register your web app
+    4. Copy the firebaseConfig object
+    5. Replace the values below with your actual config
+  -->
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyDM3xd7boFM7RNrO8GmktpUj0IINWR-l94",
+  authDomain: "dia-plus-7c78c.firebaseapp.com",
+  projectId: "dia-plus-7c78c",
+  storageBucket: "dia-plus-7c78c.firebasestorage.app",
+  messagingSenderId: "284015189329",
+  appId: "1:284015189329:web:a7daf89f25b454717b8770",
+  measurementId: "G-E56EY37YR5"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
