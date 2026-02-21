@@ -37,6 +37,13 @@
             {
               "client_id": "284015189329-jtr28ar2emdrg1g0nkvs70el7ulti2gc.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "284015189329-4aenivlvn5ntrchq8t45s85n617e01eg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.diaPlus"
+              }
             }
           ]
         }
