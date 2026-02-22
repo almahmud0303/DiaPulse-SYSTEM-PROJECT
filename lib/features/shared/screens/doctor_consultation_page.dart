@@ -19,7 +19,6 @@ class DoctorConsultationPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -58,77 +57,39 @@ class DoctorConsultationPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-
-              // Specialized doctors section
               const Text(
                 'Our Specialists',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
-
-              // Doctor cards
-              _buildDoctorCard(
-                context,
-                'Dr. Sarah Johnson',
-                'Endocrinologist',
-                'Diabetes & Hormone Specialist',
-                '15 years experience',
-                Icons.verified,
-                Colors.blue,
-              ),
+              _buildDoctorCard(context, 'Dr. Sarah Johnson', 'Endocrinologist',
+                  'Diabetes & Hormone Specialist', '15 years experience',
+                  Icons.verified, Colors.blue),
               const SizedBox(height: 15),
-
-              _buildDoctorCard(
-                context,
-                'Dr. Michael Chen',
-                'Diabetologist',
-                'Type 1 & Type 2 Diabetes Expert',
-                '12 years experience',
-                Icons.verified,
-                Colors.green,
-              ),
+              _buildDoctorCard(context, 'Dr. Michael Chen', 'Diabetologist',
+                  'Type 1 & Type 2 Diabetes Expert', '12 years experience',
+                  Icons.verified, Colors.green),
               const SizedBox(height: 15),
-
-              _buildDoctorCard(
-                context,
-                'Dr. Emily Rodriguez',
-                'Nutritionist',
-                'Diabetes Diet & Nutrition Specialist',
-                '10 years experience',
-                Icons.verified,
-                Colors.orange,
-              ),
+              _buildDoctorCard(context, 'Dr. Emily Rodriguez', 'Nutritionist',
+                  'Diabetes Diet & Nutrition Specialist', '10 years experience',
+                  Icons.verified, Colors.orange),
               const SizedBox(height: 30),
-
-              // Services section
               const Text(
                 'Consultation Services',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
-
-              _buildServiceCard(
-                'Video Consultation',
-                'Face-to-face consultation from anywhere',
-                Icons.video_call,
-                Colors.purple,
-              ),
+              _buildServiceCard('Video Consultation',
+                  'Face-to-face consultation from anywhere',
+                  Icons.video_call, Colors.purple),
               const SizedBox(height: 10),
-
-              _buildServiceCard(
-                'Chat Consultation',
-                'Text-based consultation with quick responses',
-                Icons.chat,
-                Colors.teal,
-              ),
+              _buildServiceCard('Chat Consultation',
+                  'Text-based consultation with quick responses',
+                  Icons.chat, Colors.teal),
               const SizedBox(height: 10),
-
-              _buildServiceCard(
-                'Emergency Consultation',
-                '24/7 emergency medical support',
-                Icons.emergency,
-                Colors.red,
-              ),
+              _buildServiceCard('Emergency Consultation',
+                  '24/7 emergency medical support',
+                  Icons.emergency, Colors.red),
             ],
           ),
         ),
@@ -174,26 +135,19 @@ class DoctorConsultationPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text(name,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 5),
                         Icon(icon, color: Colors.blue, size: 20),
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      specialization,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text(specialization,
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: color,
+                            fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
@@ -206,22 +160,16 @@ class DoctorConsultationPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      expertise,
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
+                    Text(expertise,
+                        style: const TextStyle(fontSize: 13, color: Colors.grey)),
                     const SizedBox(height: 5),
                     Row(
                       children: [
                         const Icon(Icons.work, size: 16, color: Colors.grey),
                         const SizedBox(width: 5),
-                        Text(
-                          experience,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        Text(experience,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   ],
@@ -236,8 +184,7 @@ class DoctorConsultationPage extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Viewing profile of $name')),
-                    );
+                        SnackBar(content: Text('Viewing profile of $name')));
                   },
                   icon: const Icon(Icons.info_outline, size: 20),
                   label: const Text('View Profile'),
@@ -245,25 +192,21 @@ class DoctorConsultationPage extends StatelessWidget {
                     foregroundColor: color,
                     side: BorderSide(color: color),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    _showBookingDialog(context, name);
-                  },
+                  onPressed: () => _showBookingDialog(context, name),
                   icon: const Icon(Icons.calendar_today, size: 20),
                   label: const Text('Book Now'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
@@ -275,11 +218,7 @@ class DoctorConsultationPage extends StatelessWidget {
   }
 
   Widget _buildServiceCard(
-    String title,
-    String description,
-    IconData icon,
-    Color color,
-  ) {
+      String title, String description, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -308,18 +247,12 @@ class DoctorConsultationPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 3),
-                Text(
-                  description,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text(description,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),
@@ -353,9 +286,8 @@ class DoctorConsultationPage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
@@ -369,9 +301,7 @@ class DoctorConsultationPage extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: Colors.blue, foregroundColor: Colors.white),
             child: const Text('Confirm'),
           ),
         ],

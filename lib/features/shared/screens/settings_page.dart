@@ -1,8 +1,13 @@
+import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, this.user});
+
+  final AppUser? user;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -12,6 +17,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _initialsController = TextEditingController();
+  final _authService = AuthService();
 
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
@@ -24,9 +30,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final user = widget.user;
     setState(() {
-      _nameController.text = prefs.getString('userName') ?? '';
-      _initialsController.text = prefs.getString('userInitials') ?? '';
+      _nameController.text = user?.displayName ??
+          prefs.getString('userName') ??
+          '';
+      _initialsController.text =
+          prefs.getString('userInitials') ?? user?.initials ?? '';
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
       _darkModeEnabled = prefs.getBool('darkModeEnabled') ?? false;
     });
@@ -51,6 +61,12 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _signOut() async {
+    await _authService.signOut();
+    if (!mounted) return;
+    AppRouter.goToStart(context);
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -60,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.user;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -74,25 +91,28 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Section
+              if (user != null) ...[
+                _buildSectionTitle('Account'),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Icon(Icons.badge, color: Colors.teal.shade700),
+                  title: Text('Role: ${user.role.displayName}'),
+                  subtitle: Text(user.email),
+                ),
+                const SizedBox(height: 20),
+              ],
               _buildSectionTitle('Profile Information'),
               const SizedBox(height: 15),
               _buildProfileCard(),
               const SizedBox(height: 30),
-
-              // App Preferences
               _buildSectionTitle('App Preferences'),
               const SizedBox(height: 15),
               _buildPreferencesCard(),
               const SizedBox(height: 30),
-
-              // About Section
               _buildSectionTitle('About'),
               const SizedBox(height: 15),
               _buildAboutCard(),
               const SizedBox(height: 30),
-
-              // Save Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -109,6 +129,19 @@ class _SettingsPageState extends State<SettingsPage> {
                     'Save Changes',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _signOut,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  child: const Text('Sign Out'),
                 ),
               ),
             ],
@@ -147,7 +180,6 @@ class _SettingsPageState extends State<SettingsPage> {
         key: _formKey,
         child: Column(
           children: [
-            // Profile picture placeholder
             Stack(
               children: [
                 CircleAvatar(
@@ -173,18 +205,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       color: Colors.teal,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 25),
-
-            // Name field
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -197,15 +223,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 fillColor: Colors.grey.shade50,
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
-                }
+                if (value == null || value.isEmpty) return 'Please enter your name';
                 return null;
               },
             ),
             const SizedBox(height: 15),
-
-            // Initials/Short Name field
             TextFormField(
               controller: _initialsController,
               maxLength: 3,
@@ -220,17 +242,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your initials';
-                }
-                if (value.length > 3) {
-                  return 'Maximum 3 characters allowed';
-                }
+                if (value == null || value.isEmpty) return 'Please enter your initials';
+                if (value.length > 3) return 'Maximum 3 characters allowed';
                 return null;
               },
-              onChanged: (value) {
-                setState(() {});
-              },
+              onChanged: (_) => setState(() {}),
             ),
           ],
         ),
@@ -259,11 +275,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Receive health reminders'),
             value: _notificationsEnabled,
             activeColor: Colors.teal,
-            onChanged: (value) {
-              setState(() {
-                _notificationsEnabled = value;
-              });
-            },
+            onChanged: (value) => setState(() => _notificationsEnabled = value),
             secondary: const Icon(Icons.notifications),
           ),
           const Divider(),
@@ -272,11 +284,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Coming soon'),
             value: _darkModeEnabled,
             activeColor: Colors.teal,
-            onChanged: (value) {
-              setState(() {
-                _darkModeEnabled = value;
-              });
-            },
+            onChanged: (value) => setState(() => _darkModeEnabled = value),
             secondary: const Icon(Icons.dark_mode),
           ),
         ],
@@ -320,9 +328,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ? Text(trailing, style: const TextStyle(color: Colors.grey))
           : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$title - Coming soon!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$title - Coming soon!')),
+        );
       },
     );
   }

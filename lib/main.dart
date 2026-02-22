@@ -1,88 +1,71 @@
-import 'package:flutter/material.dart';
+import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'screens/starting_page.dart';
-import 'screens/home_page.dart';
-import 'screens/settings_page.dart';
-import 'screens/doctor_consultation_page.dart';
-import 'screens/diabetes_essentials_page.dart';
+import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp());
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const DiaPlusApp());
+  } catch (e) {
+    debugPrint('Firebase initialization error: $e');
+    runApp(_FirebaseErrorApp(error: e.toString()));
+  }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+/// Shown when Firebase fails to initialize.
+class _FirebaseErrorApp extends StatelessWidget {
+  const _FirebaseErrorApp({required this.error});
+
+  final String error;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DiaPulse',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
+      home: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                const SizedBox(height: 24),
+                Text(
+                  'Unable to start app',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  error,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const StartingPage(),
-        '/home': (context) => const MainNavigationPage(),
-        '/doctor-consultation': (context) => const DoctorConsultationPage(),
-        '/diabetes-essentials': (context) => const DiabetesEssentialsPage(),
-      },
     );
   }
 }
 
-// Main Navigation Page with Bottom Navigation Bar
-class MainNavigationPage extends StatefulWidget {
-  const MainNavigationPage({super.key});
-
-  @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
-}
-
-class _MainNavigationPageState extends State<MainNavigationPage> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    const HomePage(),
-    const Center(child: Text('Readings Page - Coming Soon')),
-    const Center(child: Text('History Page - Coming Soon')),
-    const SettingsPage(),
-  ];
+class DiaPlusApp extends StatelessWidget {
+  const DiaPlusApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.teal,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Readings',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
+    return MaterialApp(
+      title: 'Dia Plus',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      initialRoute: AppRouter.start,
+      routes: AppRouter.routes,
     );
   }
 }

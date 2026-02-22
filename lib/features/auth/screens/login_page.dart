@@ -1,8 +1,8 @@
+import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/models/user_role.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'home_page.dart';
-import 'email_verification_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -40,25 +40,26 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
       if (!mounted) return;
-      // Check if email is verified
       final user = _authService.currentUser;
       if (user != null && !user.emailVerified) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const EmailVerificationPage(),
-          ),
-          (route) => false,
-        );
+        AppRouter.goToEmailVerification(context);
       } else {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-          (route) => false,
-        );
+        final role = await _authService.getCurrentUserRole();
+        if (role != null && role.requiresSecondPassword) {
+          AppRouter.goToSecondPassword(context);
+        } else {
+          AppRouter.goToHome(context);
+        }
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = e.message ?? 'Login failed';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
       });
     }
   }
@@ -126,6 +127,15 @@ class _LoginPageState extends State<LoginPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(e.message ?? 'Failed to send reset email'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
                     backgroundColor: Colors.red,
                   ),
                 );

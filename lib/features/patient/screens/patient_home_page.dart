@@ -1,14 +1,17 @@
+import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
+import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+/// Patient dashboard - readings, doctor consultation, diabetes info.
+class PatientHomePage extends StatefulWidget {
+  const PatientHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<PatientHomePage> createState() => _PatientHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _PatientHomePageState extends State<PatientHomePage> {
   String _userName = 'User';
   String _userInitials = 'U';
 
@@ -37,19 +40,12 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with profile
                 _buildHeader(),
                 const SizedBox(height: 30),
-
-                // Welcome section with first reading prompt
                 _buildWelcomeSection(),
                 const SizedBox(height: 20),
-
-                // Consult with Doctor section
                 _buildDoctorConsultSection(),
                 const SizedBox(height: 20),
-
-                // Diabetes Essentials section
                 _buildDiabetesEssentialsSection(),
               ],
             ),
@@ -62,7 +58,6 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHeader() {
     return Row(
       children: [
-        // Profile bubble image
         CircleAvatar(
           radius: 30,
           backgroundColor: Colors.teal,
@@ -76,7 +71,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(width: 15),
-        // User name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,12 +89,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        // Notification icon
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {
-            // Add notification functionality
-          },
+          onPressed: () {},
         ),
       ],
     );
@@ -143,13 +134,12 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 15),
           const Text(
-            'Monitor your blood glucose levels regularly to stay healthy and manage your diabetes effectively.',
+            'Monitor your blood glucose levels regularly to stay healthy.',
             style: TextStyle(fontSize: 14, color: Colors.white, height: 1.5),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              // Navigate to readings page or add reading
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Readings feature coming soon!')),
               );
@@ -182,7 +172,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDoctorConsultSection() {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, '/doctor-consultation');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DoctorConsultationPage(),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -205,11 +200,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(
-                Icons.medical_services,
-                color: Colors.blue.shade600,
-                size: 40,
-              ),
+              child: Icon(Icons.medical_services, color: Colors.blue.shade600, size: 40),
             ),
             const SizedBox(width: 20),
             const Expanded(
@@ -263,29 +254,13 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 15),
-          _buildEssentialItem(
-            'Understanding Diabetes',
-            Icons.info_outline,
-            Colors.orange,
-          ),
+          _buildEssentialItem('Understanding Diabetes', Icons.info_outline, Colors.orange),
           const SizedBox(height: 10),
-          _buildEssentialItem(
-            'Diet & Nutrition',
-            Icons.restaurant_menu,
-            Colors.green,
-          ),
+          _buildEssentialItem('Diet & Nutrition', Icons.restaurant_menu, Colors.green),
           const SizedBox(height: 10),
-          _buildEssentialItem(
-            'Exercise Tips',
-            Icons.fitness_center,
-            Colors.red,
-          ),
+          _buildEssentialItem('Exercise Tips', Icons.fitness_center, Colors.red),
           const SizedBox(height: 10),
-          _buildEssentialItem(
-            'Medication Guide',
-            Icons.medication,
-            Colors.blue,
-          ),
+          _buildEssentialItem('Medication Guide', Icons.medication, Colors.blue),
         ],
       ),
     );
@@ -294,7 +269,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildEssentialItem(String title, IconData icon, Color color) {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, '/diabetes-essentials');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DiabetesEssentialsPage(),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(15),
@@ -316,10 +296,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
             ),
             const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),

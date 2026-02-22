@@ -1,7 +1,8 @@
 import 'dart:async';
+
+import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'home_page.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   const EmailVerificationPage({super.key});
@@ -28,17 +29,18 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   void _startVerificationCheck() {
-    // Check every 3 seconds if email is verified
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       await _authService.currentUser?.reload();
       final user = _authService.currentUser;
       if (user?.emailVerified ?? false) {
         timer.cancel();
         if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-          (route) => false,
-        );
+        final role = await _authService.getCurrentUserRole();
+        if (role != null && role.requiresSecondPassword) {
+          AppRouter.goToSecondPassword(context);
+        } else {
+          AppRouter.goToHome(context);
+        }
       }
     });
   }
@@ -70,6 +72,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   Future<void> _signOut() async {
     _timer?.cancel();
     await _authService.signOut();
+    if (!mounted) return;
+    AppRouter.goToStart(context);
   }
 
   @override
