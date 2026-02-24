@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:flutter/material.dart';
@@ -140,8 +141,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Readings feature coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddReadingPage(),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
