@@ -2,6 +2,7 @@ import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
+import 'package:dia_plus/features/patient/screens/readings_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
@@ -50,9 +51,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final user = _user;
@@ -87,33 +86,29 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     final homePage = user.isPatient
         ? const PatientHomePage()
         : user.isDoctor
-            ? const DoctorHomePage()
-            : const AdminHomePage();
+        ? const DoctorHomePage()
+        : const AdminHomePage();
 
     final List<Widget> pages = [
       homePage,
-      Center(
-        child: Text(
-          user.isPatient ? 'Readings' : 'Data',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-      ),
+      user.isPatient
+          ? const ReadingsPage()
+          : Center(
+              child: Text(
+                'Data',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
       const Center(child: Text('History - Coming Soon')),
       SettingsPage(user: user),
     ];
 
-    return _NavScaffold(
-      user: user,
-      pages: pages,
-    );
+    return _NavScaffold(user: user, pages: pages);
   }
 }
 
 class _NavScaffold extends StatefulWidget {
-  const _NavScaffold({
-    required this.user,
-    required this.pages,
-  });
+  const _NavScaffold({required this.user, required this.pages});
 
   final AppUser user;
   final List<Widget> pages;
@@ -137,9 +132,15 @@ class _NavScaffoldState extends State<_NavScaffold> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Readings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: 'Readings',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
     );
