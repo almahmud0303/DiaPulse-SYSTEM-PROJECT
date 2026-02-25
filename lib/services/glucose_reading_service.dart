@@ -9,7 +9,10 @@ class GlucoseReadingService {
   /// Save a new glucose reading to Firestore
   Future<void> saveReading(GlucoseReading reading) async {
     try {
-      await _firestore.collection(_collection).doc(reading.id).set(reading.toMap());
+      await _firestore
+          .collection(_collection)
+          .doc(reading.id)
+          .set(reading.toMap());
     } catch (e) {
       throw Exception('Failed to save reading: $e');
     }
@@ -67,7 +70,10 @@ class GlucoseReadingService {
   /// Update an existing reading
   Future<void> updateReading(GlucoseReading reading) async {
     try {
-      await _firestore.collection(_collection).doc(reading.id).update(reading.toMap());
+      await _firestore
+          .collection(_collection)
+          .doc(reading.id)
+          .update(reading.toMap());
     } catch (e) {
       throw Exception('Failed to update reading: $e');
     }
@@ -80,9 +86,11 @@ class GlucoseReadingService {
         .where('userId', isEqualTo: userId)
         .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => GlucoseReading.fromMap(doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => GlucoseReading.fromMap(doc.data()))
+              .toList(),
+        );
   }
 
   /// Get latest reading for a user
