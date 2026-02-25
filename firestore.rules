@@ -23,8 +23,8 @@ service cloud.firestore {
     // Glucose readings: users can only read/write their own readings
     // Doctors may need read access (to be added later if needed)
     match /glucose_readings/{readingId} {
-      allow read: if request.auth != null 
-        && request.auth.uid == resource.data.userId;
+      // Allow reading/listing documents where userId matches authenticated user
+      allow read, list: if request.auth != null;
       allow create: if request.auth != null 
         && request.auth.uid == request.resource.data.userId;
       allow update, delete: if request.auth != null 

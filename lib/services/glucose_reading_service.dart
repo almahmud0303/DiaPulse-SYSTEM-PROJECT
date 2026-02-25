@@ -84,13 +84,15 @@ class GlucoseReadingService {
     return _firestore
         .collection(_collection)
         .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final readings = snapshot.docs
               .map((doc) => GlucoseReading.fromMap(doc.data()))
-              .toList(),
-        );
+              .toList();
+          // Sort on client side to avoid composite index requirement
+          readings.sort((a, b) => b.date.compareTo(a.date));
+          return readings;
+        });
   }
 
   /// Get latest reading for a user
