@@ -143,9 +143,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const AddReadingPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const AddReadingPage()),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -204,7 +202,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(Icons.medical_services, color: Colors.blue.shade600, size: 40),
+              child: Icon(
+                Icons.medical_services,
+                color: Colors.blue.shade600,
+                size: 40,
+              ),
             ),
             const SizedBox(width: 20),
             const Expanded(
@@ -258,13 +260,29 @@ class _PatientHomePageState extends State<PatientHomePage> {
             ],
           ),
           const SizedBox(height: 15),
-          _buildEssentialItem('Understanding Diabetes', Icons.info_outline, Colors.orange),
+          _buildEssentialItem(
+            'Understanding Diabetes',
+            Icons.info_outline,
+            Colors.orange,
+          ),
           const SizedBox(height: 10),
-          _buildEssentialItem('Diet & Nutrition', Icons.restaurant_menu, Colors.green),
+          _buildEssentialItem(
+            'Diet & Nutrition',
+            Icons.restaurant_menu,
+            Colors.green,
+          ),
           const SizedBox(height: 10),
-          _buildEssentialItem('Exercise Tips', Icons.fitness_center, Colors.red),
+          _buildEssentialItem(
+            'Exercise Tips',
+            Icons.fitness_center,
+            Colors.red,
+          ),
           const SizedBox(height: 10),
-          _buildEssentialItem('Medication Guide', Icons.medication, Colors.blue),
+          _buildEssentialItem(
+            'Medication Guide',
+            Icons.medication,
+            Colors.blue,
+          ),
         ],
       ),
     );
@@ -300,7 +318,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),

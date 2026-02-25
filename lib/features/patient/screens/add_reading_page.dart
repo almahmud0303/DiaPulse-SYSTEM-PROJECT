@@ -21,12 +21,32 @@ class _AddReadingPageState extends State<AddReadingPage> {
   bool _isSaving = false;
 
   final List<Map<String, dynamic>> _mealTimes = [
-    {'label': 'Fasting', 'icon': Icons.wb_sunny_outlined, 'color': Colors.orange},
-    {'label': 'Post Breakfast', 'icon': Icons.free_breakfast, 'color': Colors.amber},
-    {'label': 'Pre Lunch', 'icon': Icons.lunch_dining_outlined, 'color': Colors.green},
+    {
+      'label': 'Fasting',
+      'icon': Icons.wb_sunny_outlined,
+      'color': Colors.orange,
+    },
+    {
+      'label': 'Post Breakfast',
+      'icon': Icons.free_breakfast,
+      'color': Colors.amber,
+    },
+    {
+      'label': 'Pre Lunch',
+      'icon': Icons.lunch_dining_outlined,
+      'color': Colors.green,
+    },
     {'label': 'Post Lunch', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {'label': 'Pre Dinner', 'icon': Icons.dinner_dining_outlined, 'color': Colors.indigo},
-    {'label': 'Post Dinner', 'icon': Icons.restaurant_menu, 'color': Colors.purple},
+    {
+      'label': 'Pre Dinner',
+      'icon': Icons.dinner_dining_outlined,
+      'color': Colors.indigo,
+    },
+    {
+      'label': 'Post Dinner',
+      'icon': Icons.restaurant_menu,
+      'color': Colors.purple,
+    },
     {'label': 'Random', 'icon': Icons.shuffle, 'color': Colors.grey},
   ];
 
@@ -230,10 +250,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
               const SizedBox(width: 12),
               const Text(
                 'Select Date',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -261,10 +278,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const Icon(
-                    Icons.calendar_month,
-                    color: Colors.white,
-                  ),
+                  const Icon(Icons.calendar_month, color: Colors.white),
                 ],
               ),
             ),
@@ -307,10 +321,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
               const SizedBox(width: 12),
               const Text(
                 'Blood Glucose Level',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -361,7 +372,10 @@ class _AddReadingPageState extends State<AddReadingPage> {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: _getGlucoseLevelColor(),
                     borderRadius: BorderRadius.circular(20),
@@ -453,11 +467,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
   Widget _buildScaleIndicator(String value, Color color) {
     return Column(
       children: [
-        Container(
-          width: 3,
-          height: 12,
-          color: color,
-        ),
+        Container(width: 3, height: 12, color: color),
         const SizedBox(height: 4),
         Text(
           value,
@@ -477,25 +487,16 @@ class _AddReadingPageState extends State<AddReadingPage> {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
         Text(
           range,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -535,20 +536,14 @@ class _AddReadingPageState extends State<AddReadingPage> {
               const SizedBox(width: 12),
               const Text(
                 'Meal Time',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
           const Text(
             'Select when you took this reading',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -587,8 +582,9 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: (mealTime['color'] as Color)
-                                  .withOpacity(0.3),
+                              color: (mealTime['color'] as Color).withOpacity(
+                                0.3,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -600,14 +596,18 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     children: [
                       Icon(
                         mealTime['icon'] as IconData,
-                        color: isSelected ? Colors.white : mealTime['color'] as Color,
+                        color: isSelected
+                            ? Colors.white
+                            : mealTime['color'] as Color,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         mealTime['label'] as String,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey.shade800,
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.grey.shade800,
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w500,
