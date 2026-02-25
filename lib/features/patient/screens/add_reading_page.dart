@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
+import 'package:dia_plus/features/patient/widgets/diabetes_control_dialog.dart';
 
 /// Beautiful blood glucose reading input screen with aesthetic widgets
 class AddReadingPage extends StatefulWidget {
@@ -150,15 +151,17 @@ class _AddReadingPageState extends State<AddReadingPage> {
       await _readingService.saveReading(reading);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Reading saved: ${_glucoseLevel.toInt()} mg/dL at $_selectedMealTime',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        // Show beautiful diabetes control feedback dialog
+        await DiabetesControlDialog.show(
+          context,
+          glucoseLevel: _glucoseLevel,
+          mealTime: _selectedMealTime,
         );
-        Navigator.pop(context);
+
+        // Navigate back after dialog is closed
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {
