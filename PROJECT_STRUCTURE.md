@@ -34,7 +34,11 @@ lib/
 
 ### Patient
 Add under `features/patient/screens/`:
-- `readings_page.dart` - Add/view glucose readings
+- `patient_home_page.dart` - Main dashboard (greeting, latest glucose, today summary, quick actions, mini graph, reminders, health score)
+- `add_reading_page.dart` - Add glucose reading
+- `readings_page.dart` - View glucose readings
+- `log_meal_page.dart` - Log meal (placeholder)
+- `log_activity_page.dart` - Log activity (placeholder)
 - `history_page.dart` - Readings history
 - `profile_page.dart` - Patient profile
 
