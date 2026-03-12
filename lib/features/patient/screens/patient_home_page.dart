@@ -6,6 +6,7 @@ import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
+import 'package:dia_plus/services/medicine_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -23,6 +24,7 @@ class PatientHomePage extends StatefulWidget {
 
 class _PatientHomePageState extends State<PatientHomePage> {
   final _readingService = GlucoseReadingService();
+  final _medicineService = MedicineService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -60,15 +62,30 @@ class _PatientHomePageState extends State<PatientHomePage> {
       final today = await _readingService.getTodayReadings(user.uid);
       final week = await _readingService.getReadingsForLast7Days(user.uid);
 
+      int medTaken = 0;
+      int medTotal = 0;
+      String? nextMed;
+      try {
+        final medicines = await _medicineService.getMedicines(user.uid);
+        medTotal = medicines.length;
+        final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final entries = await _medicineService.getEntries(user.uid!, fromDate: todayStr, toDate: todayStr);
+        medTaken = entries.where((e) => e.taken).length;
+        final next = await _medicineService.getNextMedicineToday(user.uid);
+        if (next != null) nextMed = '${next.time} (${next.name})';
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _latestReading = latest;
           _todayReadings = today;
           _weekReadings = week;
-          _loading = false;
-          _nextMedicineTime = '9:00 AM'; // Placeholder
+          _medicinesTakenToday = medTaken;
+          _medicinesTotalToday = medTotal;
+          _nextMedicineTime = nextMed;
           _nextAppointment = 'Tomorrow, 2:00 PM'; // Placeholder
           _nextGlucoseTest = 'Before lunch'; // Placeholder
+          _loading = false;
         });
       }
     } catch (_) {
