@@ -40,7 +40,7 @@ lib/
 |---|---------|--------------------|
 | 1 | Dashboard: Take medicine action + Next glucose test reminder | `features/patient/screens/patient_home_page.dart`, `take_medicine_page.dart` ✓ |
 | 2 | Glucose: Reading type (Fasting/Before/After meal/Bedtime), Notes, Edit/Delete, Search | `add_reading_page.dart`, `readings_page.dart`, `edit_reading_page.dart`, `models/glucose_reading.dart`, `services/glucose_reading_service.dart` ✓ |
-| 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart` (new or extend), services |
+| 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart`, `main_navigation_page.dart` ✓ |
 | 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `features/patient/screens/` medication_* pages, `models/`, `services/` (medicine log + reminders) |
 | 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, models, services, Firestore `meals` |
 | 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, models, services, Firestore `activities` |
