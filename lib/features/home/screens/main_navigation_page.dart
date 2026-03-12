@@ -2,6 +2,7 @@ import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
+import 'package:dia_plus/features/patient/screens/history_page.dart';
 import 'package:dia_plus/features/patient/screens/readings_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
@@ -99,7 +100,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
-      const Center(child: Text('History - Coming Soon')),
+      user.isPatient ? const HistoryPage() : const Center(child: Text('History - Coming Soon')),
       SettingsPage(user: user),
     ];
 
