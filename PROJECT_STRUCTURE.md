@@ -41,8 +41,8 @@ lib/
 | 1 | Dashboard: Take medicine action + Next glucose test reminder | `features/patient/screens/patient_home_page.dart`, `take_medicine_page.dart` ✓ |
 | 2 | Glucose: Reading type (Fasting/Before/After meal/Bedtime), Notes, Edit/Delete, Search | `add_reading_page.dart`, `readings_page.dart`, `edit_reading_page.dart`, `models/glucose_reading.dart`, `services/glucose_reading_service.dart` ✓ |
 | 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart`, `main_navigation_page.dart` ✓ |
-| 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `features/patient/screens/` medication_* pages, `models/`, `services/` (medicine log + reminders) |
-| 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, models, services, Firestore `meals` |
+| 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart`, `take_medicine_page.dart`, `models/medicine.dart`, `models/medicine_entry.dart`, `services/medicine_service.dart`, Firestore `medicines`, `medicine_entries` ✓ |
+| 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, `models/meal.dart`, `services/meal_service.dart`, Firestore `meals` ✓ |
 | 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, models, services, Firestore `activities` |
 | 7 | Profile: Name, Age, Weight, Height, Diabetes type | `features/patient/screens/profile_page.dart` or shared profile, `users` doc fields |
 | 8 | Settings: Notifications, Target glucose range, Emergency contact | `features/shared/screens/settings_page.dart` |
@@ -63,8 +63,11 @@ Existing patient files:
 - `patient_home_page.dart` – Dashboard (greeting, latest glucose, today summary, quick actions, mini graph, reminders, health score)
 - `add_reading_page.dart` – Add glucose reading
 - `readings_page.dart` – View glucose readings
-- `log_meal_page.dart`, `log_activity_page.dart`, `take_medicine_page.dart` – placeholders to expand
-- `history_page.dart` – add when implementing History (todo 3)
+- `history_page.dart` – List + date filter, Daily/Weekly/Monthly graphs, stats
+- `log_meal_page.dart` – Log meal (date, category, carbs, notes)
+- `log_activity_page.dart` – placeholder to expand (todo 6)
+- `take_medicine_page.dart` – opens Medicine list
+- `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart` – Medication log, Take/Missed, History
 - `profile_page.dart` – add when implementing Profile (todo 7)
 
 ### Doctor
@@ -95,6 +98,10 @@ Start → Login/Register → (Email verify) → (Second password for Doctor/Admi
 
 - `users/{uid}`: email, displayName, role, phone, createdAt, secondPasswordHash?
 - `inviteCodes/{code}`: role, used, usedBy, usedAt, createdBy, createdAt
+- `glucose_readings/{id}`: userId, value, type, date, time, notes, createdAt
+- `medicines/{id}`: userId, name, dosage, time, frequency, createdAt
+- `medicine_entries/{id}`: userId, medicineId, medicineName, date, taken, takenAt?, createdAt
+- `meals/{id}`: userId, date, category, carbs, notes, createdAt
 
 ## Run
 
