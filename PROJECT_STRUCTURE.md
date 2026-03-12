@@ -32,15 +32,40 @@ lib/
 
 ## Future Extension by Role
 
-### Patient
-Add under `features/patient/screens/`:
-- `patient_home_page.dart` - Main dashboard (greeting, latest glucose, today summary, quick actions, mini graph, reminders, health score)
-- `add_reading_page.dart` - Add glucose reading
-- `readings_page.dart` - View glucose readings
-- `log_meal_page.dart` - Log meal (placeholder)
-- `log_activity_page.dart` - Log activity (placeholder)
-- `history_page.dart` - Readings history
-- `profile_page.dart` - Patient profile
+### Patient – feature roadmap (branch: feature/patient)
+
+**Basic (MVP)** – implement in:
+
+| # | Feature | Where to implement |
+|---|---------|--------------------|
+| 1 | Dashboard: Take medicine action + Next glucose test reminder | `features/patient/screens/patient_home_page.dart`, `take_medicine_page.dart` ✓ |
+| 2 | Glucose: Reading type (Fasting/Before/After meal/Bedtime), Notes, Edit/Delete, Search | `add_reading_page.dart`, `readings_page.dart`, `models/glucose_reading.dart`, `services/glucose_reading_service.dart` |
+| 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart` (new or extend), services |
+| 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `features/patient/screens/` medication_* pages, `models/`, `services/` (medicine log + reminders) |
+| 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, models, services, Firestore `meals` |
+| 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, models, services, Firestore `activities` |
+| 7 | Profile: Name, Age, Weight, Height, Diabetes type | `features/patient/screens/profile_page.dart` or shared profile, `users` doc fields |
+| 8 | Settings: Notifications, Target glucose range, Emergency contact | `features/shared/screens/settings_page.dart` |
+
+**Moderate** – implement in:
+
+| # | Feature | Where to implement |
+|---|---------|--------------------|
+| 9 | Analytics: Trend (rising/stable/improving), Pattern detection | `features/patient/` analytics widget or new screen, use readings data |
+| 10 | Smart Graphs: Morning vs night, Meal impact, Weekly variation | `features/patient/screens/history_page.dart` or new `analytics_page.dart` |
+| 11 | Health Score: Add exercise + meal logging to calculation | `patient_home_page.dart` + small scoring service/helper |
+| 12 | Achievement System: Streaks, badges (e.g. 7-day streak) | `features/patient/` achievements widget/screen, models for badges |
+| 13 | Smart Reminders: Medicine, glucose test, appointment, exercise | `services/` reminder/notification service, local notifications |
+| 14 | Report Generation: Export PDF/CSV, Share with doctor | `features/patient/` report page or settings, export service |
+| 15 | Doctor Connection: Send report, Request appointment, Chat | `features/patient/` + `features/doctor/`, shared chat/requests |
+
+Existing patient files:
+- `patient_home_page.dart` – Dashboard (greeting, latest glucose, today summary, quick actions, mini graph, reminders, health score)
+- `add_reading_page.dart` – Add glucose reading
+- `readings_page.dart` – View glucose readings
+- `log_meal_page.dart`, `log_activity_page.dart`, `take_medicine_page.dart` – placeholders to expand
+- `history_page.dart` – add when implementing History (todo 3)
+- `profile_page.dart` – add when implementing Profile (todo 7)
 
 ### Doctor
 Add under `features/doctor/screens/`:

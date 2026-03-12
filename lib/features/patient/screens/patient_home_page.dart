@@ -1,6 +1,7 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
+import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
@@ -33,6 +34,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   int _medicinesTotalToday = 2; // Placeholder
   String? _nextMedicineTime; // Placeholder
   String? _nextAppointment; // Placeholder
+  String? _nextGlucoseTest; // Placeholder - next glucose test time
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           _loading = false;
           _nextMedicineTime = '9:00 AM'; // Placeholder
           _nextAppointment = 'Tomorrow, 2:00 PM'; // Placeholder
+          _nextGlucoseTest = 'Before lunch'; // Placeholder
         });
       }
     } catch (_) {
@@ -110,9 +113,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
     score += 30 * (_medicinesTakenToday / _medicinesTotalToday).clamp(0, 1);
     // Logging consistency (30%) - readings in last 7 days
     final weekCount = _weekReadings.length;
-    if (weekCount >= 14) score += 30;
-    else if (weekCount >= 7) score += 20;
-    else if (weekCount >= 3) score += 10;
+    if (weekCount >= 14)
+      score += 30;
+    else if (weekCount >= 7)
+      score += 20;
+    else if (weekCount >= 3)
+      score += 10;
     return score.roundToDouble();
   }
 
@@ -208,10 +214,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   Widget _buildGreeting() {
     return Text(
       '${_getGreeting()}, $_userName',
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
     );
   }
 
@@ -253,10 +256,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               children: [
                 Text(
                   'Latest Glucose',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -272,15 +272,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      'mg/dL',
-                      style: TextStyle(fontSize: 16, color: color),
-                    ),
+                    Text('mg/dL', style: TextStyle(fontSize: 16, color: color)),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: color,
                     borderRadius: BorderRadius.circular(20),
@@ -346,7 +346,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
             const SizedBox(height: 8),
             Text(
               'Start monitoring your blood glucose',
-              style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.9),
+              ),
             ),
           ],
         ),
@@ -358,7 +361,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
     final avg = _todayReadings.isEmpty
         ? 0.0
         : _todayReadings.map((r) => r.glucoseLevel).reduce((a, b) => a + b) /
-            _todayReadings.length;
+              _todayReadings.length;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -377,10 +380,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         children: [
           Text(
             "Today's Summary",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Row(
@@ -388,9 +388,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               Expanded(
                 child: _buildSummaryItem(
                   'Average',
-                  _todayReadings.isEmpty
-                      ? '--'
-                      : '${avg.round()} mg/dL',
+                  _todayReadings.isEmpty ? '--' : '${avg.round()} mg/dL',
                   Icons.analytics_outlined,
                   Colors.blue,
                 ),
@@ -418,60 +416,79 @@ class _PatientHomePageState extends State<PatientHomePage> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
 
   Widget _buildQuickActions() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildQuickActionButton(
-            'Add Reading',
-            Icons.add_circle_outline,
-            Colors.teal,
-            _navigateToAddReading,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickActionButton(
-            'Log Meal',
-            Icons.restaurant_menu,
-            Colors.orange,
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LogMealPage()),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionButton(
+                'Add Reading',
+                Icons.add_circle_outline,
+                Colors.teal,
+                _navigateToAddReading,
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickActionButton(
-            'Log Activity',
-            Icons.fitness_center,
-            Colors.green,
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LogActivityPage()),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildQuickActionButton(
+                'Log Meal',
+                Icons.restaurant_menu,
+                Colors.orange,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LogMealPage()),
+                ),
+              ),
             ),
-          ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionButton(
+                'Log Activity',
+                Icons.fitness_center,
+                Colors.green,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LogActivityPage()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildQuickActionButton(
+                'Take Medicine',
+                Icons.medication,
+                Colors.purple,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TakeMedicinePage()),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -537,10 +554,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               const SizedBox(width: 8),
               const Text(
                 'Last 7 Days',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -581,7 +595,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
       0,
       (prev, v) => v > prev ? v : prev,
     );
-    final maxY = (maxVal > 0 ? (maxVal * 1.2).clamp(100.0, 400.0) : 200.0).toDouble();
+    final maxY = (maxVal > 0 ? (maxVal * 1.2).clamp(100.0, 400.0) : 200.0)
+        .toDouble();
 
     return BarChart(
       BarChartData(
@@ -596,10 +611,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 color: e.value >= 70 && e.value <= 140
                     ? Colors.green
                     : e.value < 70
-                        ? Colors.blue
-                        : Colors.orange,
+                    ? Colors.blue
+                    : Colors.orange,
                 width: 20,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(6),
+                ),
               ),
             ],
             showingTooltipIndicators: [0],
@@ -612,10 +629,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               reservedSize: 36,
               getTitlesWidget: (value, meta) => Text(
                 value.toInt().toString(),
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 10),
               ),
             ),
           ),
@@ -629,10 +643,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       days[i],
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 10,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
                     ),
                   );
                 }
@@ -640,17 +651,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
               },
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
           horizontalInterval: maxY / 4,
-          getDrawingHorizontalLine: (_) => FlLine(
-            color: Colors.grey.withOpacity(0.2),
-            strokeWidth: 1,
-          ),
+          getDrawingHorizontalLine: (_) =>
+              FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
       ),
@@ -681,10 +694,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               const SizedBox(width: 8),
               const Text(
                 'Upcoming',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -696,6 +706,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
               _nextMedicineTime!,
               Colors.purple,
             ),
+          if (_nextGlucoseTest != null) ...[
+            const SizedBox(height: 12),
+            _buildReminderRow(
+              Icons.water_drop,
+              'Next glucose test',
+              _nextGlucoseTest!,
+              Colors.teal,
+            ),
+          ],
           if (_nextAppointment != null) ...[
             const SizedBox(height: 12),
             _buildReminderRow(
@@ -705,7 +724,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
               Colors.blue,
             ),
           ],
-          if (_nextMedicineTime == null && _nextAppointment == null)
+          if (_nextMedicineTime == null &&
+              _nextGlucoseTest == null &&
+              _nextAppointment == null)
             Text(
               'No upcoming reminders',
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
@@ -759,8 +780,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
     final color = score >= 70
         ? Colors.green
         : score >= 50
-            ? Colors.orange
-            : Colors.red;
+        ? Colors.orange
+        : Colors.red;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -781,10 +802,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               const SizedBox(width: 8),
               const Text(
                 'Health Score',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -803,7 +821,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('/ 100', style: TextStyle(fontSize: 20, color: Colors.grey)),
+                  const Text(
+                    '/ 100',
+                    style: TextStyle(fontSize: 20, color: Colors.grey),
+                  ),
                   Text(
                     'Sugar control • Medicine • Logging',
                     style: TextStyle(fontSize: 11, color: Colors.grey[600]),
@@ -821,9 +842,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const DoctorConsultationPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const DoctorConsultationPage()),
       ),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -846,7 +865,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(Icons.medical_services, color: Colors.blue.shade600, size: 40),
+              child: Icon(
+                Icons.medical_services,
+                color: Colors.blue.shade600,
+                size: 40,
+              ),
             ),
             const SizedBox(width: 20),
             const Expanded(
@@ -932,9 +955,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const DiabetesEssentialsPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const DiabetesEssentialsPage()),
       ),
       child: Container(
         padding: const EdgeInsets.all(15),
