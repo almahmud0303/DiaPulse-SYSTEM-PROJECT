@@ -131,7 +131,7 @@ class _NavScaffoldState extends State<_NavScaffold> {
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: 'Readings',

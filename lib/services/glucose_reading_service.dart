@@ -95,6 +95,26 @@ class GlucoseReadingService {
         });
   }
 
+  /// Get readings for today (client-side filter)
+  Future<List<GlucoseReading>> getTodayReadings(String userId) async {
+    final all = await getUserReadings(userId);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return all.where((r) {
+      final d = r.date;
+      return d.year == today.year && d.month == today.month && d.day == today.day;
+    }).toList();
+  }
+
+  /// Get readings for the last 7 days (client-side filter)
+  Future<List<GlucoseReading>> getReadingsForLast7Days(String userId) async {
+    final all = await getUserReadings(userId);
+    final now = DateTime.now();
+    final startOf7DaysAgo =
+        DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
+    return all.where((r) => !r.date.isBefore(startOf7DaysAgo)).toList();
+  }
+
   /// Get latest reading for a user
   Future<GlucoseReading?> getLatestReading(String userId) async {
     try {
