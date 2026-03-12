@@ -22,38 +22,24 @@ class _AddReadingPageState extends State<AddReadingPage> {
   bool _isSaving = false;
 
   final List<Map<String, dynamic>> _mealTimes = [
-    {
-      'label': 'Fasting',
-      'icon': Icons.wb_sunny_outlined,
-      'color': Colors.orange,
-    },
-    {
-      'label': 'Post Breakfast',
-      'icon': Icons.free_breakfast,
-      'color': Colors.amber,
-    },
-    {
-      'label': 'Pre Lunch',
-      'icon': Icons.lunch_dining_outlined,
-      'color': Colors.green,
-    },
+    {'label': 'Fasting', 'icon': Icons.wb_sunny_outlined, 'color': Colors.orange},
+    {'label': 'Before meal', 'icon': Icons.restaurant_outlined, 'color': Colors.amber},
+    {'label': 'After meal', 'icon': Icons.restaurant, 'color': Colors.teal},
+    {'label': 'Bedtime', 'icon': Icons.nightlight_round, 'color': Colors.indigo},
+    {'label': 'Post Breakfast', 'icon': Icons.free_breakfast, 'color': Colors.amber},
+    {'label': 'Pre Lunch', 'icon': Icons.lunch_dining_outlined, 'color': Colors.green},
     {'label': 'Post Lunch', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {
-      'label': 'Pre Dinner',
-      'icon': Icons.dinner_dining_outlined,
-      'color': Colors.indigo,
-    },
-    {
-      'label': 'Post Dinner',
-      'icon': Icons.restaurant_menu,
-      'color': Colors.purple,
-    },
+    {'label': 'Pre Dinner', 'icon': Icons.dinner_dining_outlined, 'color': Colors.indigo},
+    {'label': 'Post Dinner', 'icon': Icons.restaurant_menu, 'color': Colors.purple},
     {'label': 'Random', 'icon': Icons.shuffle, 'color': Colors.grey},
   ];
+
+  final _notesController = TextEditingController();
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -144,6 +130,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         date: _selectedDate,
         glucoseLevel: _glucoseLevel,
         mealTime: _selectedMealTime,
+        notes: _notesController.text.trim(),
         createdAt: DateTime.now(),
       );
 
@@ -211,6 +198,8 @@ class _AddReadingPageState extends State<AddReadingPage> {
             _buildGlucoseMeter(),
             const SizedBox(height: 24),
             _buildMealTimeSelector(),
+            const SizedBox(height: 24),
+            _buildNotesField(),
             const SizedBox(height: 32),
             _buildSaveButton(),
           ],
@@ -502,6 +491,55 @@ class _AddReadingPageState extends State<AddReadingPage> {
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ],
+    );
+  }
+
+  Widget _buildNotesField() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.notes, color: Colors.grey.shade700, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Notes (optional)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _notesController,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              hintText: 'e.g. After morning walk',
+              border: OutlineInputBorder(),
+              alignLabelWithHint: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
