@@ -4,7 +4,8 @@ class GlucoseReading {
   final String userId;
   final DateTime date;
   final double glucoseLevel; // in mg/dL
-  final String mealTime; // Fasting, Post Breakfast, etc.
+  final String mealTime; // Fasting, Before meal, After meal, Bedtime, etc.
+  final String notes; // Optional notes
   final DateTime createdAt;
 
   GlucoseReading({
@@ -13,6 +14,7 @@ class GlucoseReading {
     required this.date,
     required this.glucoseLevel,
     required this.mealTime,
+    this.notes = '',
     required this.createdAt,
   });
 
@@ -24,6 +26,7 @@ class GlucoseReading {
       'date': date.toIso8601String(),
       'glucoseLevel': glucoseLevel,
       'mealTime': mealTime,
+      'notes': notes,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -35,7 +38,8 @@ class GlucoseReading {
       userId: map['userId'] as String,
       date: DateTime.parse(map['date'] as String),
       glucoseLevel: (map['glucoseLevel'] as num).toDouble(),
-      mealTime: map['mealTime'] as String,
+      mealTime: map['mealTime'] as String? ?? '',
+      notes: map['notes'] as String? ?? '',
       createdAt: DateTime.parse(map['createdAt'] as String),
     );
   }
@@ -60,6 +64,7 @@ class GlucoseReading {
     DateTime? date,
     double? glucoseLevel,
     String? mealTime,
+    String? notes,
     DateTime? createdAt,
   }) {
     return GlucoseReading(
@@ -68,6 +73,7 @@ class GlucoseReading {
       date: date ?? this.date,
       glucoseLevel: glucoseLevel ?? this.glucoseLevel,
       mealTime: mealTime ?? this.mealTime,
+      notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
     );
   }

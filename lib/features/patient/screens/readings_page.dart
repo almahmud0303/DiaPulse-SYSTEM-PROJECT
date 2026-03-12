@@ -1,10 +1,11 @@
+import 'package:dia_plus/features/patient/screens/edit_reading_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Page displaying glucose readings for the patient
+/// Page displaying glucose readings for the patient. Search, edit, delete.
 class ReadingsPage extends StatefulWidget {
   const ReadingsPage({super.key});
 
@@ -14,12 +15,35 @@ class ReadingsPage extends StatefulWidget {
 
 class _ReadingsPageState extends State<ReadingsPage> {
   final GlucoseReadingService _readingService = GlucoseReadingService();
+  final TextEditingController _searchController = TextEditingController();
   String? _userId;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _userId = FirebaseAuth.instance.currentUser?.uid;
+    _searchController.addListener(() => setState(() => _searchQuery = _searchController.text.trim().toLowerCase()));
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<GlucoseReading> _filterReadings(List<GlucoseReading> readings) {
+    if (_searchQuery.isEmpty) return readings;
+    return readings.where((r) {
+      final matchValue = r.glucoseLevel.toInt().toString();
+      final matchMeal = r.mealTime.toLowerCase();
+      final matchNotes = (r.notes).toLowerCase();
+      final matchDate = DateFormat('yyyy-MM-dd').format(r.date);
+      return matchValue.contains(_searchQuery) ||
+          matchMeal.contains(_searchQuery) ||
+          matchNotes.contains(_searchQuery) ||
+          matchDate.contains(_searchQuery);
+    }).toList();
   }
 
   Color _getReadingColor(double level) {
@@ -40,6 +64,12 @@ class _ReadingsPageState extends State<ReadingsPage> {
     switch (mealTime) {
       case 'Fasting':
         return Icons.wb_sunny_outlined;
+      case 'Before meal':
+        return Icons.restaurant_outlined;
+      case 'After meal':
+        return Icons.restaurant;
+      case 'Bedtime':
+        return Icons.nightlight_round;
       case 'Post Breakfast':
         return Icons.free_breakfast;
       case 'Pre Lunch':
@@ -124,12 +154,28 @@ class _ReadingsPageState extends State<ReadingsPage> {
                   }
 
                   final readings = snapshot.data ?? [];
+                  final filtered = _filterReadings(readings);
 
                   if (readings.isEmpty) {
                     return _buildEmptyState();
                   }
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No readings match "$_searchQuery"',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-                  return _buildReadingsList(readings);
+                  return _buildReadingsList(filtered);
                 },
               ),
             ),
@@ -160,11 +206,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.analytics,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: const Icon(Icons.analytics, color: Colors.white, size: 28),
               ),
               const SizedBox(width: 16),
               const Expanded(
@@ -188,6 +230,22 @@ class _ReadingsPageState extends State<ReadingsPage> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Search by value, type, notes, date...',
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+              prefixIcon: Icon(Icons.search, color: Colors.white70),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.2),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
           ),
         ],
       ),
@@ -322,7 +380,6 @@ class _ReadingsPageState extends State<ReadingsPage> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Glucose level display
             Container(
               width: 90,
               height: 90,
@@ -358,17 +415,12 @@ class _ReadingsPageState extends State<ReadingsPage> {
               ),
             ),
             const SizedBox(width: 16),
-            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status badge
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(12),
@@ -383,27 +435,23 @@ class _ReadingsPageState extends State<ReadingsPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Meal time
                   Row(
                     children: [
-                      Icon(
-                        _getMealIcon(reading.mealTime),
-                        size: 18,
-                        color: Colors.grey[600],
-                      ),
+                      Icon(_getMealIcon(reading.mealTime), size: 18, color: Colors.grey[600]),
                       const SizedBox(width: 6),
-                      Text(
-                        reading.mealTime,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
+                      Expanded(
+                        child: Text(
+                          reading.mealTime,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  // Time
                   Row(
                     children: [
                       Icon(Icons.schedule, size: 16, color: Colors.grey[500]),
@@ -414,12 +462,81 @@ class _ReadingsPageState extends State<ReadingsPage> {
                       ),
                     ],
                   ),
+                  if (reading.notes.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      reading.notes,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
+            ),
+            Column(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () async {
+                    final updated = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditReadingPage(reading: reading),
+                      ),
+                    );
+                    if (updated == true && mounted) setState(() {});
+                  },
+                  tooltip: 'Edit',
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline, color: Colors.red[400]),
+                  onPressed: () => _confirmDelete(reading),
+                  tooltip: 'Delete',
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(GlucoseReading reading) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete reading?'),
+        content: Text(
+          '${reading.glucoseLevel.toInt()} mg/dL (${reading.mealTime}) will be removed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    try {
+      await _readingService.deleteReading(reading.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reading deleted'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }
