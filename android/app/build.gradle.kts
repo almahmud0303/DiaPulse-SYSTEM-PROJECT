@@ -22,7 +22,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -34,6 +34,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {
@@ -47,4 +50,19 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Ensure Flutter finds the APK: copy to build/app/outputs/flutter-apk
+val syncApkDir = rootProject.file("${rootProject.projectDir.parent}/build/app/outputs/flutter-apk")
+tasks.whenTaskAdded {
+    if (name == "assembleDebug" || name == "assembleRelease") {
+        doLast {
+            val buildType = if (name == "assembleDebug") "debug" else "release"
+            val apkDir = file("build/outputs/apk/$buildType")
+            apkDir.listFiles()?.filter { it.extension == "apk" }?.forEach { apk ->
+                syncApkDir.mkdirs()
+                apk.copyTo(file("$syncApkDir/${apk.name}"), overwrite = true)
+            }
+        }
+    }
 }

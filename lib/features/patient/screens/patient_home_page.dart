@@ -69,7 +69,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         final medicines = await _medicineService.getMedicines(user.uid);
         medTotal = medicines.length;
         final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        final entries = await _medicineService.getEntries(user.uid!, fromDate: todayStr, toDate: todayStr);
+        final entries = await _medicineService.getEntries(user.uid, fromDate: todayStr, toDate: todayStr);
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
         if (next != null) nextMed = '${next.time} (${next.name})';
@@ -130,9 +130,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
     score += 30 * (_medicinesTakenToday / _medicinesTotalToday).clamp(0, 1);
     // Logging consistency (30%) - readings in last 7 days
     final weekCount = _weekReadings.length;
-    if (weekCount >= 14)
+    if (weekCount >= 14) {
       score += 30;
-    else if (weekCount >= 7)
+    } else if (weekCount >= 7)
       score += 20;
     else if (weekCount >= 3)
       score += 10;

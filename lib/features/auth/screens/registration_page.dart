@@ -219,8 +219,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Enter password';
-                    if (v.length < 6)
+                    if (v.length < 6) {
                       return 'Password must be at least 6 characters';
+                    }
                     return null;
                   },
                 ),
@@ -244,8 +245,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                   validator: (v) {
-                    if (v != _passwordController.text)
+                    if (v != _passwordController.text) {
                       return 'Passwords do not match';
+                    }
                     return null;
                   },
                 ),
@@ -279,10 +281,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     validator: requiresSecond
                         ? (v) {
                             if (v == null || v.isEmpty) return 'Required for ${_selectedRole.displayName}';
-                            if (v.length < 6)
+                            if (v.length < 6) {
                               return 'At least 6 characters';
-                            if (v == _passwordController.text)
+                            }
+                            if (v == _passwordController.text) {
                               return 'Must be different from main password';
+                            }
                             return null;
                           }
                         : null,
@@ -309,8 +313,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                     validator: requiresSecond
                         ? (v) {
-                            if (v != _secondPasswordController.text)
+                            if (v != _secondPasswordController.text) {
                               return 'Passwords do not match';
+                            }
                             return null;
                           }
                         : null,

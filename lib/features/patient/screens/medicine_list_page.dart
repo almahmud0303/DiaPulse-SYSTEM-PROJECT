@@ -39,17 +39,21 @@ class _MedicineListPageState extends State<MedicineListPage> {
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final entries = await _service.getEntries(_userId!, fromDate: today, toDate: today);
       final entryMap = {for (var e in entries) e.medicineId: e};
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _medicines = medicines;
         _todayEntries = {for (var m in medicines) m.id: entryMap[m.id]};
         _loading = false;
       });
+      }
     } catch (_) {
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _medicines = [];
         _todayEntries = {};
         _loading = false;
       });
+      }
     }
   }
 
@@ -225,8 +229,8 @@ class _MedicineListPageState extends State<MedicineListPage> {
           );
           _load();
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.purple,
+        child: const Icon(Icons.add),
       ),
     );
   }

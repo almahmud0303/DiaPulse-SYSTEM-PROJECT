@@ -36,15 +36,19 @@ class _MedicineHistoryPageState extends State<MedicineHistoryPage> {
       var list = await _service.getEntries(_userId!);
       if (_showTakenOnly) list = list.where((e) => e.taken).toList();
       if (_showMissedOnly) list = list.where((e) => !e.taken).toList();
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _entries = list;
         _loading = false;
       });
+      }
     } catch (_) {
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _entries = [];
         _loading = false;
       });
+      }
     }
   }
 

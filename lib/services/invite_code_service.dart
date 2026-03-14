@@ -89,7 +89,7 @@ class InviteCodeService {
         .limit(100)
         .get();
     var list = snapshot.docs
-        .map((d) => {'id': d.id, ...?d.data()})
+        .map((d) => {'id': d.id, ...d.data()})
         .toList();
     if (roleFilter != null) {
       list = list.where((m) => m['role'] == roleFilter.value).toList();

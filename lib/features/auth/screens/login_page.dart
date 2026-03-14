@@ -1,5 +1,4 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
-import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
