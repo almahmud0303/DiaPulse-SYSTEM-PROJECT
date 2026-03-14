@@ -1,4 +1,5 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +104,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
               _buildSectionTitle('Profile Information'),
               const SizedBox(height: 15),
+              if (user?.isPatient ?? false)
+                ListTile(
+                  leading: Icon(Icons.person, color: Colors.teal.shade700),
+                  title: const Text('Edit Profile'),
+                  subtitle: const Text('Name, age, weight, height, diabetes type'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProfilePage(user: user),
+                      ),
+                    );
+                    _loadSettings();
+                  },
+                ),
+              if (user?.isPatient ?? false) const SizedBox(height: 12),
               _buildProfileCard(),
               const SizedBox(height: 30),
               _buildSectionTitle('App Preferences'),

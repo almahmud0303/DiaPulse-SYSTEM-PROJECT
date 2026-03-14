@@ -43,8 +43,8 @@ lib/
 | 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart`, `main_navigation_page.dart` ✓ |
 | 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart`, `take_medicine_page.dart`, `models/medicine.dart`, `models/medicine_entry.dart`, `services/medicine_service.dart`, Firestore `medicines`, `medicine_entries` ✓ |
 | 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, `models/meal.dart`, `services/meal_service.dart`, Firestore `meals` ✓ |
-| 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, models, services, Firestore `activities` |
-| 7 | Profile: Name, Age, Weight, Height, Diabetes type | `features/patient/screens/profile_page.dart` or shared profile, `users` doc fields |
+| 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, `models/activity.dart`, `services/activity_service.dart`, Firestore `activities` ✓ |
+| 7 | Profile: Name, Age, Weight, Height, Diabetes type | `profile_page.dart`, `services/profile_service.dart`, `users` doc (age, weight, height, diabetesType) ✓ |
 | 8 | Settings: Notifications, Target glucose range, Emergency contact | `features/shared/screens/settings_page.dart` |
 
 **Moderate** – implement in:
@@ -65,10 +65,10 @@ Existing patient files:
 - `readings_page.dart` – View glucose readings
 - `history_page.dart` – List + date filter, Daily/Weekly/Monthly graphs, stats
 - `log_meal_page.dart` – Log meal (date, category, carbs, notes)
-- `log_activity_page.dart` – placeholder to expand (todo 6)
+- `log_activity_page.dart` – Log activity (date, type, duration, calories)
 - `take_medicine_page.dart` – opens Medicine list
 - `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart` – Medication log, Take/Missed, History
-- `profile_page.dart` – add when implementing Profile (todo 7)
+- `profile_page.dart` – Edit profile (name, age, weight, height, diabetes type). Opened from Settings for patients.
 
 ### Doctor
 Add under `features/doctor/screens/`:
@@ -102,6 +102,7 @@ Start → Login/Register → (Email verify) → (Second password for Doctor/Admi
 - `medicines/{id}`: userId, name, dosage, time, frequency, createdAt
 - `medicine_entries/{id}`: userId, medicineId, medicineName, date, taken, takenAt?, createdAt
 - `meals/{id}`: userId, date, category, carbs, notes, createdAt
+- `activities/{id}`: userId, date, type, durationMinutes, calories, notes, createdAt
 
 ## Run
 
