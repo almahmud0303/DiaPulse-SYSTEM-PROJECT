@@ -1,12 +1,16 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
+import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
+import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -25,6 +29,7 @@ class PatientHomePage extends StatefulWidget {
 class _PatientHomePageState extends State<PatientHomePage> {
   final _readingService = GlucoseReadingService();
   final _medicineService = MedicineService();
+  final _reminderService = ReminderService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -37,6 +42,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
   String? _nextMedicineTime; // Placeholder
   String? _nextAppointment; // Placeholder
   String? _nextGlucoseTest; // Placeholder - next glucose test time
+  Reminder? _nextReminder;
+  DateTime? _nextReminderAt;
 
   @override
   void initState() {
@@ -69,10 +76,26 @@ class _PatientHomePageState extends State<PatientHomePage> {
         final medicines = await _medicineService.getMedicines(user.uid);
         medTotal = medicines.length;
         final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        final entries = await _medicineService.getEntries(user.uid, fromDate: todayStr, toDate: todayStr);
+        final entries = await _medicineService.getEntries(
+          user.uid!,
+          fromDate: todayStr,
+          toDate: todayStr,
+        );
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
         if (next != null) nextMed = '${next.time} (${next.name})';
+      } catch (_) {}
+
+      Reminder? smartNextReminder;
+      DateTime? smartNextReminderAt;
+      try {
+        await _reminderService.initialize();
+        smartNextReminder = await _reminderService.getNextReminder();
+        if (smartNextReminder != null) {
+          smartNextReminderAt = _reminderService.getNextTriggerTime(
+            smartNextReminder,
+          );
+        }
       } catch (_) {}
 
       if (mounted) {
@@ -85,6 +108,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
           _nextMedicineTime = nextMed;
           _nextAppointment = 'Tomorrow, 2:00 PM'; // Placeholder
           _nextGlucoseTest = 'Before lunch'; // Placeholder
+          _nextReminder = smartNextReminder;
+          _nextReminderAt = smartNextReminderAt;
           _loading = false;
         });
       }
@@ -222,7 +247,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {},
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RemindersPage()),
+          ),
         ),
       ],
     );
@@ -713,7 +741,21 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 'Upcoming',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RemindersPage()),
+                ),
+                child: const Text('Manage'),
+              ),
             ],
+          ),
+          const SizedBox(height: 16),
+          NextReminderWidget(
+            reminder: _nextReminder,
+            nextTrigger: _nextReminderAt,
+            title: 'Smart Reminder',
           ),
           const SizedBox(height: 16),
           if (_nextMedicineTime != null)

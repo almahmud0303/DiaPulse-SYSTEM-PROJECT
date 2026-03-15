@@ -1,5 +1,6 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
+import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -33,9 +34,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     final user = widget.user;
     setState(() {
-      _nameController.text = user?.displayName ??
-          prefs.getString('userName') ??
-          '';
+      _nameController.text =
+          user?.displayName ?? prefs.getString('userName') ?? '';
       _initialsController.text =
           prefs.getString('userInitials') ?? user?.initials ?? '';
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
@@ -108,8 +108,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: Icon(Icons.person, color: Colors.teal.shade700),
                   title: const Text('Edit Profile'),
-                  subtitle: const Text('Name, age, weight, height, diabetes type'),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                  subtitle: const Text(
+                    'Name, age, weight, height, diabetes type',
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -223,7 +229,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       color: Colors.teal,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -241,7 +251,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 fillColor: Colors.grey.shade50,
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter your name';
+                if (value == null || value.isEmpty)
+                  return 'Please enter your name';
                 return null;
               },
             ),
@@ -260,7 +271,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter your initials';
+                if (value == null || value.isEmpty)
+                  return 'Please enter your initials';
                 if (value.length > 3) return 'Maximum 3 characters allowed';
                 return null;
               },
@@ -305,6 +317,21 @@ class _SettingsPageState extends State<SettingsPage> {
             onChanged: (value) => setState(() => _darkModeEnabled = value),
             secondary: const Icon(Icons.dark_mode),
           ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.alarm, color: Colors.teal),
+            title: const Text('Reminder Settings'),
+            subtitle: const Text('Manage smart reminders & notifications'),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReminderSettingsPage()),
+            ),
+          ),
         ],
       ),
     );
@@ -346,9 +373,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ? Text(trailing, style: const TextStyle(color: Colors.grey))
           : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title - Coming soon!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$title - Coming soon!')));
       },
     );
   }
