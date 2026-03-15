@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
+import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
@@ -246,7 +247,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {},
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RemindersPage()),
+          ),
         ),
       ],
     );
@@ -736,6 +740,14 @@ class _PatientHomePageState extends State<PatientHomePage> {
               const Text(
                 'Upcoming',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RemindersPage()),
+                ),
+                child: const Text('Manage'),
               ),
             ],
           ),
