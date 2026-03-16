@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/data/repositories/history_reports_repository.dart';
+import 'package:dia_plus/features/patient/screens/export_report_page.dart';
 import 'package:dia_plus/features/patient/history/presentation/viewmodels/history_reports_viewmodel.dart';
 import 'package:dia_plus/features/patient/history/presentation/widgets/glucose_readings_history_list.dart';
 import 'package:dia_plus/features/patient/history/presentation/widgets/glucose_trend_chart.dart';
@@ -52,6 +53,16 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ExportReportPage()),
+        ),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.picture_as_pdf_outlined),
+        label: const Text('Export'),
+      ),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _viewModel,
