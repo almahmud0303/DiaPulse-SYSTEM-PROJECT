@@ -12,8 +12,8 @@ class ReportService {
   ReportService({
     GlucoseReadingService? readingService,
     AuthService? authService,
-  })  : _readingService = readingService ?? GlucoseReadingService(),
-        _authService = authService ?? AuthService();
+  }) : _readingService = readingService ?? GlucoseReadingService(),
+       _authService = authService ?? AuthService();
 
   final GlucoseReadingService _readingService;
   final AuthService _authService;
@@ -168,7 +168,9 @@ class ReportService {
       default:
         return raw
             .split('_')
-            .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+            .map(
+              (w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}',
+            )
             .join(' ')
             .trim();
     }
