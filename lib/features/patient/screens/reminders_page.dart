@@ -81,6 +81,16 @@ class _RemindersPageState extends State<RemindersPage> {
 
   Future<void> _toggleReminder(Reminder reminder, bool enabled) async {
     try {
+      if (enabled) {
+        final granted =
+            await _reminderService.requestNotificationPermissions();
+        if (!granted) {
+          _showError(
+            'Notification permission is disabled. Please enable it in app settings.',
+          );
+          return;
+        }
+      }
       await _reminderService.toggleReminder(reminder, enabled);
       await _loadReminders();
       if (!mounted) return;
@@ -213,7 +223,7 @@ class _RemindersPageState extends State<RemindersPage> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: _typeColor(reminder.reminderType).withOpacity(0.12),
+                    color: _typeColor(reminder.reminderType).withValues(alpha:0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(

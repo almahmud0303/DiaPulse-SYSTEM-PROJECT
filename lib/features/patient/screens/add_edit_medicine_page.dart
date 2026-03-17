@@ -161,14 +161,18 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               const SizedBox(height: 16),
               const Text('Frequency', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              ...frequencies.map((f) {
-                return RadioListTile<String>(
-                  title: Text(f['label']!),
-                  value: f['value']!,
-                  groupValue: _frequency,
-                  onChanged: (v) => setState(() => _frequency = v!),
-                );
-              }),
+              RadioGroup<String>(
+                groupValue: _frequency,
+                onChanged: (v) => setState(() => _frequency = v!),
+                child: Column(
+                  children: frequencies.map((f) {
+                    return RadioListTile<String>(
+                      title: Text(f['label']!),
+                      value: f['value']!,
+                    );
+                  }).toList(),
+                ),
+              ),
             ],
           ),
         ),

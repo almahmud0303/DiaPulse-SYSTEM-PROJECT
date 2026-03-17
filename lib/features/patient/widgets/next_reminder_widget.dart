@@ -78,7 +78,7 @@ class NextReminderWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: _typeColor(
                             item.reminderType,
-                          ).withOpacity(0.12),
+                          ).withValues(alpha:0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(

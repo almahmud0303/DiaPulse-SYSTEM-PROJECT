@@ -1,6 +1,7 @@
 import 'package:dia_plus/models/reminder_settings.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ReminderSettingsPage extends StatefulWidget {
   const ReminderSettingsPage({super.key});
@@ -49,6 +50,73 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Test notification sent!')));
     }
+  }
+
+  Future<void> _showDiagnostics() async {
+    await _service.initialize();
+    final report = await _service.buildSchedulingDiagnosticsReport();
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Reminder Diagnostics',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.55,
+                  ),
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      report,
+                      style: const TextStyle(fontFamily: 'monospace'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: report));
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Diagnostics copied to clipboard.'),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.copy),
+                        label: const Text('Copy'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Close'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -183,6 +251,18 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                     label: const Text('Send Test Notification'),
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.teal,
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: OutlinedButton.icon(
+                    onPressed: _showDiagnostics,
+                    icon: const Icon(Icons.bug_report_outlined),
+                    label: const Text('View Scheduling Diagnostics'),
+                    style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
                     ),
                   ),

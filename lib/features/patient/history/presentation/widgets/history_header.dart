@@ -19,7 +19,7 @@ class HistoryHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withValues(alpha:0.18),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(Icons.insights, color: Colors.white, size: 28),
