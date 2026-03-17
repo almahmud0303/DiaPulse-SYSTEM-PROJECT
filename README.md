@@ -6,7 +6,7 @@ A Flutter diabetes management app with role-based access for **Patients**, **Doc
 
 ### Roles & Auth
 - **Patient** – Register or log in; track glucose, view history, use dashboard.
-- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** lists all patients; tap to open **Patient profile** (name, contact, basic info).
+- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** → tap patient for **Patient profile**: name, contact, basic info; **health history** (recent glucose); **glucose trends** (7-day summary); **prescriptions** (add/edit medicines for patient).
 - **Admin** – Requires invite code and second password; can generate invite codes for Doctor/Admin.
 
 Auth flow: **Login/Register** → Email verification → (Second password for Doctor/Admin) → **Dashboard**.
@@ -40,7 +40,7 @@ lib/
     ├── auth/screens/        # Starting, Login, Register, Email verify, Second password
     ├── home/screens/        # MainNavigationPage (tab bar)
     ├── patient/             # Screens, widgets, history (data + presentation)
-    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage
+    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage, DoctorAddEditPrescriptionPage
     ├── admin/screens/       # AdminHomePage, InviteCodesPage
     └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials
 ```
@@ -101,13 +101,23 @@ flutter run -d windows
 | `users/{uid}`      | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
 | `inviteCodes/{id}` | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
 | `glucose_readings` | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
+| `medicines`        | Medicines/prescriptions: userId, name, dosage, time, frequency (doctor can add for patient) |
 
 ## Changelog / GitHub
 
-- **Doctor features (TODO #1 & #2)**  
-  - **My Patients**: Doctor dashboard → My Patients opens a list of all patients (from Firestore).  
-  - **Patient profile (doctor view)**: Tap a patient to see profile: name, email, phone, and basic info (age, weight, height, diabetes type when set in patient profile).  
-  - New: `DoctorPatientService`, `DoctorPatientsPage`, `DoctorPatientProfilePage`. See **PROJECT_STRUCTURE.md** for the full doctor roadmap.
+- **Doctor TODO #2 & #3**  
+  - **#2 Patient profile (enhanced)**: Health history (recent glucose readings), glucose trend (last 7 days avg/low/high/readings count), and prescriptions/medicines list on patient profile.  
+  - **#3 Prescription system**: Add and edit prescriptions (medicine name, dosage, time, frequency) for a patient from the profile screen; stored in Firestore `medicines` with patient `userId`. New screen: `DoctorAddEditPrescriptionPage`.
+
+**Suggested commit message:**
+```
+feat(doctor): patient profile with health history, glucose trends, and prescription system (TODO #2, #3)
+
+- Doctor patient profile: recent glucose list, 7-day trend (avg/low/high), meds list
+- DoctorAddEditPrescriptionPage: add/edit medicine for patient (name, dosage, time, frequency)
+- Uses MedicineService and GlucoseReadingService for patient uid
+- PROJECT_STRUCTURE and README updated with doctor roadmap
+```
 
 ## License
 

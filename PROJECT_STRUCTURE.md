@@ -122,7 +122,8 @@ lib/
     ├── doctor/screens/
     │   ├── doctor_home_page.dart
     │   ├── doctor_patients_page.dart
-    │   └── doctor_patient_profile_page.dart
+    │   ├── doctor_patient_profile_page.dart
+    │   └── doctor_add_edit_prescription_page.dart
     │
     ├── admin/screens/
     │   ├── admin_home_page.dart
@@ -146,24 +147,25 @@ lib/
 
 ## Doctor Feature Notes
 
-- **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart) (TODO #2).
-- **Patient profile (doctor view)**: Name, contact (email, phone), and basic info (age, weight, height, diabetes type from profile when set).
+- **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart).
+- **Patient profile (doctor view)**: Name, contact, basic info; **health history** (recent glucose readings); **glucose trends** (last 7 days avg/low/high); **prescriptions/medicines** list with add/edit via [DoctorAddEditPrescriptionPage](lib/features/doctor/screens/doctor_add_edit_prescription_page.dart).
+- **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
 - **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`.
 
 ### Doctor roadmap (TODOs)
 
 | # | Feature | Status |
 |---|---------|--------|
-| 1 | Patient list | Done |
-| 2 | Patient profile (doctor view) | Done |
-| 3 | View patient glucose history | Pending |
-| 4 | Patient prescriptions | Pending |
-| 5 | Clinical notes | Pending |
-| 6 | Risk / health score (doctor view) | Pending |
-| 7 | Monitoring alerts | Pending |
-| 8 | Messaging / chat | Pending |
-| 9 | Insulin / medication overview | Pending |
-| 10 | Polish & navigation | Pending |
+| 1 | Patient list – screen + service | Done |
+| 2 | Patient profile – health history, glucose trends, meds | Done |
+| 3 | Prescription system – add/update medicine for patient | Done |
+| 4 | Consultation notes & diagnosis | Pending |
+| 5 | Risk status – compute and show on list/profile | Pending |
+| 6 | Monitoring dashboard – high-risk, poor control | Pending |
+| 7 | Alerts for doctor – very high sugar, missed medicines | Pending |
+| 8 | Messaging – doctor ↔ patient | Pending |
+| 9 | Insulin adjustment in prescription flow | Pending |
+| 10 | Polish – latest readings summary and risk on dashboard | Pending |
 
 ## Patient Feature Notes
 
