@@ -132,7 +132,13 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
 
     try {
       await _reminderService.initialize();
-      await _reminderService.requestNotificationPermissions();
+      final permissionGranted =
+          await _reminderService.requestNotificationPermissions();
+      if (!permissionGranted) {
+        throw Exception(
+          'Notification permission is disabled. Please enable it in app settings.',
+        );
+      }
 
       final existing = widget.reminder;
       final reminder = Reminder(

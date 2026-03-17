@@ -15,9 +15,16 @@ class ReminderService {
 
   final ReminderStorageService _storageService;
   final ReminderNotificationService _notificationService;
+  bool _initialized = false;
 
   Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
+
     await _notificationService.initialize();
+    await _reconcileSchedulesWithStorage();
+    _initialized = true;
   }
 
   Future<List<Reminder>> getAllReminders() async {
@@ -30,9 +37,14 @@ class ReminderService {
     final settings = await getSettings();
     _validateReminder(reminder);
 
-    final effective = _isReminderAllowedBySettings(reminder, settings)
-        ? reminder
-        : reminder.copyWith(isEnabled: false);
+    if (reminder.isEnabled &&
+        !_isReminderAllowedBySettings(reminder, settings)) {
+      throw Exception(
+        'This reminder is disabled by Reminder Settings. Enable this category first.',
+      );
+    }
+
+    final effective = reminder;
 
     final stored = effective.isEnabled
         ? await _notificationService.scheduleReminder(effective)
@@ -45,6 +57,13 @@ class ReminderService {
     final settings = await getSettings();
     _validateReminder(reminder);
 
+    if (reminder.isEnabled &&
+        !_isReminderAllowedBySettings(reminder, settings)) {
+      throw Exception(
+        'This reminder is disabled by Reminder Settings. Enable this category first.',
+      );
+    }
+
     final previous = await _storageService.getReminderById(reminder.id);
     if (previous != null && previous.notificationIds.isNotEmpty) {
       await _notificationService.cancelReminderNotifications(
@@ -52,9 +71,7 @@ class ReminderService {
       );
     }
 
-    final effective = _isReminderAllowedBySettings(reminder, settings)
-        ? reminder
-        : reminder.copyWith(isEnabled: false);
+    final effective = reminder;
 
     final updated = effective.isEnabled
         ? await _notificationService.scheduleReminder(effective)
@@ -74,6 +91,10 @@ class ReminderService {
     final settings = await getSettings();
     final shouldEnable =
         enabled && _isReminderAllowedBySettings(reminder, settings);
+
+    if (enabled && !shouldEnable) {
+      throw Exception('This reminder type is disabled in Reminder Settings.');
+    }
 
     if (shouldEnable) {
       final scheduled = await _notificationService.rescheduleReminder(
@@ -135,6 +156,98 @@ class ReminderService {
 
   Future<void> sendTestNotification() {
     return _notificationService.showTestNotification();
+  }
+
+  Future<String> buildSchedulingDiagnosticsReport() async {
+    await initialize();
+
+    final reminders = await _storageService.getReminders();
+    final pending = await _notificationService.getPendingRequests();
+    final pendingIds = pending.map((p) => p.id).toSet();
+
+    final lines = <String>[
+      'Reminder Scheduling Diagnostics',
+      'Generated: ${DateTime.now().toIso8601String()}',
+      'Saved reminders: ${reminders.length}',
+      'Pending notifications in OS: ${pending.length}',
+      '',
+      'Pending Notification Requests:',
+    ];
+
+    if (pending.isEmpty) {
+      lines.add('- None');
+    } else {
+      for (final p in pending) {
+        lines.add(
+          '- id=${p.id}, title="${p.title}", payload="${p.payload ?? ''}"',
+        );
+      }
+    }
+
+    lines.add('');
+    lines.add('Saved Reminders:');
+
+    if (reminders.isEmpty) {
+      lines.add('- None');
+    } else {
+      for (final r in reminders) {
+        final next = getNextTriggerTime(r);
+        final missingIds = r.notificationIds
+            .where((id) => !pendingIds.contains(id))
+            .toList();
+
+        lines.add(
+          '- ${r.title} [id=${r.id}] enabled=${r.isEnabled} repeat=${r.repeatMode.name}',
+        );
+        lines.add('  nextTrigger=${next?.toIso8601String() ?? 'none'}');
+        lines.add('  notificationIds=${r.notificationIds}');
+        if (missingIds.isNotEmpty) {
+          lines.add('  missingInPending=$missingIds');
+        }
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  Future<void> _reconcileSchedulesWithStorage() async {
+    final reminders = await _storageService.getReminders();
+    final pending = await _notificationService.getPendingRequests();
+    final pendingIds = pending.map((p) => p.id).toSet();
+    var changed = false;
+
+    for (var i = 0; i < reminders.length; i++) {
+      final reminder = reminders[i];
+
+      if (!reminder.isEnabled) {
+        continue;
+      }
+
+      if (reminder.repeatMode == ReminderRepeatMode.once &&
+          getNextTriggerTime(reminder) == null) {
+        reminders[i] = reminder.copyWith(
+          isEnabled: false,
+          notificationIds: const [],
+        );
+        changed = true;
+        continue;
+      }
+
+      final hasAnyPending = reminder.notificationIds.any(pendingIds.contains);
+      if (hasAnyPending) {
+        continue;
+      }
+
+      final rescheduled = await _notificationService.scheduleReminder(
+        reminder.copyWith(notificationIds: const []),
+      );
+      reminders[i] = rescheduled;
+      changed = true;
+    }
+
+    if (changed) {
+      await _storageService.saveReminders(reminders);
+    }
   }
 
   DateTime? getNextTriggerTime(Reminder reminder, {DateTime? from}) {
