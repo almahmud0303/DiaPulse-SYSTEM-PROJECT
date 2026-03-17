@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'doctor_monitoring_dashboard_page.dart';
 import 'doctor_patients_page.dart';
 
 /// Doctor-specific home screen.
@@ -62,6 +63,22 @@ class DoctorHomePage extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (context) => const DoctorPatientsPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.monitor_heart,
+                title: 'Monitoring Dashboard',
+                subtitle: 'High-risk and poor-control patients',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) =>
+                          const DoctorMonitoringDashboardPage(),
                     ),
                   );
                 },

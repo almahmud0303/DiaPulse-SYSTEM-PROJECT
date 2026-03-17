@@ -125,6 +125,7 @@ lib/
     ├── doctor/screens/
     │   ├── doctor_home_page.dart
     │   ├── doctor_patients_page.dart
+    │   ├── doctor_monitoring_dashboard_page.dart
     │   ├── doctor_patient_profile_page.dart
     │   ├── doctor_add_edit_prescription_page.dart
     │   └── doctor_add_edit_consultation_note_page.dart
@@ -156,6 +157,7 @@ lib/
 - **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
 - **Consultation notes & diagnosis**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
 - **Risk status**: [PatientRisk](lib/models/patient_risk.dart) and [DoctorPatientService.getPatientRisk](lib/services/doctor_patient_service.dart) compute risk from last 7 days glucose (low/moderate/elevated/high). Shown on patient list (badge) and on patient profile (Risk status card with summary and avg/readings).
+- **Monitoring dashboard**: [DoctorMonitoringDashboardPage](lib/features/doctor/screens/doctor_monitoring_dashboard_page.dart) shows **high-risk** (elevated/high) and **poor-control** (moderate) patients at a glance; tap opens patient profile. Accessible from doctor home.
 - **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`, `getPatientRisk(uid)`.
 
 ## Patient Feature Notes
