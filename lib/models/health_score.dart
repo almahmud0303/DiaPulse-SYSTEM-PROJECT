@@ -1,81 +1,44 @@
-import 'package:dia_plus/models/health_score_breakdown.dart';
+/// Period for health score calculation.
+enum HealthScorePeriod {
+  today,
+  last7Days,
+  last30Days,
+}
 
+/// Single row in the health score breakdown.
+class HealthScoreBreakdownItem {
+  const HealthScoreBreakdownItem({
+    required this.category,
+    required this.score,
+    required this.maxScore,
+    this.note = '',
+  });
+
+  final String category;
+  final double score;
+  final double maxScore;
+  final String note;
+}
+
+/// Health score result for a period.
 class HealthScore {
-  final int totalScore;
-  final String status;
-  final String trend;
-  final DateTime calculatedAt;
-  final String periodLabel;
-  final List<HealthScoreBreakdown> breakdown;
-  final List<String> insights;
-  final String summary;
-
-  HealthScore({
+  const HealthScore({
+    required this.period,
     required this.totalScore,
     required this.status,
     required this.trend,
-    required this.calculatedAt,
+    required this.summary,
     required this.periodLabel,
     required this.breakdown,
     this.insights = const [],
-    this.summary = '',
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'totalScore': totalScore,
-      'status': status,
-      'trend': trend,
-      'calculatedAt': calculatedAt.toIso8601String(),
-      'periodLabel': periodLabel,
-      'breakdown': breakdown.map((item) => item.toMap()).toList(),
-      'insights': insights,
-      'summary': summary,
-    };
-  }
-
-  factory HealthScore.fromMap(Map<String, dynamic> map) {
-    return HealthScore(
-      totalScore: (map['totalScore'] as num?)?.toInt() ?? 0,
-      status: map['status'] as String? ?? 'Not available',
-      trend: map['trend'] as String? ?? 'Not enough data',
-      calculatedAt: DateTime.tryParse(map['calculatedAt'] as String? ?? '') ??
-          DateTime.now(),
-      periodLabel: map['periodLabel'] as String? ?? 'Last 7 days',
-      breakdown: ((map['breakdown'] as List?) ?? const [])
-          .whereType<Map>()
-          .map(
-            (item) => HealthScoreBreakdown.fromMap(
-              Map<String, dynamic>.from(item),
-            ),
-          )
-          .toList(),
-      insights: ((map['insights'] as List?) ?? const [])
-          .whereType<String>()
-          .toList(),
-      summary: map['summary'] as String? ?? '',
-    );
-  }
-
-  HealthScore copyWith({
-    int? totalScore,
-    String? status,
-    String? trend,
-    DateTime? calculatedAt,
-    String? periodLabel,
-    List<HealthScoreBreakdown>? breakdown,
-    List<String>? insights,
-    String? summary,
-  }) {
-    return HealthScore(
-      totalScore: totalScore ?? this.totalScore,
-      status: status ?? this.status,
-      trend: trend ?? this.trend,
-      calculatedAt: calculatedAt ?? this.calculatedAt,
-      periodLabel: periodLabel ?? this.periodLabel,
-      breakdown: breakdown ?? this.breakdown,
-      insights: insights ?? this.insights,
-      summary: summary ?? this.summary,
-    );
-  }
+  final HealthScorePeriod period;
+  final double totalScore;
+  final String status;
+  final String trend;
+  final String summary;
+  final String periodLabel;
+  final List<HealthScoreBreakdownItem> breakdown;
+  final List<String> insights;
 }

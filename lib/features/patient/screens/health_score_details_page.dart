@@ -60,14 +60,11 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
   }
 
   String _periodLabel(HealthScorePeriod period) {
-    switch (period) {
-      case HealthScorePeriod.today:
-        return 'Today';
-      case HealthScorePeriod.last7Days:
-        return 'Last 7 days';
-      case HealthScorePeriod.last30Days:
-        return 'Last 30 days';
-    }
+    return switch (period) {
+      HealthScorePeriod.today => 'Today',
+      HealthScorePeriod.last7Days => 'Last 7 days',
+      HealthScorePeriod.last30Days => 'Last 30 days',
+    };
   }
 
   Color _statusColor(String status) {

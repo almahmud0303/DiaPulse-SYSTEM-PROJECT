@@ -220,6 +220,11 @@ class ReminderNotificationService {
     await _plugin.cancelAll();
   }
 
+  /// Returns the list of pending notification requests from the OS.
+  Future<List<PendingNotificationRequest>> getPendingRequests() async {
+    return await _plugin.pendingNotificationRequests();
+  }
+
   Future<void> showTestNotification() async {
     await initialize();
     const details = NotificationDetails(
@@ -239,10 +244,6 @@ class ReminderNotificationService {
       'This is a test reminder notification.',
       details,
     );
-  }
-
-  Future<List<PendingNotificationRequest>> getPendingRequests() {
-    return _plugin.pendingNotificationRequests();
   }
 
   int _buildNotificationId(String reminderId, int suffix) {

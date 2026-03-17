@@ -35,7 +35,9 @@ lib/
 │   ├── reminder.dart
 │   ├── reminder_repeat_mode.dart
 │   ├── reminder_settings.dart
-│   └── reminder_type.dart
+│   ├── reminder_type.dart
+│   ├── consultation_note.dart
+│   └── patient_risk.dart
 │
 ├── services/
 │   ├── auth_service.dart
@@ -47,6 +49,8 @@ lib/
 │   ├── activity_service.dart
 │   ├── profile_service.dart
 │   ├── health_score_service.dart
+│   ├── doctor_patient_service.dart
+│   ├── consultation_note_service.dart
 │   ├── reminder_service.dart
 │   ├── reminder_storage_service.dart
 │   ├── reminder_notification_service.dart
@@ -119,7 +123,11 @@ lib/
     │               └── glucose_readings_history_list.dart
     │
     ├── doctor/screens/
-    │   └── doctor_home_page.dart
+    │   ├── doctor_home_page.dart
+    │   ├── doctor_patients_page.dart
+    │   ├── doctor_patient_profile_page.dart
+    │   ├── doctor_add_edit_prescription_page.dart
+    │   └── doctor_add_edit_consultation_note_page.dart
     │
     ├── admin/screens/
     │   ├── admin_home_page.dart
@@ -140,6 +148,15 @@ lib/
 | **models/** | Domain/data models (user, glucose, medicine, meal, activity, reminder, health score, reports). |
 | **services/** | Firebase and local business logic (auth, CRUD, reminders, reports, PDF). |
 | **features/** | Role-based UI: auth, home (tabs), patient (screens + widgets + history feature), doctor, admin, shared. |
+
+## Doctor Feature Notes
+
+- **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart).
+- **Patient profile (doctor view)**: Name, contact, basic info; **health history** (recent glucose readings); **glucose trends** (last 7 days avg/low/high); **prescriptions/medicines** list with add/edit via [DoctorAddEditPrescriptionPage](lib/features/doctor/screens/doctor_add_edit_prescription_page.dart).
+- **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
+- **Consultation notes & diagnosis**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
+- **Risk status**: [PatientRisk](lib/models/patient_risk.dart) and [DoctorPatientService.getPatientRisk](lib/services/doctor_patient_service.dart) compute risk from last 7 days glucose (low/moderate/elevated/high). Shown on patient list (badge) and on patient profile (Risk status card with summary and avg/readings).
+- **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`, `getPatientRisk(uid)`.
 
 ## Patient Feature Notes
 
