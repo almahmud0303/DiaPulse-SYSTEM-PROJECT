@@ -457,12 +457,21 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   }
 
   Widget _medicineTile(BuildContext context, Medicine m) {
+    final baseSubtitle = '${m.dosage} · ${m.time} · ${m.frequency.replaceAll('_', ' ')}';
+    final insulinLine = m.isInsulin
+        ? ' · ${Medicine.insulinTypeLabel(m.insulinType)}'
+        : '';
+    final adjustmentLine = m.isInsulin &&
+            m.adjustmentInstructions != null &&
+            m.adjustmentInstructions!.trim().isNotEmpty
+        ? '\n${m.adjustmentInstructions!.length > 60 ? '${m.adjustmentInstructions!.trim().substring(0, 60)}…' : m.adjustmentInstructions!.trim()}'
+        : '';
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Icon(Icons.medication_outlined, color: Colors.blue.shade700),
         title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text('${m.dosage} · ${m.time} · ${m.frequency.replaceAll('_', ' ')}'),
+        subtitle: Text('$baseSubtitle$insulinLine$adjustmentLine'),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _openEditPrescription(m),
       ),

@@ -18,16 +18,27 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _dosageController = TextEditingController();
+  final _adjustmentInstructionsController = TextEditingController();
   final MedicineService _medicineService = MedicineService();
 
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
   String _frequency = 'daily';
+  bool _isInsulin = false;
+  String _insulinType = 'rapid_acting';
   bool _saving = false;
 
   static const List<Map<String, String>> frequencies = [
     {'value': 'daily', 'label': 'Once daily'},
     {'value': 'twice_daily', 'label': 'Twice daily'},
     {'value': 'weekly', 'label': 'Weekly'},
+  ];
+
+  static const List<Map<String, String>> insulinTypes = [
+    {'value': 'rapid_acting', 'label': 'Rapid-acting'},
+    {'value': 'short_acting', 'label': 'Short-acting'},
+    {'value': 'intermediate_acting', 'label': 'Intermediate-acting'},
+    {'value': 'long_acting', 'label': 'Long-acting'},
+    {'value': 'mixed', 'label': 'Mixed'},
   ];
 
   @override
@@ -45,6 +56,9 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
         );
       }
       _frequency = m.frequency;
+      _isInsulin = m.isInsulin;
+      _insulinType = m.insulinType ?? 'rapid_acting';
+      _adjustmentInstructionsController.text = m.adjustmentInstructions ?? '';
     }
   }
 
@@ -52,6 +66,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   void dispose() {
     _nameController.dispose();
     _dosageController.dispose();
+    _adjustmentInstructionsController.dispose();
     super.dispose();
   }
 
@@ -79,6 +94,11 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           time: _timeString,
           frequency: _frequency,
           createdAt: existing.createdAt,
+          isInsulin: _isInsulin,
+          insulinType: _isInsulin ? _insulinType : null,
+          adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
+              ? _adjustmentInstructionsController.text.trim()
+              : null,
         );
         await _medicineService.updateMedicine(updated);
       } else {
@@ -90,6 +110,11 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           time: _timeString,
           frequency: _frequency,
           createdAt: DateTime.now(),
+          isInsulin: _isInsulin,
+          insulinType: _isInsulin ? _insulinType : null,
+          adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
+              ? _adjustmentInstructionsController.text.trim()
+              : null,
         );
         await _medicineService.addMedicine(medicine);
       }
@@ -185,6 +210,45 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                       .toList(),
                 ),
               ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text('Insulin adjustment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                title: const Text('This prescription is insulin'),
+                subtitle: const Text('Add type and adjustment instructions'),
+                value: _isInsulin,
+                onChanged: (v) => setState(() => _isInsulin = v),
+                contentPadding: EdgeInsets.zero,
+              ),
+              if (_isInsulin) ...[
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _insulinType,
+                  decoration: const InputDecoration(
+                    labelText: 'Insulin type',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.medication_liquid),
+                  ),
+                  items: insulinTypes
+                      .map((t) => DropdownMenuItem(value: t['value']!, child: Text(t['label']!)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _insulinType = v ?? 'rapid_acting'),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _adjustmentInstructionsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Adjustment instructions',
+                    hintText: 'e.g. Adjust by 1–2 units if fasting glucose > 140',
+                    border: OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 2,
+                  minLines: 1,
+                ),
+              ],
             ],
           ),
         ),
