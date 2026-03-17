@@ -1,11 +1,14 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/models/consultation_note.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/medicine.dart';
+import 'package:dia_plus/services/consultation_note_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'doctor_add_edit_consultation_note_page.dart';
 import 'doctor_add_edit_prescription_page.dart';
 
 /// Doctor view of a single patient: profile, health history, glucose trends, meds.
@@ -21,9 +24,11 @@ class DoctorPatientProfilePage extends StatefulWidget {
 class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   final GlucoseReadingService _glucoseService = GlucoseReadingService();
   final MedicineService _medicineService = MedicineService();
+  final ConsultationNoteService _consultationNoteService = ConsultationNoteService();
 
   List<GlucoseReading> _recentReadings = [];
   List<Medicine> _medicines = [];
+  List<ConsultationNote> _consultationNotes = [];
   bool _loading = true;
   String? _error;
 
@@ -44,11 +49,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       final results = await Future.wait([
         _glucoseService.getUserReadings(patient.uid),
         _medicineService.getMedicines(patient.uid),
+        _consultationNoteService.getNotesForPatient(patient.uid),
       ]);
       if (!mounted) return;
       setState(() {
         _recentReadings = (results[0] as List<GlucoseReading>).take(15).toList();
         _medicines = results[1] as List<Medicine>;
+        _consultationNotes = results[2] as List<ConsultationNote>;
         _loading = false;
       });
     } catch (e) {
@@ -112,6 +119,8 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                         _buildRecentGlucoseCard(context),
                         const SizedBox(height: 20),
                         _buildMedicinesCard(context),
+                        const SizedBox(height: 20),
+                        _buildConsultationNotesCard(context),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -426,6 +435,72 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   void _openEditPrescription(Medicine medicine) async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (context) => DoctorAddEditPrescriptionPage(patient: patient, medicine: medicine)),
+    );
+    if (result == true && mounted) _loadData();
+  }
+
+  Widget _buildConsultationNotesCard(BuildContext context) {
+    return _sectionCard(
+      context,
+      title: 'Consultation notes & diagnosis',
+      icon: Icons.note_alt_outlined,
+      trailing: TextButton.icon(
+        onPressed: _openAddConsultationNote,
+        icon: const Icon(Icons.add, size: 18),
+        label: const Text('Add note'),
+      ),
+      child: _consultationNotes.isEmpty
+          ? Text(
+              'No notes yet. Tap Add note to record consultation notes and diagnosis.',
+              style: TextStyle(color: Colors.grey.shade600),
+            )
+          : Column(
+              children: _consultationNotes.map((n) => _consultationNoteTile(context, n)).toList(),
+            ),
+    );
+  }
+
+  Widget _consultationNoteTile(BuildContext context, ConsultationNote n) {
+    final df = DateFormat('MMM d, yyyy');
+    final hasDiagnosis = n.diagnosis.trim().isNotEmpty;
+    final preview = n.note.trim().isEmpty ? (hasDiagnosis ? n.diagnosis : 'No content') : n.note.trim();
+    final shortPreview = preview.length > 80 ? '${preview.substring(0, 80)}...' : preview;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Icon(Icons.note_outlined, color: Colors.blue.shade700),
+        title: Text(
+          hasDiagnosis ? n.diagnosis.trim().split('\n').first : 'Consultation note',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(shortPreview, style: TextStyle(fontSize: 13, color: Colors.grey.shade700), maxLines: 2, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 4),
+            Text(df.format(n.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+          ],
+        ),
+        isThreeLine: true,
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _openEditConsultationNote(n),
+      ),
+    );
+  }
+
+  void _openAddConsultationNote() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (context) => DoctorAddEditConsultationNotePage(patient: patient)),
+    );
+    if (result == true && mounted) _loadData();
+  }
+
+  void _openEditConsultationNote(ConsultationNote note) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (context) => DoctorAddEditConsultationNotePage(patient: patient, note: note)),
     );
     if (result == true && mounted) _loadData();
   }

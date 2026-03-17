@@ -35,7 +35,8 @@ lib/
 │   ├── reminder.dart
 │   ├── reminder_repeat_mode.dart
 │   ├── reminder_settings.dart
-│   └── reminder_type.dart
+│   ├── reminder_type.dart
+│   └── consultation_note.dart
 │
 ├── services/
 │   ├── auth_service.dart
@@ -48,6 +49,7 @@ lib/
 │   ├── profile_service.dart
 │   ├── health_score_service.dart
 │   ├── doctor_patient_service.dart
+│   ├── consultation_note_service.dart
 │   ├── reminder_service.dart
 │   ├── reminder_storage_service.dart
 │   ├── reminder_notification_service.dart
@@ -123,7 +125,8 @@ lib/
     │   ├── doctor_home_page.dart
     │   ├── doctor_patients_page.dart
     │   ├── doctor_patient_profile_page.dart
-    │   └── doctor_add_edit_prescription_page.dart
+    │   ├── doctor_add_edit_prescription_page.dart
+    │   └── doctor_add_edit_consultation_note_page.dart
     │
     ├── admin/screens/
     │   ├── admin_home_page.dart
@@ -150,6 +153,7 @@ lib/
 - **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart).
 - **Patient profile (doctor view)**: Name, contact, basic info; **health history** (recent glucose readings); **glucose trends** (last 7 days avg/low/high); **prescriptions/medicines** list with add/edit via [DoctorAddEditPrescriptionPage](lib/features/doctor/screens/doctor_add_edit_prescription_page.dart).
 - **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
+- **Consultation notes & diagnosis (TODO #4)**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
 - **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`.
 
 ### Doctor roadmap (TODOs)
@@ -159,7 +163,7 @@ lib/
 | 1 | Patient list – screen + service | Done |
 | 2 | Patient profile – health history, glucose trends, meds | Done |
 | 3 | Prescription system – add/update medicine for patient | Done |
-| 4 | Consultation notes & diagnosis | Pending |
+| 4 | Consultation notes & diagnosis – save notes/diagnosis (Firestore + UI) | Done |
 | 5 | Risk status – compute and show on list/profile | Pending |
 | 6 | Monitoring dashboard – high-risk, poor control | Pending |
 | 7 | Alerts for doctor – very high sugar, missed medicines | Pending |

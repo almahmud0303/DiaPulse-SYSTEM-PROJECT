@@ -102,22 +102,12 @@ flutter run -d windows
 | `inviteCodes/{id}` | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
 | `glucose_readings` | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
 | `medicines`        | Medicines/prescriptions: userId, name, dosage, time, frequency (doctor can add for patient) |
+| `consultation_notes` | Doctor notes/diagnosis: patientId, doctorId, note, diagnosis, createdAt, updatedAt? |
 
 ## Changelog / GitHub
 
-- **Doctor TODO #2 & #3**  
-  - **#2 Patient profile (enhanced)**: Health history (recent glucose readings), glucose trend (last 7 days avg/low/high/readings count), and prescriptions/medicines list on patient profile.  
-  - **#3 Prescription system**: Add and edit prescriptions (medicine name, dosage, time, frequency) for a patient from the profile screen; stored in Firestore `medicines` with patient `userId`. New screen: `DoctorAddEditPrescriptionPage`.
+- **Doctor TODO #4 – Consultation notes & diagnosis**: Doctors can add and edit consultation notes and diagnosis per patient from the patient profile. Stored in Firestore `consultation_notes`. New: `ConsultationNote` model, `ConsultationNoteService`, `DoctorAddEditConsultationNotePage`.
 
-**Suggested commit message:**
-```
-feat(doctor): patient profile with health history, glucose trends, and prescription system (TODO #2, #3)
-
-- Doctor patient profile: recent glucose list, 7-day trend (avg/low/high), meds list
-- DoctorAddEditPrescriptionPage: add/edit medicine for patient (name, dosage, time, frequency)
-- Uses MedicineService and GlucoseReadingService for patient uid
-- PROJECT_STRUCTURE and README updated with doctor roadmap
-```
 
 ## License
 
