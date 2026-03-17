@@ -77,7 +77,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         medTotal = medicines.length;
         final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
         final entries = await _medicineService.getEntries(
-          user.uid!,
+          user.uid,
           fromDate: todayStr,
           toDate: todayStr,
         );
@@ -157,10 +157,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
     final weekCount = _weekReadings.length;
     if (weekCount >= 14) {
       score += 30;
-    } else if (weekCount >= 7)
+    } else if (weekCount >= 7) {
       score += 20;
-    else if (weekCount >= 3)
+    } else if (weekCount >= 3) {
       score += 10;
+    }
     return score.roundToDouble();
   }
 
@@ -277,19 +278,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha:0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha:0.3), width: 2),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha:0.15),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(Icons.water_drop, color: color, size: 40),
@@ -365,7 +366,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.teal.withOpacity(0.3),
+              color: Colors.teal.withValues(alpha:0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -393,7 +394,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               'Start monitoring your blood glucose',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha:0.9),
               ),
             ),
           ],
@@ -414,7 +415,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -549,7 +550,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
-      shadowColor: Colors.grey.withOpacity(0.2),
+      shadowColor: Colors.grey.withValues(alpha:0.2),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -584,7 +585,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -708,7 +709,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           drawVerticalLine: false,
           horizontalInterval: maxY / 4,
           getDrawingHorizontalLine: (_) =>
-              FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
+              FlLine(color: Colors.grey.withValues(alpha:0.2), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
       ),
@@ -724,7 +725,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -806,7 +807,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha:0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -845,12 +846,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+          colors: [color.withValues(alpha:0.15), color.withValues(alpha:0.05)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,7 +911,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha:0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -962,7 +963,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1027,7 +1028,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 20),

@@ -213,7 +213,7 @@ class _RemindersPageState extends State<RemindersPage> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: _typeColor(reminder.reminderType).withOpacity(0.12),
+                    color: _typeColor(reminder.reminderType).withValues(alpha:0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(

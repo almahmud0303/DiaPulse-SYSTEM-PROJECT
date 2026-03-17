@@ -194,7 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -251,8 +251,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 fillColor: Colors.grey.shade50,
               ),
               validator: (value) {
-                if (value == null || value.isEmpty)
+                if (value == null || value.isEmpty) {
                   return 'Please enter your name';
+                }
                 return null;
               },
             ),
@@ -271,9 +272,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty)
+                if (value == null || value.isEmpty) {
                   return 'Please enter your initials';
-                if (value.length > 3) return 'Maximum 3 characters allowed';
+                }
+                if (value.length > 3) {
+                  return 'Maximum 3 characters allowed';
+                }
                 return null;
               },
               onChanged: (_) => setState(() {}),
@@ -292,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -345,7 +349,7 @@ class _SettingsPageState extends State<SettingsPage> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

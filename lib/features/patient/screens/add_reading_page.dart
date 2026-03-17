@@ -216,7 +216,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -288,7 +288,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -324,15 +324,15 @@ class _AddReadingPageState extends State<AddReadingPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _getGlucoseLevelColor().withOpacity(0.2),
-                  _getGlucoseLevelColor().withOpacity(0.1),
+                  _getGlucoseLevelColor().withValues(alpha:0.2),
+                  _getGlucoseLevelColor().withValues(alpha:0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: _getGlucoseLevelColor().withOpacity(0.3),
+                color: _getGlucoseLevelColor().withValues(alpha:0.3),
                 width: 2,
               ),
             ),
@@ -401,7 +401,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                   activeTrackColor: _getGlucoseLevelColor(),
                   inactiveTrackColor: Colors.grey.shade300,
                   thumbColor: _getGlucoseLevelColor(),
-                  overlayColor: _getGlucoseLevelColor().withOpacity(0.2),
+                  overlayColor: _getGlucoseLevelColor().withValues(alpha:0.2),
                 ),
                 child: Slider(
                   value: _glucoseLevel,
@@ -502,7 +502,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -551,7 +551,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -607,7 +607,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     gradient: isSelected
                         ? LinearGradient(
                             colors: [
-                              (mealTime['color'] as Color).withOpacity(0.8),
+                              (mealTime['color'] as Color).withValues(alpha:0.8),
                               mealTime['color'] as Color,
                             ],
                           )
@@ -623,7 +623,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: (mealTime['color'] as Color).withOpacity(
+                              color: (mealTime['color'] as Color).withValues(alpha:
                                 0.3,
                               ),
                               blurRadius: 8,
@@ -685,7 +685,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.teal.withOpacity(0.4),
+            color: Colors.teal.withValues(alpha:0.4),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

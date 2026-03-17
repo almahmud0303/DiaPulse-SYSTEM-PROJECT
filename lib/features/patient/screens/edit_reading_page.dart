@@ -160,7 +160,7 @@ class _EditReadingPageState extends State<EditReadingPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _colorForLevel(_glucoseLevel).withOpacity(0.5)),
+        border: Border.all(color: _colorForLevel(_glucoseLevel).withValues(alpha:0.5)),
       ),
       child: Column(
         children: [

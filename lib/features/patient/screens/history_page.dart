@@ -159,7 +159,7 @@ class _HistoryPageState extends State<HistoryPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.history, color: Colors.white, size: 28),
@@ -227,7 +227,7 @@ class _HistoryPageState extends State<HistoryPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -274,7 +274,7 @@ class _HistoryPageState extends State<HistoryPage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha:0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -297,7 +297,7 @@ class _HistoryPageState extends State<HistoryPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -339,7 +339,7 @@ class _HistoryPageState extends State<HistoryPage> {
             color: Colors.teal,
             barWidth: 2,
             dotData: const FlDotData(show: true),
-            belowBarData: BarAreaData(show: true, color: Colors.teal.withOpacity(0.1)),
+            belowBarData: BarAreaData(show: true, color: Colors.teal.withValues(alpha:0.1)),
           ),
         ],
         titlesData: FlTitlesData(
@@ -368,7 +368,7 @@ class _HistoryPageState extends State<HistoryPage> {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          getDrawingHorizontalLine: (_) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
+          getDrawingHorizontalLine: (_) => FlLine(color: Colors.grey.withValues(alpha:0.2), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
       ),
@@ -422,8 +422,11 @@ class _HistoryPageState extends State<HistoryPage> {
           if (v > 0) {
             if (v >= 70 && v <= 140) {
               color = Colors.green;
-            } else if (v < 70) color = Colors.blue;
-            else color = Colors.orange;
+            } else if (v < 70) {
+              color = Colors.blue;
+            } else {
+              color = Colors.orange;
+            }
           }
           return BarChartGroupData(
             x: e.key,
@@ -474,7 +477,7 @@ class _HistoryPageState extends State<HistoryPage> {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          getDrawingHorizontalLine: (_) => FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
+          getDrawingHorizontalLine: (_) => FlLine(color: Colors.grey.withValues(alpha:0.2), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
       ),
@@ -521,8 +524,12 @@ class _HistoryPageState extends State<HistoryPage> {
     Color color = Colors.green;
     if (r.glucoseLevel < 70) {
       color = Colors.blue;
-    } else if (r.glucoseLevel > 140) color = Colors.orange;
-    if (r.glucoseLevel > 200) color = Colors.red;
+    } else if (r.glucoseLevel > 140) {
+      color = Colors.orange;
+    }
+    if (r.glucoseLevel > 200) {
+      color = Colors.red;
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -531,7 +538,7 @@ class _HistoryPageState extends State<HistoryPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.grey.withValues(alpha:0.08), blurRadius: 6, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -540,7 +547,7 @@ class _HistoryPageState extends State<HistoryPage> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha:0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,

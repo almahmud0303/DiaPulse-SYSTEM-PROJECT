@@ -19,7 +19,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -31,7 +31,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha:0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -67,7 +67,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
+                        color: color.withValues(alpha:0.12),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(

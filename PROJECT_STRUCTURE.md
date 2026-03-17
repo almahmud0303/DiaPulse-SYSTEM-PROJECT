@@ -13,21 +13,50 @@ lib/
 ├── core/
 │   ├── navigation/app_router.dart
 │   ├── theme/app_theme.dart
+│   ├── theme/theme_notifier.dart
 │   └── utils/page_transitions.dart
 ├── models/
 │   ├── user_role.dart
-│   └── app_user.dart
+│   ├── app_user.dart
+│   ├── glucose_reading.dart
+│   ├── glucose_report_data.dart
+│   ├── glucose_report_stats.dart
+│   ├── health_score.dart
+│   ├── health_score_breakdown.dart
+│   ├── meal.dart
+│   ├── medicine.dart
+│   ├── medicine_entry.dart
+│   ├── activity.dart
+│   ├── reminder.dart
+│   ├── reminder_repeat_mode.dart
+│   ├── reminder_settings.dart
+│   └── reminder_type.dart
 ├── services/
 │   ├── auth_service.dart
-│   ├── role_service.dart         # Second password
-│   └── invite_code_service.dart
+│   ├── role_service.dart
+│   ├── invite_code_service.dart
+│   ├── glucose_reading_service.dart
+│   ├── medicine_service.dart
+│   ├── meal_service.dart
+│   ├── activity_service.dart
+│   ├── profile_service.dart
+│   ├── health_score_service.dart
+│   ├── reminder_service.dart
+│   ├── reminder_storage_service.dart
+│   ├── reminder_notification_service.dart
+│   ├── report_service.dart
+│   ├── pdf_report_service.dart
+│   └── doctor_patient_service.dart    # Doctor: list patients, latest reading, risk
 └── features/
-    ├── auth/screens/             # Login, Register, Email verify, Second password
-    ├── home/screens/             # MainNavigationPage (tab bar)
-    ├── patient/screens/          # PatientHomePage + future patient screens
-    ├── doctor/screens/           # DoctorHomePage + future doctor screens
-    ├── admin/screens/            # AdminHomePage, InviteCodesPage + future admin
-    └── shared/screens/           # Settings, DoctorConsultation, DiabetesEssentials
+    ├── auth/screens/                  # Starting, Login, Register, Email verify, Second password
+    ├── home/screens/                  # MainNavigationPage (tab bar)
+    ├── patient/
+    │   ├── screens/                   # Dashboard, readings, history, medicines, reminders, profile, reports
+    │   ├── widgets/                   # Health score card, reminder card, dialogs, etc.
+    │   └── history/                   # data/repositories, models, presentation (screens, viewmodels, widgets)
+    ├── doctor/screens/                # DoctorHomePage, DoctorPatientsPage
+    ├── admin/screens/                 # AdminHomePage, InviteCodesPage
+    └── shared/screens/                # Settings, Reminder settings, Doctor consultation, Diabetes essentials
 ```
 
 ## Future Extension by Role
@@ -70,11 +99,25 @@ Existing patient files:
 - `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart` – Medication log, Take/Missed, History
 - `profile_page.dart` – Edit profile (name, age, weight, height, diabetes type). Opened from Settings for patients.
 
-### Doctor
-Add under `features/doctor/screens/`:
-- `patients_list_page.dart` - Assigned patients
-- `consultation_page.dart` - Manage consultations
-- `schedule_page.dart` - Appointments
+### Doctor – feature roadmap (simple → moderate)
+
+| # | Feature | Status |
+|---|---------|--------|
+| 1 | **Patient list**: screen + service to list patients with latest reading & risk | ✅ Done – `doctor_patients_page.dart`, `doctor_patient_service.dart`; "My Patients" opens list |
+| 2 | **Patient profile for doctor**: health history, glucose trends, medication list | Pending |
+| 3 | **Prescription system**: add/update medicine for patient | Pending |
+| 4 | **Consultation notes & diagnosis**: save notes/diagnosis (Firestore + UI) | Pending |
+| 5 | **Risk status**: compute and show risk on list and profile | Pending |
+| 6 | **Monitoring dashboard**: high-risk and poor-control patients view | Pending |
+| 7 | **Alerts for doctor**: notify on very high sugar or missed medicines | Pending |
+| 8 | **Messaging**: doctor ↔ patient in-app communication | Pending |
+| 9 | **Insulin adjustment** in prescription flow | Pending |
+| 10 | **Polish**: latest readings summary and risk display on dashboard | Pending |
+
+Existing doctor files:
+- `doctor_home_page.dart` – Dashboard; "My Patients" navigates to `DoctorPatientsPage`
+- `doctor_patients_page.dart` – List of patients with latest reading and risk chip
+- `services/doctor_patient_service.dart` – `getPatients()`, `getLatestReading()`, `riskFromReading()`
 
 ### Admin
 Add under `features/admin/screens/`:

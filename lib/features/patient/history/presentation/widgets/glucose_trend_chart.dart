@@ -26,7 +26,7 @@ class GlucoseTrendChart extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -102,7 +102,7 @@ class GlucoseTrendChart extends StatelessWidget {
         show: true,
         drawVerticalLine: false,
         getDrawingHorizontalLine: (value) {
-          return FlLine(color: Colors.grey.withOpacity(0.16), strokeWidth: 1);
+          return FlLine(color: Colors.grey.withValues(alpha:0.16), strokeWidth: 1);
         },
       ),
       titlesData: FlTitlesData(
@@ -161,13 +161,13 @@ class GlucoseTrendChart extends StatelessWidget {
         horizontalLines: [
           HorizontalLine(
             y: 70,
-            color: Colors.blue.withOpacity(0.5),
+            color: Colors.blue.withValues(alpha:0.5),
             dashArray: const [5, 4],
             strokeWidth: 1,
           ),
           HorizontalLine(
             y: 180,
-            color: Colors.orange.withOpacity(0.5),
+            color: Colors.orange.withValues(alpha:0.5),
             dashArray: const [5, 4],
             strokeWidth: 1,
           ),
@@ -207,8 +207,8 @@ class GlucoseTrendChart extends StatelessWidget {
             show: true,
             gradient: LinearGradient(
               colors: [
-                Colors.teal.withOpacity(0.20),
-                Colors.teal.withOpacity(0.02),
+                Colors.teal.withValues(alpha:0.20),
+                Colors.teal.withValues(alpha:0.02),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

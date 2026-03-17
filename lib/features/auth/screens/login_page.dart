@@ -44,6 +44,7 @@ class _LoginPageState extends State<LoginPage> {
         AppRouter.goToEmailVerification(context);
       } else {
         final role = await _authService.getCurrentUserRole();
+        if (!mounted) return;
         if (role != null && role.requiresSecondPassword) {
           AppRouter.goToSecondPassword(context);
         } else {

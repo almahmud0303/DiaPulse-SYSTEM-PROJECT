@@ -203,7 +203,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.analytics, color: Colors.white, size: 28),
@@ -237,10 +237,10 @@ class _ReadingsPageState extends State<ReadingsPage> {
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Search by value, type, notes, date...',
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha:0.8)),
               prefixIcon: Icon(Icons.search, color: Colors.white70),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.2),
+              fillColor: Colors.white.withValues(alpha:0.2),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -370,7 +370,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -385,12 +385,12 @@ class _ReadingsPageState extends State<ReadingsPage> {
               height: 90,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                  colors: [color.withValues(alpha:0.2), color.withValues(alpha:0.1)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withOpacity(0.3), width: 2),
+                border: Border.all(color: color.withValues(alpha:0.3), width: 2),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

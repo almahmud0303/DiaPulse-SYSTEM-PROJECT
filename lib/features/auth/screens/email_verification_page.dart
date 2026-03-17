@@ -36,6 +36,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         timer.cancel();
         if (!mounted) return;
         final role = await _authService.getCurrentUserRole();
+        if (!mounted) return;
         if (role != null && role.requiresSecondPassword) {
           AppRouter.goToSecondPassword(context);
         } else {

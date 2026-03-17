@@ -113,7 +113,7 @@ class DoctorConsultationPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -125,7 +125,7 @@ class DoctorConsultationPage extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha:0.1),
                 child: Icon(Icons.person, size: 40, color: color),
               ),
               const SizedBox(width: 15),
@@ -226,7 +226,7 @@ class DoctorConsultationPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
@@ -237,7 +237,7 @@ class DoctorConsultationPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 28),

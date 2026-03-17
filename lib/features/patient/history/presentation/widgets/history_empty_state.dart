@@ -14,7 +14,7 @@ class HistoryEmptyState extends StatelessWidget {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.08),
+              color: Colors.teal.withValues(alpha:0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(

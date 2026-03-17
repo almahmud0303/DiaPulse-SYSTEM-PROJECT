@@ -69,7 +69,7 @@ class ReminderCard extends StatelessWidget {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: accent.withOpacity(0.12),
+                      color: accent.withValues(alpha:0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(

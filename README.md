@@ -30,29 +30,19 @@ Auth flow: **Login/Register** → Email verification → (Second password for Do
 lib/
 ├── main.dart
 ├── firebase_options.dart
-├── core/
-│   ├── navigation/app_router.dart
-│   ├── theme/app_theme.dart
-│   └── utils/page_transitions.dart
-├── models/
-│   ├── user_role.dart
-│   ├── app_user.dart
-│   └── glucose_reading.dart
-├── services/
-│   ├── auth_service.dart
-│   ├── role_service.dart
-│   ├── invite_code_service.dart
-│   └── glucose_reading_service.dart
+├── core/                    # Navigation, theme, utils
+├── models/                  # User, glucose, medicine, meal, activity, reminder, health score, reports
+├── services/                # Auth, CRUD, reminders, reports, PDF, doctor_patient (patient list + risk)
 └── features/
-    ├── auth/screens/        # Login, Register, Email verify, Second password
+    ├── auth/screens/        # Starting, Login, Register, Email verify, Second password
     ├── home/screens/        # MainNavigationPage (tab bar)
-    ├── patient/screens/     # Dashboard, Add/Edit reading, Readings, History, etc.
-    ├── doctor/screens/
-    ├── admin/screens/
-    └── shared/screens/      # Settings, Doctor consultation, Diabetes essentials
+    ├── patient/             # Screens, widgets, history (data + presentation)
+    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage (My Patients list)
+    ├── admin/screens/       # AdminHomePage, InviteCodesPage
+    └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials
 ```
 
-See **PROJECT_STRUCTURE.md** for the full roadmap and where to implement each feature.
+See **PROJECT_STRUCTURE.md** for the full file tree, Firestore collections, and feature roadmaps (patient, doctor, admin).
 
 ## Prerequisites
 

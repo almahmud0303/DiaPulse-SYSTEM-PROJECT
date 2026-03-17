@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dia_plus/features/doctor/screens/doctor_patients_page.dart';
+
 /// Doctor-specific home screen.
 class DoctorHomePage extends StatelessWidget {
   const DoctorHomePage({super.key});
@@ -56,6 +58,13 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'My Patients',
                 subtitle: 'View and manage patient consultations',
                 color: Colors.blue,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const DoctorPatientsPage(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildCard(
@@ -64,6 +73,7 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'Appointments',
                 subtitle: 'Upcoming and past appointments',
                 color: Colors.green,
+                onTap: () {},
               ),
               const SizedBox(height: 16),
               _buildCard(
@@ -72,6 +82,7 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'Messages',
                 subtitle: 'Patient messages and inquiries',
                 color: Colors.orange,
+                onTap: () {},
               ),
             ],
           ),
@@ -86,55 +97,60 @@ class DoctorHomePage extends StatelessWidget {
     required String title,
     required String subtitle,
     required Color color,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: color, size: 32),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 32),
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
-        ],
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+          ],
+        ),
       ),
     );
   }
