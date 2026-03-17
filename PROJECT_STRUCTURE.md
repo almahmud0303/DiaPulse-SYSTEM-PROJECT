@@ -125,6 +125,8 @@ lib/
     ├── doctor/screens/
     │   ├── doctor_home_page.dart
     │   ├── doctor_patients_page.dart
+    │   ├── doctor_monitoring_dashboard_page.dart
+    │   ├── doctor_alerts_page.dart
     │   ├── doctor_patient_profile_page.dart
     │   ├── doctor_add_edit_prescription_page.dart
     │   └── doctor_add_edit_consultation_note_page.dart
@@ -137,7 +139,10 @@ lib/
         ├── settings_page.dart
         ├── reminder_settings_page.dart
         ├── doctor_consultation_page.dart
-        └── diabetes_essentials_page.dart
+        ├── diabetes_essentials_page.dart
+        ├── conversation_list_page.dart
+        ├── chat_page.dart
+        └── select_conversation_partner_page.dart
 ```
 
 ## Layer Summary
@@ -156,13 +161,17 @@ lib/
 - **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
 - **Consultation notes & diagnosis**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
 - **Risk status**: [PatientRisk](lib/models/patient_risk.dart) and [DoctorPatientService.getPatientRisk](lib/services/doctor_patient_service.dart) compute risk from last 7 days glucose (low/moderate/elevated/high). Shown on patient list (badge) and on patient profile (Risk status card with summary and avg/readings).
-- **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`, `getPatientRisk(uid)`.
+- **Monitoring dashboard**: [DoctorMonitoringDashboardPage](lib/features/doctor/screens/doctor_monitoring_dashboard_page.dart) shows **high-risk** (elevated/high) and **poor-control** (moderate) patients at a glance; tap opens patient profile. Accessible from doctor home.
+- **Alerts**: [DoctorAlertsPage](lib/features/doctor/screens/doctor_alerts_page.dart) lists **very high sugar** (glucose ≥200 mg/dL) and **missed medicines** in the last 2 days; [DoctorAlertService](lib/services/doctor_alert_service.dart) and [DoctorAlert](lib/models/doctor_alert.dart). Tap opens patient profile.
+- **Messaging**: Doctor ↔ patient chat. [ConversationListPage](lib/features/shared/screens/conversation_list_page.dart) lists conversations; [ChatPage](lib/features/shared/screens/chat_page.dart) shows messages (real-time stream); [SelectConversationPartnerPage](lib/features/shared/screens/select_conversation_partner_page.dart) to start a new chat. Firestore: `conversations` (participants, lastMessageAt), `messages` (conversationId, senderId, receiverId, text, createdAt). [MessagingService](lib/services/messaging_service.dart), [ChatMessage](lib/models/chat_message.dart), [Conversation](lib/models/conversation.dart). Doctor: Messages card on home. Patient: Messages card on dashboard.
+- **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getDoctors()`, `getPatientProfile(uid)`, `getPatientRisk(uid)`.
 
 ## Patient Feature Notes
 
 - **History** is implemented as a sub-feature under `features/patient/history/` with **data** (repository), **models** (date range, stats, trend), and **presentation** (screen, viewmodel, widgets). The older flat `patient/screens/history_page.dart` may coexist; prefer the presentation screen and viewmodel for new work.
 - **Reports & PDF**: `report_service.dart`, `pdf_report_service.dart`, `export_report_page.dart`, `pdf_preview_page.dart`, and widgets like `report_range_selector.dart`, `report_summary_card.dart`, `export_report_button.dart`.
 - **Reminders**: `reminder_service.dart`, `reminder_storage_service.dart`, `reminder_notification_service.dart`, plus `reminders_page.dart`, `add_edit_reminder_page.dart`, and shared `reminder_settings_page.dart`.
+- **Messages**: Patient can open [ConversationListPage](lib/features/shared/screens/conversation_list_page.dart) via the Messages card on the dashboard to chat with doctors.
 
 ## Auth Flow
 

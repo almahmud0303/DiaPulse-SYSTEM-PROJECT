@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
@@ -14,6 +15,20 @@ class DoctorPatientService {
     final snapshot = await _firestore
         .collection('users')
         .where('role', isEqualTo: UserRole.patient.value)
+        .get();
+
+    final list = snapshot.docs
+        .map((doc) => AppUser.fromMap(doc.id, doc.data()))
+        .toList();
+    list.sort((a, b) => a.displayName.compareTo(b.displayName));
+    return list;
+  }
+
+  /// Fetches all users with role [UserRole.doctor] (e.g. for patient messaging).
+  Future<List<AppUser>> getDoctors() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .where('role', isEqualTo: UserRole.doctor.value)
         .get();
 
     final list = snapshot.docs
@@ -84,5 +99,10 @@ class DoctorPatientService {
       highCount: highCount,
       veryHighCount: veryHighCount,
     );
+  }
+
+  /// Fetches the N most recent glucose readings for a patient (for dashboard).
+  Future<List<GlucoseReading>> getLatestReadings(String patientId, {int limit = 3}) async {
+    return _glucoseService.getLatestReadings(patientId, limit: limit);
   }
 }
