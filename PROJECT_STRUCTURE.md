@@ -154,24 +154,9 @@ lib/
 - **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart).
 - **Patient profile (doctor view)**: Name, contact, basic info; **health history** (recent glucose readings); **glucose trends** (last 7 days avg/low/high); **prescriptions/medicines** list with add/edit via [DoctorAddEditPrescriptionPage](lib/features/doctor/screens/doctor_add_edit_prescription_page.dart).
 - **Prescription system**: Doctor can add or update a medicine for a patient (name, dosage, time, frequency); stored in Firestore `medicines` with patient `userId`; uses [MedicineService](lib/services/medicine_service.dart).
-- **Consultation notes & diagnosis (TODO #4)**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
-- **Risk status (TODO #5)**: [PatientRisk](lib/models/patient_risk.dart) and [DoctorPatientService.getPatientRisk](lib/services/doctor_patient_service.dart) compute risk from last 7 days glucose (low/moderate/elevated/high). Shown on patient list (badge) and on patient profile (Risk status card with summary and avg/readings).
+- **Consultation notes & diagnosis**: Doctor can add/edit notes and diagnosis per patient; stored in Firestore `consultation_notes`; [ConsultationNoteService](lib/services/consultation_note_service.dart), [DoctorAddEditConsultationNotePage](lib/features/doctor/screens/doctor_add_edit_consultation_note_page.dart); listed on patient profile.
+- **Risk status**: [PatientRisk](lib/models/patient_risk.dart) and [DoctorPatientService.getPatientRisk](lib/services/doctor_patient_service.dart) compute risk from last 7 days glucose (low/moderate/elevated/high). Shown on patient list (badge) and on patient profile (Risk status card with summary and avg/readings).
 - **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`, `getPatientRisk(uid)`.
-
-### Doctor roadmap (TODOs)
-
-| # | Feature | Status |
-|---|---------|--------|
-| 1 | Patient list – screen + service | Done |
-| 2 | Patient profile – health history, glucose trends, meds | Done |
-| 3 | Prescription system – add/update medicine for patient | Done |
-| 4 | Consultation notes & diagnosis – save notes/diagnosis (Firestore + UI) | Done |
-| 5 | Risk status – compute and show on list/profile | Done |
-| 6 | Monitoring dashboard – high-risk, poor control | Pending |
-| 7 | Alerts for doctor – very high sugar, missed medicines | Pending |
-| 8 | Messaging – doctor ↔ patient | Pending |
-| 9 | Insulin adjustment in prescription flow | Pending |
-| 10 | Polish – latest readings summary and risk on dashboard | Pending |
 
 ## Patient Feature Notes
 

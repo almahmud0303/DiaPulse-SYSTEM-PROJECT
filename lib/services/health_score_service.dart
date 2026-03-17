@@ -104,4 +104,5 @@ class HealthScoreService {
       insights: insights,
     );
   }
+
 }

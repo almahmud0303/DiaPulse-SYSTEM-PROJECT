@@ -1,6 +1,9 @@
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/models/reminder_repeat_mode.dart';
 import 'package:dia_plus/models/reminder_type.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,15 +20,21 @@ class ReminderNotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _timezoneInitialized = false;
+  bool _initialized = false;
 
   /// Android setup note:
   /// Ensure a channel is created and Android 13+ notification permission is requested.
-  /// If exact alarms are used later, add required exact alarm permissions in AndroidManifest.
+  /// If exact alarms are used later, add require5 exact alarm permissions in AndroidManifest.
   /// iOS setup note:
   /// Ensure notification permissions are requested from the user.
   Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
+
     if (!_timezoneInitialized) {
       tz.initializeTimeZones();
+      await _configureLocalTimezone();
       _timezoneInitialized = true;
     }
 
@@ -40,9 +49,27 @@ class ReminderNotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
     await androidImpl?.createNotificationChannel(_androidChannel);
+    _initialized = true;
+  }
+
+  Future<void> _configureLocalTimezone() async {
+    try {
+      final timezoneName = await FlutterTimezone.getLocalTimezone();
+      final location = tz.getLocation(timezoneName);
+      tz.setLocalLocation(location);
+      debugPrint('[ReminderSchedule] timezone configured: ${tz.local.name}');
+    } catch (_) {
+      // Do not force UTC. If timezone lookup fails, keeping the existing
+      // default avoids shifting reminders by several hours.
+      debugPrint(
+        '[ReminderSchedule] timezone lookup failed; using default: ${tz.local.name}',
+      );
+    }
   }
 
   Future<bool> requestPermissions() async {
+    await initialize();
+
     final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -53,6 +80,11 @@ class ReminderNotificationService {
         >();
 
     final androidGranted = await androidImpl?.requestNotificationsPermission();
+    try {
+      await androidImpl?.requestExactAlarmsPermission();
+    } catch (_) {
+      // Keep reminder flow working even if exact-alarm permission API is unavailable.
+    }
     final iosGranted = await iosImpl?.requestPermissions(
       alert: true,
       badge: true,
@@ -63,6 +95,8 @@ class ReminderNotificationService {
   }
 
   Future<Reminder> scheduleReminder(Reminder reminder) async {
+    await initialize();
+
     if (!reminder.isEnabled) {
       return reminder.copyWith(notificationIds: const []);
     }
@@ -84,19 +118,37 @@ class ReminderNotificationService {
       required tz.TZDateTime scheduled,
       DateTimeComponents? match,
     }) async {
-      await _plugin.zonedSchedule(
-        id,
-        reminder.title,
-        reminder.description.isEmpty
-            ? reminder.reminderType.label
-            : reminder.description,
-        scheduled,
-        notificationDetails,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        payload: reminder.id,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: match,
+      Future<void> doSchedule(AndroidScheduleMode mode) =>
+          _plugin.zonedSchedule(
+            id,
+            reminder.title,
+            reminder.description.isEmpty
+                ? reminder.reminderType.label
+                : reminder.description,
+            scheduled,
+            notificationDetails,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: reminder.id,
+            androidScheduleMode: mode,
+            matchDateTimeComponents: match,
+          );
+
+      try {
+        await doSchedule(AndroidScheduleMode.exactAllowWhileIdle);
+      } on PlatformException catch (e) {
+        if (e.code == 'exact_alarms_not_permitted') {
+          try {
+            await doSchedule(AndroidScheduleMode.alarmClock);
+          } on PlatformException {
+            await doSchedule(AndroidScheduleMode.inexactAllowWhileIdle);
+          }
+        } else {
+          rethrow;
+        }
+      }
+      debugPrint(
+        '[ReminderSchedule] id=$id title=${reminder.title} scheduled=${scheduled.toLocal()} tz=${tz.local.name} repeat=${reminder.repeatMode.name}',
       );
       ids.add(id);
     }
@@ -141,21 +193,30 @@ class ReminderNotificationService {
         break;
     }
 
+    if (ids.isEmpty) {
+      throw Exception(
+        'No valid future trigger time was generated for this reminder.',
+      );
+    }
+
     return reminder.copyWith(notificationIds: ids);
   }
 
   Future<Reminder> rescheduleReminder(Reminder reminder) async {
+    await initialize();
     await cancelReminderNotifications(reminder.notificationIds);
     return scheduleReminder(reminder.copyWith(notificationIds: const []));
   }
 
   Future<void> cancelReminderNotifications(List<int> notificationIds) async {
+    await initialize();
     for (final id in notificationIds) {
       await _plugin.cancel(id);
     }
   }
 
   Future<void> cancelAllScheduled() async {
+    await initialize();
     await _plugin.cancelAll();
   }
 
@@ -165,6 +226,7 @@ class ReminderNotificationService {
   }
 
   Future<void> showTestNotification() async {
+    await initialize();
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         'diapulse_reminders_channel',
@@ -182,6 +244,10 @@ class ReminderNotificationService {
       'This is a test reminder notification.',
       details,
     );
+  }
+
+  Future<List<PendingNotificationRequest>> getPendingRequests() {
+    return _plugin.pendingNotificationRequests();
   }
 
   int _buildNotificationId(String reminderId, int suffix) {
