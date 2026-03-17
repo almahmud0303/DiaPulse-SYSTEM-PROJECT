@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:dia_plus/features/doctor/screens/doctor_patients_page.dart';
+import 'doctor_patients_page.dart';
 
 /// Doctor-specific home screen.
 class DoctorHomePage extends StatelessWidget {
@@ -61,7 +61,7 @@ class DoctorHomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const DoctorPatientsPage(),
+                      builder: (context) => const DoctorPatientsPage(),
                     ),
                   );
                 },
@@ -73,7 +73,6 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'Appointments',
                 subtitle: 'Upcoming and past appointments',
                 color: Colors.green,
-                onTap: () {},
               ),
               const SizedBox(height: 16),
               _buildCard(
@@ -82,7 +81,6 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'Messages',
                 subtitle: 'Patient messages and inquiries',
                 color: Colors.orange,
-                onTap: () {},
               ),
             ],
           ),
@@ -109,7 +107,7 @@ class DoctorHomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: Colors.grey.withValues(alpha:0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -120,7 +118,7 @@ class DoctorHomePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),

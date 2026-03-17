@@ -6,7 +6,7 @@ A Flutter diabetes management app with role-based access for **Patients**, **Doc
 
 ### Roles & Auth
 - **Patient** – Register or log in; track glucose, view history, use dashboard.
-- **Doctor** – Requires invite code and second password at registration; dedicated dashboard.
+- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** lists all patients; tap to open **Patient profile** (name, contact, basic info).
 - **Admin** – Requires invite code and second password; can generate invite codes for Doctor/Admin.
 
 Auth flow: **Login/Register** → Email verification → (Second password for Doctor/Admin) → **Dashboard**.
@@ -31,18 +31,21 @@ lib/
 ├── main.dart
 ├── firebase_options.dart
 ├── core/                    # Navigation, theme, utils
-├── models/                  # User, glucose, medicine, meal, activity, reminder, health score, reports
-├── services/                # Auth, CRUD, reminders, reports, PDF, doctor_patient (patient list + risk)
+│   ├── navigation/app_router.dart
+│   ├── theme/app_theme.dart, theme_notifier.dart
+│   └── utils/page_transitions.dart
+├── models/                  # Domain models (user, glucose, medicine, meal, activity, reminder, health score, reports)
+├── services/                 # Auth, CRUD, reminders, reports, PDF
 └── features/
     ├── auth/screens/        # Starting, Login, Register, Email verify, Second password
     ├── home/screens/        # MainNavigationPage (tab bar)
     ├── patient/             # Screens, widgets, history (data + presentation)
-    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage (My Patients list)
+    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage
     ├── admin/screens/       # AdminHomePage, InviteCodesPage
     └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials
 ```
 
-See **PROJECT_STRUCTURE.md** for the full file tree, Firestore collections, and feature roadmaps (patient, doctor, admin).
+See **PROJECT_STRUCTURE.md** for the full file tree, Firestore collections, and feature roadmap (including the doctor roadmap TODOs).
 
 ## Prerequisites
 
@@ -98,6 +101,13 @@ flutter run -d windows
 | `users/{uid}`      | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
 | `inviteCodes/{id}` | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
 | `glucose_readings` | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
+
+## Changelog / GitHub
+
+- **Doctor features (TODO #1 & #2)**  
+  - **My Patients**: Doctor dashboard → My Patients opens a list of all patients (from Firestore).  
+  - **Patient profile (doctor view)**: Tap a patient to see profile: name, email, phone, and basic info (age, weight, height, diabetes type when set in patient profile).  
+  - New: `DoctorPatientService`, `DoctorPatientsPage`, `DoctorPatientProfilePage`. See **PROJECT_STRUCTURE.md** for the full doctor roadmap.
 
 ## License
 

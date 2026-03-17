@@ -1,8 +1,8 @@
-# Dia Plus - Project Structure
+# Dia Plus – Project Structure
 
 ## Overview
 
-Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password.
+Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; history uses a data/presentation split with reports and PDF export.
 
 ## Folder Structure
 
@@ -10,11 +10,16 @@ Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin req
 lib/
 ├── main.dart
 ├── firebase_options.dart
+│
 ├── core/
-│   ├── navigation/app_router.dart
-│   ├── theme/app_theme.dart
-│   ├── theme/theme_notifier.dart
-│   └── utils/page_transitions.dart
+│   ├── navigation/
+│   │   └── app_router.dart
+│   ├── theme/
+│   │   ├── app_theme.dart
+│   │   └── theme_notifier.dart
+│   └── utils/
+│       └── page_transitions.dart
+│
 ├── models/
 │   ├── user_role.dart
 │   ├── app_user.dart
@@ -31,6 +36,7 @@ lib/
 │   ├── reminder_repeat_mode.dart
 │   ├── reminder_settings.dart
 │   └── reminder_type.dart
+│
 ├── services/
 │   ├── auth_service.dart
 │   ├── role_service.dart
@@ -41,114 +47,155 @@ lib/
 │   ├── activity_service.dart
 │   ├── profile_service.dart
 │   ├── health_score_service.dart
+│   ├── doctor_patient_service.dart
 │   ├── reminder_service.dart
 │   ├── reminder_storage_service.dart
 │   ├── reminder_notification_service.dart
 │   ├── report_service.dart
-│   ├── pdf_report_service.dart
-│   └── doctor_patient_service.dart    # Doctor: list patients, latest reading, risk
+│   └── pdf_report_service.dart
+│
 └── features/
-    ├── auth/screens/                  # Starting, Login, Register, Email verify, Second password
-    ├── home/screens/                  # MainNavigationPage (tab bar)
+    ├── auth/screens/
+    │   ├── starting_page.dart
+    │   ├── login_page.dart
+    │   ├── registration_page.dart
+    │   ├── email_verification_page.dart
+    │   └── second_password_page.dart
+    │
+    ├── home/screens/
+    │   └── main_navigation_page.dart
+    │
     ├── patient/
-    │   ├── screens/                   # Dashboard, readings, history, medicines, reminders, profile, reports
-    │   ├── widgets/                   # Health score card, reminder card, dialogs, etc.
-    │   └── history/                   # data/repositories, models, presentation (screens, viewmodels, widgets)
-    ├── doctor/screens/                # DoctorHomePage, DoctorPatientsPage
-    ├── admin/screens/                 # AdminHomePage, InviteCodesPage
-    └── shared/screens/                # Settings, Reminder settings, Doctor consultation, Diabetes essentials
+    │   ├── screens/
+    │   │   ├── patient_home_page.dart
+    │   │   ├── add_reading_page.dart
+    │   │   ├── edit_reading_page.dart
+    │   │   ├── readings_page.dart
+    │   │   ├── history_page.dart
+    │   │   ├── log_meal_page.dart
+    │   │   ├── log_activity_page.dart
+    │   │   ├── take_medicine_page.dart
+    │   │   ├── add_edit_medicine_page.dart
+    │   │   ├── medicine_list_page.dart
+    │   │   ├── medicine_history_page.dart
+    │   │   ├── add_edit_reminder_page.dart
+    │   │   ├── reminders_page.dart
+    │   │   ├── profile_page.dart
+    │   │   ├── health_score_details_page.dart
+    │   │   ├── export_report_page.dart
+    │   │   └── pdf_preview_page.dart
+    │   ├── widgets/
+    │   │   ├── health_score_card.dart
+    │   │   ├── next_reminder_widget.dart
+    │   │   ├── reminder_card.dart
+    │   │   ├── reminder_empty_state.dart
+    │   │   ├── repeat_selector.dart
+    │   │   ├── weekday_selector.dart
+    │   │   ├── diabetes_control_dialog.dart
+    │   │   ├── export_report_button.dart
+    │   │   ├── report_range_selector.dart
+    │   │   └── report_summary_card.dart
+    │   └── history/
+    │       ├── data/repositories/
+    │       │   └── history_reports_repository.dart
+    │       ├── models/
+    │       │   ├── history_date_range.dart
+    │       │   ├── history_statistics.dart
+    │       │   ├── glucose_trend_point.dart
+    │       │   └── glucose_trend_period.dart
+    │       └── presentation/
+    │           ├── screens/
+    │           │   └── history_page.dart
+    │           ├── viewmodels/
+    │           │   └── history_reports_viewmodel.dart
+    │           └── widgets/
+    │               ├── history_header.dart
+    │               ├── history_date_filter_bar.dart
+    │               ├── history_period_selector.dart
+    │               ├── history_stats_section.dart
+    │               ├── history_loading_state.dart
+    │               ├── history_empty_state.dart
+    │               ├── glucose_trend_chart.dart
+    │               ├── glucose_reading_history_tile.dart
+    │               └── glucose_readings_history_list.dart
+    │
+    ├── doctor/screens/
+    │   ├── doctor_home_page.dart
+    │   ├── doctor_patients_page.dart
+    │   └── doctor_patient_profile_page.dart
+    │
+    ├── admin/screens/
+    │   ├── admin_home_page.dart
+    │   └── invite_codes_page.dart
+    │
+    └── shared/screens/
+        ├── settings_page.dart
+        ├── reminder_settings_page.dart
+        ├── doctor_consultation_page.dart
+        └── diabetes_essentials_page.dart
 ```
 
-## Future Extension by Role
+## Layer Summary
 
-### Patient – feature roadmap (branch: feature/patient)
+| Layer     | Purpose |
+|----------|---------|
+| **core/** | App-wide navigation, theme, and utilities. |
+| **models/** | Domain/data models (user, glucose, medicine, meal, activity, reminder, health score, reports). |
+| **services/** | Firebase and local business logic (auth, CRUD, reminders, reports, PDF). |
+| **features/** | Role-based UI: auth, home (tabs), patient (screens + widgets + history feature), doctor, admin, shared. |
 
-**Basic (MVP)** – implement in:
+## Doctor Feature Notes
 
-| # | Feature | Where to implement |
-|---|---------|--------------------|
-| 1 | Dashboard: Take medicine action + Next glucose test reminder | `features/patient/screens/patient_home_page.dart`, `take_medicine_page.dart` ✓ |
-| 2 | Glucose: Reading type (Fasting/Before/After meal/Bedtime), Notes, Edit/Delete, Search | `add_reading_page.dart`, `readings_page.dart`, `edit_reading_page.dart`, `models/glucose_reading.dart`, `services/glucose_reading_service.dart` ✓ |
-| 3 | History: List + date filter, Daily/Weekly/Monthly graphs, Stats (avg, max, min) | `features/patient/screens/history_page.dart`, `main_navigation_page.dart` ✓ |
-| 4 | Medication: Log (add, dosage, time, frequency), Reminder, History (taken/missed) | `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart`, `take_medicine_page.dart`, `models/medicine.dart`, `models/medicine_entry.dart`, `services/medicine_service.dart`, Firestore `medicines`, `medicine_entries` ✓ |
-| 5 | Meal Tracking: Add meal, carbs, category (Breakfast/Lunch/Dinner/Snack) | `log_meal_page.dart`, `models/meal.dart`, `services/meal_service.dart`, Firestore `meals` ✓ |
-| 6 | Activity: Exercise type, duration, calories | `log_activity_page.dart`, `models/activity.dart`, `services/activity_service.dart`, Firestore `activities` ✓ |
-| 7 | Profile: Name, Age, Weight, Height, Diabetes type | `profile_page.dart`, `services/profile_service.dart`, `users` doc (age, weight, height, diabetesType) ✓ |
-| 8 | Settings: Notifications, Target glucose range, Emergency contact | `features/shared/screens/settings_page.dart` |
+- **My Patients**: [DoctorPatientsPage](lib/features/doctor/screens/doctor_patients_page.dart) lists all patients (from Firestore `users` where `role == patient`). Tapping a patient opens [DoctorPatientProfilePage](lib/features/doctor/screens/doctor_patient_profile_page.dart) (TODO #2).
+- **Patient profile (doctor view)**: Name, contact (email, phone), and basic info (age, weight, height, diabetes type from profile when set).
+- **Service**: [DoctorPatientService](lib/services/doctor_patient_service.dart) – `getPatients()`, `getPatientProfile(uid)`.
 
-**Moderate** – implement in:
-
-| # | Feature | Where to implement |
-|---|---------|--------------------|
-| 9 | Analytics: Trend (rising/stable/improving), Pattern detection | `features/patient/` analytics widget or new screen, use readings data |
-| 10 | Smart Graphs: Morning vs night, Meal impact, Weekly variation | `features/patient/screens/history_page.dart` or new `analytics_page.dart` |
-| 11 | Health Score: Add exercise + meal logging to calculation | `patient_home_page.dart` + small scoring service/helper |
-| 12 | Achievement System: Streaks, badges (e.g. 7-day streak) | `features/patient/` achievements widget/screen, models for badges |
-| 13 | Smart Reminders: Medicine, glucose test, appointment, exercise | `services/` reminder/notification service, local notifications |
-| 14 | Report Generation: Export PDF/CSV, Share with doctor | `features/patient/` report page or settings, export service |
-| 15 | Doctor Connection: Send report, Request appointment, Chat | `features/patient/` + `features/doctor/`, shared chat/requests |
-
-Existing patient files:
-- `patient_home_page.dart` – Dashboard (greeting, latest glucose, today summary, quick actions, mini graph, reminders, health score)
-- `add_reading_page.dart` – Add glucose reading
-- `readings_page.dart` – View glucose readings
-- `history_page.dart` – List + date filter, Daily/Weekly/Monthly graphs, stats
-- `log_meal_page.dart` – Log meal (date, category, carbs, notes)
-- `log_activity_page.dart` – Log activity (date, type, duration, calories)
-- `take_medicine_page.dart` – opens Medicine list
-- `add_edit_medicine_page.dart`, `medicine_list_page.dart`, `medicine_history_page.dart` – Medication log, Take/Missed, History
-- `profile_page.dart` – Edit profile (name, age, weight, height, diabetes type). Opened from Settings for patients.
-
-### Doctor – feature roadmap (simple → moderate)
+### Doctor roadmap (TODOs)
 
 | # | Feature | Status |
 |---|---------|--------|
-| 1 | **Patient list**: screen + service to list patients with latest reading & risk | ✅ Done – `doctor_patients_page.dart`, `doctor_patient_service.dart`; "My Patients" opens list |
-| 2 | **Patient profile for doctor**: health history, glucose trends, medication list | Pending |
-| 3 | **Prescription system**: add/update medicine for patient | Pending |
-| 4 | **Consultation notes & diagnosis**: save notes/diagnosis (Firestore + UI) | Pending |
-| 5 | **Risk status**: compute and show risk on list and profile | Pending |
-| 6 | **Monitoring dashboard**: high-risk and poor-control patients view | Pending |
-| 7 | **Alerts for doctor**: notify on very high sugar or missed medicines | Pending |
-| 8 | **Messaging**: doctor ↔ patient in-app communication | Pending |
-| 9 | **Insulin adjustment** in prescription flow | Pending |
-| 10 | **Polish**: latest readings summary and risk display on dashboard | Pending |
+| 1 | Patient list | Done |
+| 2 | Patient profile (doctor view) | Done |
+| 3 | View patient glucose history | Pending |
+| 4 | Patient prescriptions | Pending |
+| 5 | Clinical notes | Pending |
+| 6 | Risk / health score (doctor view) | Pending |
+| 7 | Monitoring alerts | Pending |
+| 8 | Messaging / chat | Pending |
+| 9 | Insulin / medication overview | Pending |
+| 10 | Polish & navigation | Pending |
 
-Existing doctor files:
-- `doctor_home_page.dart` – Dashboard; "My Patients" navigates to `DoctorPatientsPage`
-- `doctor_patients_page.dart` – List of patients with latest reading and risk chip
-- `services/doctor_patient_service.dart` – `getPatients()`, `getLatestReading()`, `riskFromReading()`
+## Patient Feature Notes
 
-### Admin
-Add under `features/admin/screens/`:
-- `user_management_page.dart` - List/edit users
-- `role_assignment_page.dart` - Change user roles
-- `system_settings_page.dart` - App config
-
-### Shared
-Add under `features/shared/screens/` for screens used by multiple roles.
+- **History** is implemented as a sub-feature under `features/patient/history/` with **data** (repository), **models** (date range, stats, trend), and **presentation** (screen, viewmodel, widgets). The older flat `patient/screens/history_page.dart` may coexist; prefer the presentation screen and viewmodel for new work.
+- **Reports & PDF**: `report_service.dart`, `pdf_report_service.dart`, `export_report_page.dart`, `pdf_preview_page.dart`, and widgets like `report_range_selector.dart`, `report_summary_card.dart`, `export_report_button.dart`.
+- **Reminders**: `reminder_service.dart`, `reminder_storage_service.dart`, `reminder_notification_service.dart`, plus `reminders_page.dart`, `add_edit_reminder_page.dart`, and shared `reminder_settings_page.dart`.
 
 ## Auth Flow
 
 Start → Login/Register → (Email verify) → (Second password for Doctor/Admin) → Home
 
-- **StartingPage**: Checks auth on load; redirects to home or second-password if already logged in
-- **AppRouter** (core/navigation): `pushLogin()`, `pushRegister()`, `goToHome()`, `goToStart()`
-- **Invite codes**: Admin generates → user enters at registration (Doctor/Admin only)
-- **Second password setup**: If Doctor/Admin lacks second password, setup form appears (main + second password)
+- **StartingPage**: Checks auth on load; redirects to home or second-password if already logged in.
+- **AppRouter** (`core/navigation`): `pushLogin()`, `pushRegister()`, `goToHome()`, `goToStart()`, etc.
+- **Invite codes**: Admin generates; user enters at registration (Doctor/Admin only).
+- **Second password**: If Doctor/Admin has no second password, setup form (main + second password).
 
-## Firestore
+## Firestore Collections
 
-- `users/{uid}`: email, displayName, role, phone, createdAt, secondPasswordHash?
-- `inviteCodes/{code}`: role, used, usedBy, usedAt, createdBy, createdAt
-- `glucose_readings/{id}`: userId, value, type, date, time, notes, createdAt
-- `medicines/{id}`: userId, name, dosage, time, frequency, createdAt
-- `medicine_entries/{id}`: userId, medicineId, medicineName, date, taken, takenAt?, createdAt
-- `meals/{id}`: userId, date, category, carbs, notes, createdAt
-- `activities/{id}`: userId, date, type, durationMinutes, calories, notes, createdAt
+| Collection          | Key fields / use |
+|---------------------|-------------------|
+| `users/{uid}`       | email, displayName, role, phone, createdAt, secondPasswordHash? |
+| `inviteCodes/{code}`| role, used, usedBy, usedAt, createdBy, createdAt |
+| `glucose_readings`  | userId, value, type, date, time, notes, createdAt |
+| `medicines`         | userId, name, dosage, time, frequency, createdAt |
+| `medicine_entries`  | userId, medicineId, medicineName, date, taken, takenAt?, createdAt |
+| `meals`             | userId, date, category, carbs, notes, createdAt |
+| `activities`        | userId, date, type, durationMinutes, calories, notes, createdAt |
+
+Reminders and related settings are stored via `reminder_storage_service` (e.g. local or Firestore depending on implementation).
 
 ## Run
 
 ```bash
-flutter run -d android   # or windows, macos
+flutter run -d android   # or windows, macos, chrome
 ```

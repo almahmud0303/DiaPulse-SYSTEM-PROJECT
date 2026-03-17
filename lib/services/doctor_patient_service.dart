@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
-import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/user_role.dart';
 
-/// Service for doctor-facing operations: list patients, latest readings, risk.
+/// Service for doctors to fetch and view patient data.
 class DoctorPatientService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Fetches all users with role [UserRole.patient], sorted by display name.
+  /// Fetches all users with role [UserRole.patient].
   Future<List<AppUser>> getPatients() async {
     final snapshot = await _firestore
         .collection('users')
@@ -17,35 +16,15 @@ class DoctorPatientService {
     final list = snapshot.docs
         .map((doc) => AppUser.fromMap(doc.id, doc.data()))
         .toList();
-    list.sort((a, b) =>
-        (a.displayName.isEmpty ? a.email : a.displayName)
-            .toLowerCase()
-            .compareTo((b.displayName.isEmpty ? b.email : b.displayName).toLowerCase()));
+    list.sort((a, b) => a.displayName.compareTo(b.displayName));
     return list;
   }
 
-  /// Fetches the most recent glucose reading for a user.
-  Future<GlucoseReading?> getLatestReading(String userId) async {
-    final snapshot = await _firestore
-        .collection('glucose_readings')
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .limit(1)
-        .get();
-
-    if (snapshot.docs.isEmpty) return null;
-    final data = snapshot.docs.first.data();
-    data['id'] = snapshot.docs.first.id;
-    return GlucoseReading.fromMap(data);
-  }
-
-  /// Risk based on latest reading: low, normal, high, very_high.
-  static String riskFromReading(GlucoseReading? reading) {
-    if (reading == null) return 'unknown';
-    final v = reading.glucoseLevel;
-    if (v < 70) return 'low';
-    if (v <= 140) return 'normal';
-    if (v <= 200) return 'high';
-    return 'very_high';
+  /// Fetches a single user by ID (e.g. for profile view). Returns null if not found.
+  Future<AppUser?> getPatientProfile(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
+    final data = doc.data();
+    if (data == null) return null;
+    return AppUser.fromMap(doc.id, data);
   }
 }

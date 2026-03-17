@@ -159,6 +159,11 @@ class ReminderNotificationService {
     await _plugin.cancelAll();
   }
 
+  /// Returns the list of pending notification requests from the OS.
+  Future<List<PendingNotificationRequest>> getPendingRequests() async {
+    return await _plugin.pendingNotificationRequests();
+  }
+
   Future<void> showTestNotification() async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(

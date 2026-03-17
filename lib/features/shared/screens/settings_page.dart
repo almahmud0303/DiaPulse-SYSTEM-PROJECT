@@ -275,9 +275,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your initials';
                 }
-                if (value.length > 3) {
-                  return 'Maximum 3 characters allowed';
-                }
+                if (value.length > 3) return 'Maximum 3 characters allowed';
                 return null;
               },
               onChanged: (_) => setState(() {}),

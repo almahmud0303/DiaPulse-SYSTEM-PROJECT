@@ -81,6 +81,16 @@ class _RemindersPageState extends State<RemindersPage> {
 
   Future<void> _toggleReminder(Reminder reminder, bool enabled) async {
     try {
+      if (enabled) {
+        final granted =
+            await _reminderService.requestNotificationPermissions();
+        if (!granted) {
+          _showError(
+            'Notification permission is disabled. Please enable it in app settings.',
+          );
+          return;
+        }
+      }
       await _reminderService.toggleReminder(reminder, enabled);
       await _loadReminders();
       if (!mounted) return;

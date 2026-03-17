@@ -1,14 +1,18 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
+import 'package:dia_plus/features/patient/screens/health_score_details_page.dart';
 import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
+import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/models/health_score.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
+import 'package:dia_plus/services/health_score_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,6 +34,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   final _readingService = GlucoseReadingService();
   final _medicineService = MedicineService();
   final _reminderService = ReminderService();
+  final _healthScoreService = HealthScoreService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -44,6 +49,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
   String? _nextGlucoseTest; // Placeholder - next glucose test time
   Reminder? _nextReminder;
   DateTime? _nextReminderAt;
+  HealthScore? _healthScore;
+  bool _healthScoreLoading = false;
+  String? _healthScoreError;
 
   @override
   void initState() {
@@ -60,9 +68,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
     });
 
     if (user == null) {
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _healthScore = null;
+        _healthScoreLoading = false;
+        _healthScoreError = null;
+      });
       return;
     }
+
+    setState(() {
+      _healthScoreLoading = true;
+      _healthScoreError = null;
+    });
 
     try {
       final latest = await _readingService.getLatestReading(user.uid);
@@ -88,6 +106,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
       Reminder? smartNextReminder;
       DateTime? smartNextReminderAt;
+      HealthScore? score;
+      String? scoreError;
       try {
         await _reminderService.initialize();
         smartNextReminder = await _reminderService.getNextReminder();
@@ -97,6 +117,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
           );
         }
       } catch (_) {}
+
+      try {
+        score = await _healthScoreService.calculateHealthScore(
+          user.uid,
+          period: HealthScorePeriod.last7Days,
+        );
+      } catch (e) {
+        scoreError = 'Unable to load health score right now.';
+      }
 
       if (mounted) {
         setState(() {
@@ -110,11 +139,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
           _nextGlucoseTest = 'Before lunch'; // Placeholder
           _nextReminder = smartNextReminder;
           _nextReminderAt = smartNextReminderAt;
+          _healthScore = score;
+          _healthScoreLoading = false;
+          _healthScoreError = scoreError;
           _loading = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _healthScoreLoading = false;
+        });
+      }
     }
   }
 
@@ -136,33 +173,6 @@ class _PatientHomePageState extends State<PatientHomePage> {
       default:
         return Colors.red;
     }
-  }
-
-  double _computeHealthScore() {
-    double score = 0;
-    // Sugar control (40%) - based on latest reading
-    if (_latestReading != null) {
-      final level = _latestReading!.glucoseLevel;
-      if (level >= 70 && level <= 140) {
-        score += 40;
-      } else if (level >= 60 && level < 70 || level > 140 && level <= 160) {
-        score += 25;
-      } else if (level >= 50 && level < 60 || level > 160 && level <= 200) {
-        score += 10;
-      }
-    }
-    // Medicine adherence (30%) - placeholder
-    score += 30 * (_medicinesTakenToday / _medicinesTotalToday).clamp(0, 1);
-    // Logging consistency (30%) - readings in last 7 days
-    final weekCount = _weekReadings.length;
-    if (weekCount >= 14) {
-      score += 30;
-    } else if (weekCount >= 7) {
-      score += 20;
-    } else if (weekCount >= 3) {
-      score += 10;
-    }
-    return score.roundToDouble();
   }
 
   @override
@@ -836,65 +846,42 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildHealthScore() {
-    final score = _computeHealthScore();
-    final color = score >= 70
-        ? Colors.green
-        : score >= 50
-        ? Colors.orange
-        : Colors.red;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withValues(alpha:0.15), color.withValues(alpha:0.05)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha:0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.favorite, color: color),
-              const SizedBox(width: 8),
-              const Text(
-                'Health Score',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Text(
-                score.toInt().toString(),
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+    return HealthScoreCard(
+      healthScore: _healthScore,
+      isLoading: _healthScoreLoading,
+      errorMessage: _healthScoreError,
+      onTap: _healthScore == null
+          ? null
+          : () {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user == null) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HealthScoreDetailsPage(
+                    userId: user.uid,
+                    initialScore: _healthScore,
+                    initialPeriod: HealthScorePeriod.last7Days,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '/ 100',
-                    style: TextStyle(fontSize: 20, color: Colors.grey),
+              );
+            },
+      onViewDetails: _healthScore == null
+          ? null
+          : () {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user == null) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HealthScoreDetailsPage(
+                    userId: user.uid,
+                    initialScore: _healthScore,
+                    initialPeriod: HealthScorePeriod.last7Days,
                   ),
-                  Text(
-                    'Sugar control • Medicine • Logging',
-                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+                ),
+              );
+            },
     );
   }
 
