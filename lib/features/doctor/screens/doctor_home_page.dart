@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'doctor_alerts_page.dart';
 import 'doctor_monitoring_dashboard_page.dart';
 import 'doctor_patients_page.dart';
 
@@ -79,6 +80,21 @@ class DoctorHomePage extends StatelessWidget {
                     MaterialPageRoute<void>(
                       builder: (context) =>
                           const DoctorMonitoringDashboardPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.notifications_active,
+                title: 'Alerts',
+                subtitle: 'Very high sugar, missed medicines',
+                color: Colors.deepOrange,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => const DoctorAlertsPage(),
                     ),
                   );
                 },
