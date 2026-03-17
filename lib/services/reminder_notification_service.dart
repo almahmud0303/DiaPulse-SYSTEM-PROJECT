@@ -246,10 +246,6 @@ class ReminderNotificationService {
     );
   }
 
-  Future<List<PendingNotificationRequest>> getPendingRequests() {
-    return _plugin.pendingNotificationRequests();
-  }
-
   int _buildNotificationId(String reminderId, int suffix) {
     var hash = 17;
     for (final codeUnit in reminderId.codeUnits) {

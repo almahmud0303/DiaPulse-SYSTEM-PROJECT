@@ -176,6 +176,7 @@ class PdfReportService {
   // ── Patient info ────────────────────────────────────────────────────────────
 
   bool _hasPatientInfo(GlucoseReportData data) =>
+      data.patientName != null ||
       data.patientAge != null ||
       data.patientWeight != null ||
       data.patientHeight != null ||
@@ -183,7 +184,7 @@ class PdfReportService {
 
   pw.Widget _buildPatientInfo(GlucoseReportData data, pw.Font boldFont) {
     final items = <_KV>[
-      _KV('Name', data.patientName),
+      _KV('Name', data.patientName ?? '—'),
       if (data.patientAge != null) _KV('Age', '${data.patientAge} yrs'),
       if (data.patientWeight != null)
         _KV('Weight', '${data.patientWeight!.toStringAsFixed(1)} kg'),

@@ -21,7 +21,7 @@ class PdfPreviewPage extends StatelessWidget {
   final GlucoseReportData reportData;
 
   String get _fileName {
-    final safeName = reportData.patientName.replaceAll(
+    final safeName = (reportData.patientName ?? 'Report').replaceAll(
       RegExp(r'[^a-zA-Z0-9]'),
       '_',
     );
