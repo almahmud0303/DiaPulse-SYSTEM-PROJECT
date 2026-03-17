@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:flutter/material.dart';
 
 import 'doctor_alerts_page.dart';
@@ -114,6 +115,13 @@ class DoctorHomePage extends StatelessWidget {
                 title: 'Messages',
                 subtitle: 'Patient messages and inquiries',
                 color: Colors.orange,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => const ConversationListPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

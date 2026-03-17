@@ -6,6 +6,7 @@ import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
+import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
@@ -212,6 +213,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 _buildHealthScore(),
                 const SizedBox(height: 20),
                 _buildDoctorConsultSection(),
+                const SizedBox(height: 20),
+                _buildMessagesSection(),
                 const SizedBox(height: 20),
                 _buildDiabetesEssentialsSection(),
               ],
@@ -930,6 +933,63 @@ class _PatientHomePageState extends State<PatientHomePage> {
                   SizedBox(height: 5),
                   Text(
                     'Get expert advice from specialized doctors',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessagesSection() {
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ConversationListPage()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                Icons.chat,
+                color: Colors.orange.shade600,
+                size: 40,
+              ),
+            ),
+            const SizedBox(width: 20),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Messages',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    'Chat with your doctor',
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],

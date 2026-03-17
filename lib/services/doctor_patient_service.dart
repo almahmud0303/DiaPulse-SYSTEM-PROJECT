@@ -23,6 +23,20 @@ class DoctorPatientService {
     return list;
   }
 
+  /// Fetches all users with role [UserRole.doctor] (e.g. for patient messaging).
+  Future<List<AppUser>> getDoctors() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .where('role', isEqualTo: UserRole.doctor.value)
+        .get();
+
+    final list = snapshot.docs
+        .map((doc) => AppUser.fromMap(doc.id, doc.data()))
+        .toList();
+    list.sort((a, b) => a.displayName.compareTo(b.displayName));
+    return list;
+  }
+
   /// Fetches a single user by ID (e.g. for profile view). Returns null if not found.
   Future<AppUser?> getPatientProfile(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
