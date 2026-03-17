@@ -6,7 +6,7 @@ A Flutter diabetes management app with role-based access for **Patients**, **Doc
 
 ### Roles & Auth
 - **Patient** – Register or log in; track glucose, view history, use dashboard.
-- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** → tap patient for **Patient profile**: name, contact, basic info; **health history** (recent glucose); **glucose trends** (7-day summary); **prescriptions** (add/edit medicines for patient).
+- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** lists all patients with risk badges; tap a patient for **Patient profile**: name, contact, basic info; **risk status** (from last 7 days glucose); **health history** (recent glucose); **glucose trends** (7-day summary); **prescriptions** (add/edit medicines); **consultation notes & diagnosis** (add/edit per patient).
 - **Admin** – Requires invite code and second password; can generate invite codes for Doctor/Admin.
 
 Auth flow: **Login/Register** → Email verification → (Second password for Doctor/Admin) → **Dashboard**.
@@ -40,12 +40,12 @@ lib/
     ├── auth/screens/        # Starting, Login, Register, Email verify, Second password
     ├── home/screens/        # MainNavigationPage (tab bar)
     ├── patient/             # Screens, widgets, history (data + presentation)
-    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage, DoctorAddEditPrescriptionPage
+    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage, DoctorAddEditPrescriptionPage, DoctorAddEditConsultationNotePage
     ├── admin/screens/       # AdminHomePage, InviteCodesPage
     └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials
 ```
 
-See **PROJECT_STRUCTURE.md** for the full file tree, Firestore collections, and feature roadmap (including the doctor roadmap TODOs).
+See **PROJECT_STRUCTURE.md** for the full file tree and Firestore collections.
 
 ## Prerequisites
 
@@ -103,11 +103,6 @@ flutter run -d windows
 | `glucose_readings` | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
 | `medicines`        | Medicines/prescriptions: userId, name, dosage, time, frequency (doctor can add for patient) |
 | `consultation_notes` | Doctor notes/diagnosis: patientId, doctorId, note, diagnosis, createdAt, updatedAt? |
-
-## Changelog / GitHub
-
-- **Doctor TODO #4 – Consultation notes & diagnosis**: Doctors can add and edit consultation notes and diagnosis per patient from the patient profile. Stored in Firestore `consultation_notes`. New: `ConsultationNote` model, `ConsultationNoteService`, `DoctorAddEditConsultationNotePage`.
-
 
 ## License
 

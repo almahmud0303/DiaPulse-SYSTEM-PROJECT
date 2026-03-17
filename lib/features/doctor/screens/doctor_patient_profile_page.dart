@@ -2,7 +2,9 @@ import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/consultation_note.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/medicine.dart';
+import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/services/consultation_note_service.dart';
+import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:flutter/material.dart';
@@ -25,10 +27,12 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   final GlucoseReadingService _glucoseService = GlucoseReadingService();
   final MedicineService _medicineService = MedicineService();
   final ConsultationNoteService _consultationNoteService = ConsultationNoteService();
+  final DoctorPatientService _doctorPatientService = DoctorPatientService();
 
   List<GlucoseReading> _recentReadings = [];
   List<Medicine> _medicines = [];
   List<ConsultationNote> _consultationNotes = [];
+  PatientRisk? _patientRisk;
   bool _loading = true;
   String? _error;
 
@@ -50,12 +54,14 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         _glucoseService.getUserReadings(patient.uid),
         _medicineService.getMedicines(patient.uid),
         _consultationNoteService.getNotesForPatient(patient.uid),
+        _doctorPatientService.getPatientRisk(patient.uid),
       ]);
       if (!mounted) return;
       setState(() {
         _recentReadings = (results[0] as List<GlucoseReading>).take(15).toList();
         _medicines = results[1] as List<Medicine>;
         _consultationNotes = results[2] as List<ConsultationNote>;
+        _patientRisk = results[3] as PatientRisk?;
         _loading = false;
       });
     } catch (e) {
@@ -110,6 +116,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                       children: [
                         _buildProfileCard(context),
                         const SizedBox(height: 20),
+                        if (_patientRisk != null) ...[
+                          _buildRiskCard(context),
+                          const SizedBox(height: 20),
+                        ],
                         _buildContactCard(context),
                         const SizedBox(height: 20),
                         _buildBasicInfoCard(context, age: age, weight: weight, height: height, diabetesType: diabetesType),
@@ -261,6 +271,73 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   String _formatValue(dynamic v) {
     if (v is num) return v.toString();
     return v.toString();
+  }
+
+  static Color _riskColor(RiskLevel level) {
+    switch (level) {
+      case RiskLevel.low:
+        return Colors.green;
+      case RiskLevel.moderate:
+        return Colors.blue;
+      case RiskLevel.elevated:
+        return Colors.orange;
+      case RiskLevel.high:
+        return Colors.red;
+    }
+  }
+
+  Widget _buildRiskCard(BuildContext context) {
+    final risk = _patientRisk!;
+    final color = _riskColor(risk.level);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border(left: BorderSide(color: color, width: 4)),
+        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, size: 22, color: color),
+              const SizedBox(width: 8),
+              Text(
+                'Risk status',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  risk.label,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            risk.summary,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
+          ),
+          if (risk.averageGlucose != null && risk.readingCount > 0) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Based on ${risk.readingCount} readings in last 7 days · Avg ${risk.averageGlucose!.toStringAsFixed(0)} mg/dL',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildGlucoseTrendCard(BuildContext context) {
