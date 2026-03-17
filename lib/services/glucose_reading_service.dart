@@ -18,24 +18,27 @@ class GlucoseReadingService {
     }
   }
 
-  /// Get all readings for a specific user
+  /// Get all readings for a specific user.
+  /// Sorted by date descending in Dart to avoid Firestore composite index.
   Future<List<GlucoseReading>> getUserReadings(String userId) async {
     try {
       final snapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
-          .orderBy('date', descending: true)
           .get();
 
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => GlucoseReading.fromMap(doc.data()))
           .toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list;
     } catch (e) {
       throw Exception('Failed to fetch readings: $e');
     }
   }
 
-  /// Get readings for a specific date range
+  /// Get readings for a specific date range.
+  /// Filtering and sort done in Dart to avoid Firestore composite index.
   Future<List<GlucoseReading>> getReadingsByDateRange(
     String userId,
     DateTime startDate,
@@ -45,14 +48,19 @@ class GlucoseReadingService {
       final snapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('date', isLessThanOrEqualTo: endDate.toIso8601String())
-          .orderBy('date', descending: true)
           .get();
 
-      return snapshot.docs
+      final startStr = startDate.toIso8601String();
+      final endStr = endDate.toIso8601String();
+      final list = snapshot.docs
           .map((doc) => GlucoseReading.fromMap(doc.data()))
+          .where((r) {
+            final d = r.date.toIso8601String();
+            return d.compareTo(startStr) >= 0 && d.compareTo(endStr) <= 0;
+          })
           .toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list;
     } catch (e) {
       throw Exception('Failed to fetch readings: $e');
     }
@@ -115,20 +123,21 @@ class GlucoseReadingService {
     return all.where((r) => !r.date.isBefore(startOf7DaysAgo)).toList();
   }
 
-  /// Get latest reading for a user
+  /// Get latest reading for a user.
+  /// Uses userId-only query and sorts in Dart to avoid composite index.
   Future<GlucoseReading?> getLatestReading(String userId) async {
-    try {
-      final snapshot = await _firestore
-          .collection(_collection)
-          .where('userId', isEqualTo: userId)
-          .orderBy('date', descending: true)
-          .limit(1)
-          .get();
+    final list = await getLatestReadings(userId, limit: 1);
+    return list.isEmpty ? null : list.first;
+  }
 
-      if (snapshot.docs.isEmpty) return null;
-      return GlucoseReading.fromMap(snapshot.docs.first.data());
+  /// Get the N most recent readings for a user (for dashboard summary).
+  /// Uses userId-only query and sorts in Dart to avoid composite index.
+  Future<List<GlucoseReading>> getLatestReadings(String userId, {int limit = 3}) async {
+    try {
+      final all = await getUserReadings(userId);
+      return all.take(limit).toList();
     } catch (e) {
-      throw Exception('Failed to fetch latest reading: $e');
+      throw Exception('Failed to fetch latest readings: $e');
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
@@ -98,5 +99,10 @@ class DoctorPatientService {
       highCount: highCount,
       veryHighCount: veryHighCount,
     );
+  }
+
+  /// Fetches the N most recent glucose readings for a patient (for dashboard).
+  Future<List<GlucoseReading>> getLatestReadings(String patientId, {int limit = 3}) async {
+    return _glucoseService.getLatestReadings(patientId, limit: limit);
   }
 }

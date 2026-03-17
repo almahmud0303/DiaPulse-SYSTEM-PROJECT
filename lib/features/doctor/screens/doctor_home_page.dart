@@ -1,3 +1,5 @@
+import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:flutter/material.dart';
 
@@ -6,8 +8,52 @@ import 'doctor_monitoring_dashboard_page.dart';
 import 'doctor_patients_page.dart';
 
 /// Doctor-specific home screen.
-class DoctorHomePage extends StatelessWidget {
+class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
+
+  @override
+  State<DoctorHomePage> createState() => _DoctorHomePageState();
+}
+
+class _DoctorHomePageState extends State<DoctorHomePage> {
+  final DoctorPatientService _service = DoctorPatientService();
+  int _highRiskCount = 0;
+  int _poorControlCount = 0;
+  bool _summaryLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSummary();
+  }
+
+  Future<void> _loadSummary() async {
+    try {
+      final list = await _service.getPatients();
+      final risks = await Future.wait(
+        list.map((p) => _service.getPatientRisk(p.uid)),
+      );
+      if (!mounted) return;
+      var highRisk = 0;
+      var poorControl = 0;
+      for (final r in risks) {
+        if (r == null) continue;
+        if (r.level == RiskLevel.elevated || r.level == RiskLevel.high) {
+          highRisk++;
+        } else if (r.level == RiskLevel.moderate) {
+          poorControl++;
+        }
+      }
+      setState(() {
+        _highRiskCount = highRisk;
+        _poorControlCount = poorControl;
+        _summaryLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _summaryLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +100,9 @@ class DoctorHomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+              _buildMonitoringSummaryCard(context),
+              const SizedBox(height: 24),
               _buildCard(
                 context,
                 icon: Icons.people,
@@ -188,6 +236,74 @@ class DoctorHomePage extends StatelessWidget {
               ),
             ),
             const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMonitoringSummaryCard(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (context) => const DoctorMonitoringDashboardPage(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.teal.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.teal.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.teal.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.monitor_heart, color: Colors.teal.shade700, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Last 7 days summary',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (_summaryLoading)
+                    Text(
+                      'Loading…',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    )
+                  else
+                    Text(
+                      '$_highRiskCount high risk · $_poorControlCount poor control',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                    ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.teal.shade700),
           ],
         ),
       ),

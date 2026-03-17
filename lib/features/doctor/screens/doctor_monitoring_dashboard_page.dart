@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class _DoctorMonitoringDashboardPageState
   final DoctorPatientService _service = DoctorPatientService();
   List<AppUser> _patients = [];
   List<PatientRisk?> _risks = [];
+  Map<String, List<GlucoseReading>> _latestReadings = {};
   bool _loading = true;
   String? _error;
 
@@ -33,6 +35,7 @@ class _DoctorMonitoringDashboardPageState
     setState(() {
       _loading = true;
       _error = null;
+      _latestReadings = {};
     });
     try {
       final list = await _service.getPatients();
@@ -43,6 +46,28 @@ class _DoctorMonitoringDashboardPageState
       setState(() {
         _patients = list;
         _risks = risks;
+      });
+      // Load latest readings for patients that appear in high-risk or poor-control
+      final highRiskIds = <String>{};
+      for (var i = 0; i < list.length; i++) {
+        final r = i < risks.length ? risks[i] : null;
+        if (r != null &&
+            (r.level == RiskLevel.elevated ||
+                r.level == RiskLevel.high ||
+                r.level == RiskLevel.moderate)) {
+          highRiskIds.add(list[i].uid);
+        }
+      }
+      final latestMap = <String, List<GlucoseReading>>{};
+      await Future.wait(
+        highRiskIds.map((id) async {
+          final readings = await _service.getLatestReadings(id, limit: 3);
+          latestMap[id] = readings;
+        }),
+      );
+      if (!mounted) return;
+      setState(() {
+        _latestReadings = latestMap;
         _loading = false;
       });
     } catch (e) {
@@ -258,6 +283,7 @@ class _DoctorMonitoringDashboardPageState
             (p) => _MonitoringTile(
               user: p.user,
               risk: p.risk,
+              latestReadings: _latestReadings[p.user.uid] ?? const [],
               onTap: () => _openProfile(p.user),
             ),
           ),
@@ -284,11 +310,13 @@ class _MonitoringTile extends StatelessWidget {
   const _MonitoringTile({
     required this.user,
     required this.risk,
+    this.latestReadings = const [],
     required this.onTap,
   });
 
   final AppUser user;
   final PatientRisk risk;
+  final List<GlucoseReading> latestReadings;
   final VoidCallback onTap;
 
   static Color _riskColor(RiskLevel level) {
@@ -371,6 +399,16 @@ class _MonitoringTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                    if (latestReadings.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Latest: ${latestReadings.map((r) => r.glucoseLevel.toStringAsFixed(0)).join(', ')} mg/dL',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
                         ),
                       ),
                     ],
