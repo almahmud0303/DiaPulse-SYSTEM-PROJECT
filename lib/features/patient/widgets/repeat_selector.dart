@@ -20,7 +20,7 @@ class RepeatSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<ReminderRepeatMode>(
-      value: value,
+      initialValue: value,
       isDense: isDense,
       decoration: InputDecoration(labelText: labelText),
       items: ReminderRepeatMode.values

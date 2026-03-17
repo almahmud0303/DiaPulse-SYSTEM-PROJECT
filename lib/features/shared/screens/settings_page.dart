@@ -251,8 +251,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 fillColor: Colors.grey.shade50,
               ),
               validator: (value) {
-                if (value == null || value.isEmpty)
+                if (value == null || value.isEmpty) {
                   return 'Please enter your name';
+                }
                 return null;
               },
             ),
@@ -271,8 +272,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty)
+                if (value == null || value.isEmpty) {
                   return 'Please enter your initials';
+                }
                 if (value.length > 3) return 'Maximum 3 characters allowed';
                 return null;
               },

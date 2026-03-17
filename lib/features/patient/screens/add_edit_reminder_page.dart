@@ -216,7 +216,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
           padding: const EdgeInsets.all(16),
           children: [
             DropdownButtonFormField<ReminderType>(
-              value: _type,
+              initialValue: _type,
               items: ReminderType.values
                   .map(
                     (type) => DropdownMenuItem<ReminderType>(

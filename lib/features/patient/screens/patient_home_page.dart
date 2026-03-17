@@ -77,7 +77,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         medTotal = medicines.length;
         final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
         final entries = await _medicineService.getEntries(
-          user.uid!,
+          user.uid,
           fromDate: todayStr,
           toDate: todayStr,
         );

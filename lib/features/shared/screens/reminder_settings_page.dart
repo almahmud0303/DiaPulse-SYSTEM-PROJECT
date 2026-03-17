@@ -24,11 +24,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   Future<void> _load() async {
     await _service.initialize();
     final s = await _service.getSettings();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _settings = s;
         _loading = false;
       });
+    }
   }
 
   Future<void> _update(ReminderSettings updated) async {
@@ -88,7 +89,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   subtitle: const Text(
                     'Enable or disable all reminder notifications',
                   ),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.allRemindersEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(allRemindersEnabled: v)),
@@ -100,7 +101,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(Icons.medication, color: Colors.purple),
                   title: const Text('Medicine Reminders'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.medicineRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -114,7 +115,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                     color: Colors.lightBlue,
                   ),
                   title: const Text('Glucose Test Reminders'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.glucoseRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -128,7 +129,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                     color: Colors.green,
                   ),
                   title: const Text('Exercise Reminders'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.exerciseRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -142,7 +143,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                     color: Colors.orange,
                   ),
                   title: const Text('Appointment Reminders'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.appointmentRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -157,7 +158,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(Icons.volume_up, color: Colors.teal),
                   title: const Text('Sound'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.soundEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(soundEnabled: v)),
@@ -165,7 +166,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(Icons.vibration, color: Colors.teal),
                   title: const Text('Vibration'),
-                  activeColor: Colors.teal,
+                  activeThumbColor: Colors.teal,
                   value: _settings.vibrationEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(vibrationEnabled: v)),
