@@ -37,6 +37,19 @@ class MedicineService {
       ..sort((a, b) => a.time.compareTo(b.time));
   }
 
+  /// Real-time stream of medicines for a user.
+  Stream<List<Medicine>> getMedicinesStream(String userId) {
+    return _firestore
+        .collection(_medicinesCollection)
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map((d) => Medicine.fromMap(d.data())).toList();
+      list.sort((a, b) => a.time.compareTo(b.time));
+      return list;
+    });
+  }
+
   /// Next medicine by time today (for reminder).
   Future<Medicine?> getNextMedicineToday(String userId) async {
     final list = await getMedicines(userId);

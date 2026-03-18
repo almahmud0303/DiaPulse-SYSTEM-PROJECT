@@ -9,12 +9,16 @@ import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_appointments_page.dart';
+import 'package:dia_plus/models/appointment.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/health_score.dart';
 import 'package:dia_plus/models/reminder.dart';
+import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/services/reminder_notification_service.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +40,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   final _medicineService = MedicineService();
   final _reminderService = ReminderService();
   final _healthScoreService = HealthScoreService();
+  final _appointmentService = AppointmentService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -48,6 +53,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   String? _nextMedicineTime; // Placeholder
   String? _nextAppointment; // Placeholder
   String? _nextGlucoseTest; // Placeholder - next glucose test time
+  AppointmentStatus? _nextAppointmentStatus;
   Reminder? _nextReminder;
   DateTime? _nextReminderAt;
   HealthScore? _healthScore;
@@ -103,6 +109,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
         if (next != null) nextMed = '${next.time} (${next.name})';
+        // Schedule local notifications at each medicine time (daily).
+        ReminderNotificationService().scheduleMedicineReminders(medicines);
       } catch (_) {}
 
       Reminder? smartNextReminder;
@@ -128,6 +136,18 @@ class _PatientHomePageState extends State<PatientHomePage> {
         scoreError = 'Unable to load health score right now.';
       }
 
+      String? nextAppointment;
+      AppointmentStatus? nextAppointmentStatus;
+      try {
+        final apps = await _appointmentService.getForPatient(user.uid);
+        if (apps.isNotEmpty) {
+          final a = apps.first;
+          final name = a.doctorName ?? 'Doctor';
+          nextAppointment = '$name • ${a.status.displayLabel}';
+          nextAppointmentStatus = a.status;
+        }
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _latestReading = latest;
@@ -136,7 +156,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
           _medicinesTakenToday = medTaken;
           _medicinesTotalToday = medTotal;
           _nextMedicineTime = nextMed;
-          _nextAppointment = 'Tomorrow, 2:00 PM'; // Placeholder
+          _nextAppointment = nextAppointment;
+          _nextAppointmentStatus = nextAppointmentStatus;
           _nextGlucoseTest = 'Before lunch'; // Placeholder
           _nextReminder = smartNextReminder;
           _nextReminderAt = smartNextReminderAt;
@@ -790,11 +811,24 @@ class _PatientHomePageState extends State<PatientHomePage> {
           ],
           if (_nextAppointment != null) ...[
             const SizedBox(height: 12),
-            _buildReminderRow(
-              Icons.event,
-              'Next appointment',
-              _nextAppointment!,
-              Colors.blue,
+            InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (context) => const PatientAppointmentsPage(),
+                  ),
+                );
+              },
+              child: _buildReminderRow(
+                Icons.event,
+                'My appointments',
+                _nextAppointment!,
+                _nextAppointmentStatus == AppointmentStatus.accepted
+                    ? Colors.green
+                    : _nextAppointmentStatus == AppointmentStatus.rejected
+                        ? Colors.grey
+                        : Colors.blue,
+              ),
             ),
           ],
           if (_nextMedicineTime == null &&

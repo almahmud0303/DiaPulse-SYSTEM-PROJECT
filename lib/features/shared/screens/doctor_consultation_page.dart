@@ -1,7 +1,64 @@
+import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/services/auth_service.dart';
+import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
 
-class DoctorConsultationPage extends StatelessWidget {
+import 'chat_page.dart';
+
+/// Patient-facing page: list doctors registered in the database.
+/// Patients can message a doctor or book an appointment with them.
+class DoctorConsultationPage extends StatefulWidget {
   const DoctorConsultationPage({super.key});
+
+  @override
+  State<DoctorConsultationPage> createState() => _DoctorConsultationPageState();
+}
+
+class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
+  final AuthService _authService = AuthService();
+  final DoctorPatientService _doctorService = DoctorPatientService();
+
+  List<AppUser> _doctors = [];
+  AppUser? _currentUser;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final user = await _authService.getAppUser();
+      if (user == null) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Not signed in';
+          _loading = false;
+        });
+        return;
+      }
+      final doctors = await _doctorService.getDoctors();
+      if (!mounted) return;
+      setState(() {
+        _currentUser = user;
+        _doctors = doctors;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load doctors: $e';
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,108 +69,166 @@ class DoctorConsultationPage extends StatelessWidget {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (!_loading && _error == null)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _load,
+              tooltip: 'Refresh',
+            ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue.shade400, Colors.blue.shade600],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.medical_services, color: Colors.white, size: 48),
-                    SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Expert Medical Advice',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? _buildError()
+              : _doctors.isEmpty
+                  ? _buildEmpty()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeader(),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Registered doctors',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Connect with specialized diabetes doctors',
-                            style: TextStyle(fontSize: 14, color: Colors.white),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              'Message or book an appointment with a doctor from your care team.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ..._doctors.map((doctor) => _buildDoctorCard(doctor)),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                'Our Specialists',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Sarah Johnson', 'Endocrinologist',
-                  'Diabetes & Hormone Specialist', '15 years experience',
-                  Icons.verified, Colors.blue),
-              const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Michael Chen', 'Diabetologist',
-                  'Type 1 & Type 2 Diabetes Expert', '12 years experience',
-                  Icons.verified, Colors.green),
-              const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Emily Rodriguez', 'Nutritionist',
-                  'Diabetes Diet & Nutrition Specialist', '10 years experience',
-                  Icons.verified, Colors.orange),
-              const SizedBox(height: 30),
-              const Text(
-                'Consultation Services',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              _buildServiceCard('Video Consultation',
-                  'Face-to-face consultation from anywhere',
-                  Icons.video_call, Colors.purple),
-              const SizedBox(height: 10),
-              _buildServiceCard('Chat Consultation',
-                  'Text-based consultation with quick responses',
-                  Icons.chat, Colors.teal),
-              const SizedBox(height: 10),
-              _buildServiceCard('Emergency Consultation',
-                  '24/7 emergency medical support',
-                  Icons.emergency, Colors.red),
-            ],
-          ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade600),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _load,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDoctorCard(
-    BuildContext context,
-    String name,
-    String specialization,
-    String expertise,
-    String experience,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildEmpty() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.medical_services_outlined,
+                size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'No doctors registered yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Doctors will appear here once they are registered in the app.',
+              style: TextStyle(color: Colors.grey.shade600),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
     return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade400, Colors.blue.shade600],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.medical_services, color: Colors.white, size: 48),
+          SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expert Medical Advice',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Connect with doctors registered in your care team',
+                  style: TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDoctorCard(AppUser doctor) {
+    final name = doctor.displayName.isNotEmpty
+        ? doctor.displayName
+        : doctor.email;
+    final color = Colors.blue;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -124,9 +239,16 @@ class DoctorConsultationPage extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 35,
-                backgroundColor: color.withValues(alpha:0.1),
-                child: Icon(Icons.person, size: 40, color: color),
+                radius: 28,
+                backgroundColor: color.withValues(alpha: 0.15),
+                child: Text(
+                  doctor.initials,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -135,78 +257,63 @@ class DoctorConsultationPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(name,
+                        Flexible(
+                          child: Text(
+                            name,
                             style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 5),
-                        Icon(icon, color: Colors.blue, size: 20),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(Icons.verified, color: color, size: 20),
                       ],
                     ),
-                    const SizedBox(height: 3),
-                    Text(specialization,
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: color,
-                            fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(expertise,
-                        style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        const Icon(Icons.work, size: 16, color: Colors.grey),
-                        const SizedBox(width: 5),
-                        Text(experience,
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      doctor.email,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Viewing profile of $name')));
-                  },
-                  icon: const Icon(Icons.info_outline, size: 20),
-                  label: const Text('View Profile'),
+                  onPressed: () => _openChat(doctor),
+                  icon: const Icon(Icons.chat, size: 20),
+                  label: const Text('Message'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: color,
-                    side: BorderSide(color: color),
+                    foregroundColor: Colors.teal,
+                    side: const BorderSide(color: Colors.teal),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _showBookingDialog(context, name),
+                  onPressed: () => _showBookingDialog(context, doctor),
                   icon: const Icon(Icons.calendar_today, size: 20),
-                  label: const Text('Book Now'),
+                  label: const Text('Book appointment'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
@@ -217,91 +324,72 @@ class DoctorConsultationPage extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(
-      String title, String description, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha:0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 3),
-                Text(description,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        ],
+  void _openChat(AppUser doctor) {
+    if (_currentUser == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => ChatPage(
+          currentUser: _currentUser!,
+          otherUser: doctor,
+        ),
       ),
     );
   }
 
-  void _showBookingDialog(BuildContext context, String doctorName) {
+  void _showBookingDialog(BuildContext context, AppUser doctor) {
+    final name = doctor.displayName.isNotEmpty
+        ? doctor.displayName
+        : doctor.email;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Book Appointment with $doctorName'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Select your preferred consultation method:'),
-            SizedBox(height: 15),
-            ListTile(
-              leading: Icon(Icons.video_call, color: Colors.purple),
-              title: Text('Video Call'),
-              subtitle: Text('30 min session'),
-            ),
-            ListTile(
-              leading: Icon(Icons.chat, color: Colors.teal),
-              title: Text('Chat'),
-              subtitle: Text('Text-based consultation'),
-            ),
-          ],
+        title: Text('Book appointment with $name'),
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Choose how you would like to consult:'),
+              SizedBox(height: 16),
+              ListTile(
+                leading: Icon(Icons.video_call, color: Colors.purple),
+                title: Text('Video call'),
+                subtitle: Text('30 min session'),
+              ),
+              ListTile(
+                leading: Icon(Icons.chat, color: Colors.teal),
+                title: Text('Chat'),
+                subtitle: Text('Text-based consultation'),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Colors.green),
+                title: Text('Phone call'),
+                subtitle: Text('Schedule a call back'),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text(
-                    'Booking confirmed! You will receive a confirmation shortly.',
+                    'Appointment request sent to $name. You will receive a confirmation shortly.',
                   ),
                   backgroundColor: Colors.green,
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, foregroundColor: Colors.white),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Confirm'),
           ),
         ],
