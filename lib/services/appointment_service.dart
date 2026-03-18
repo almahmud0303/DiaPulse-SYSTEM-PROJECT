@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/appointment.dart';
+import 'package:dia_plus/services/notification_service.dart';
 
 /// Service for appointment requests: patient sends, doctor accepts/rejects.
 class AppointmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _collection = 'appointments';
+  final NotificationService _notificationService = NotificationService();
 
   /// Patient sends an appointment request to a doctor.
   Future<void> createRequest({
@@ -26,6 +28,14 @@ class AppointmentService {
       message: message,
     );
     await _firestore.collection(_collection).doc(id).set(appointment.toMap());
+
+    // Notify doctor in-app.
+    await _notificationService.createAppointmentRequestedNotification(
+      doctorId: doctorId,
+      patientId: patientId,
+      appointmentId: id,
+      patientName: patientName,
+    );
   }
 
   /// All appointment requests for a doctor (any status), newest first.
@@ -52,18 +62,44 @@ class AppointmentService {
 
   /// Doctor accepts an appointment request.
   Future<void> accept(String appointmentId) async {
+    final doc = await _firestore.collection(_collection).doc(appointmentId).get();
+    final data = doc.data();
+    if (data == null) return;
+    final a = Appointment.fromMap(data);
     await _firestore.collection(_collection).doc(appointmentId).update({
       'status': AppointmentStatus.accepted.value,
       'respondedAt': DateTime.now().toIso8601String(),
     });
+
+    // Notify patient in-app.
+    await _notificationService.createAppointmentStatusNotification(
+      patientId: a.patientId,
+      doctorId: a.doctorId,
+      appointmentId: appointmentId,
+      status: AppointmentStatus.accepted.value,
+      doctorName: a.doctorName,
+    );
   }
 
   /// Doctor rejects an appointment request.
   Future<void> reject(String appointmentId) async {
+    final doc = await _firestore.collection(_collection).doc(appointmentId).get();
+    final data = doc.data();
+    if (data == null) return;
+    final a = Appointment.fromMap(data);
     await _firestore.collection(_collection).doc(appointmentId).update({
       'status': AppointmentStatus.rejected.value,
       'respondedAt': DateTime.now().toIso8601String(),
     });
+
+    // Notify patient in-app.
+    await _notificationService.createAppointmentStatusNotification(
+      patientId: a.patientId,
+      doctorId: a.doctorId,
+      appointmentId: appointmentId,
+      status: AppointmentStatus.rejected.value,
+      doctorName: a.doctorName,
+    );
   }
 }
 

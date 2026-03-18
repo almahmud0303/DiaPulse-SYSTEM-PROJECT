@@ -1,12 +1,16 @@
 /// Notification type for in-app notifications.
 enum AppNotificationType {
-  message;
+  message,
+  appointment;
 
   String get value => name;
 
   static AppNotificationType fromString(String? v) {
     switch (v) {
       case 'message':
+        return AppNotificationType.message;
+      case 'appointment':
+        return AppNotificationType.appointment;
       default:
         return AppNotificationType.message;
     }
@@ -26,6 +30,8 @@ class AppNotification {
     this.actorId,
     this.conversationId,
     this.otherUserId,
+    this.appointmentId,
+    this.appointmentStatus,
   });
 
   final String id;
@@ -42,6 +48,10 @@ class AppNotification {
   /// For message notifications.
   final String? conversationId;
   final String? otherUserId;
+  /// For appointment notifications.
+  final String? appointmentId;
+  /// requested / accepted / rejected
+  final String? appointmentStatus;
 
   Map<String, dynamic> toMap() {
     return {
@@ -55,6 +65,8 @@ class AppNotification {
       if (actorId != null) 'actorId': actorId,
       if (conversationId != null) 'conversationId': conversationId,
       if (otherUserId != null) 'otherUserId': otherUserId,
+      if (appointmentId != null) 'appointmentId': appointmentId,
+      if (appointmentStatus != null) 'appointmentStatus': appointmentStatus,
     };
   }
 
@@ -71,6 +83,8 @@ class AppNotification {
       actorId: map['actorId'] as String?,
       conversationId: map['conversationId'] as String?,
       otherUserId: map['otherUserId'] as String?,
+      appointmentId: map['appointmentId'] as String?,
+      appointmentStatus: map['appointmentStatus'] as String?,
     );
   }
 }

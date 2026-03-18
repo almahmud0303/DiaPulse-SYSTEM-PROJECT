@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'chat_page.dart';
+import 'package:dia_plus/features/doctor/screens/doctor_appointments_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_appointments_page.dart';
 
 /// In-app notifications list (messages, appointments, etc.).
 class NotificationsPage extends StatefulWidget {
@@ -85,6 +87,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
             currentUser: currentUser,
             otherUser: other,
           ),
+        ),
+      );
+    }
+
+    if (n.type == AppNotificationType.appointment) {
+      final currentUser = await _authService.getAppUser();
+      if (!mounted) return;
+      if (currentUser == null) return;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (context) => currentUser.isDoctor
+              ? const DoctorAppointmentsPage()
+              : const PatientAppointmentsPage(),
         ),
       );
     }

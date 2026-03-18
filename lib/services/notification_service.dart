@@ -36,6 +36,64 @@ class NotificationService {
     await ref.set(n.toMap());
   }
 
+  /// Create an appointment request notification for the doctor.
+  Future<void> createAppointmentRequestedNotification({
+    required String doctorId,
+    required String patientId,
+    required String appointmentId,
+    String? patientName,
+  }) async {
+    final ref = _firestore.collection(_collection).doc();
+    final now = DateTime.now();
+    final who = (patientName != null && patientName.trim().isNotEmpty)
+        ? patientName.trim()
+        : 'A patient';
+    final n = AppNotification(
+      id: ref.id,
+      userId: doctorId,
+      type: AppNotificationType.appointment,
+      title: 'New appointment request',
+      body: '$who requested an appointment.',
+      createdAt: now,
+      read: false,
+      actorId: patientId,
+      appointmentId: appointmentId,
+      appointmentStatus: 'requested',
+      otherUserId: patientId,
+    );
+    await ref.set(n.toMap());
+  }
+
+  /// Create an appointment status notification for the patient.
+  Future<void> createAppointmentStatusNotification({
+    required String patientId,
+    required String doctorId,
+    required String appointmentId,
+    required String status, // accepted / rejected
+    String? doctorName,
+  }) async {
+    final ref = _firestore.collection(_collection).doc();
+    final now = DateTime.now();
+    final who = (doctorName != null && doctorName.trim().isNotEmpty)
+        ? doctorName.trim()
+        : 'Doctor';
+    final label = status == 'accepted' ? 'accepted' : 'rejected';
+    final n = AppNotification(
+      id: ref.id,
+      userId: patientId,
+      type: AppNotificationType.appointment,
+      title: 'Appointment $label',
+      body: '$who $label your appointment request.',
+      createdAt: now,
+      read: false,
+      actorId: doctorId,
+      appointmentId: appointmentId,
+      appointmentStatus: status,
+      otherUserId: doctorId,
+    );
+    await ref.set(n.toMap());
+  }
+
   /// Get all notifications for a user, newest first (sorted in Dart).
   Future<List<AppNotification>> getForUser(String userId) async {
     final snapshot = await _firestore
