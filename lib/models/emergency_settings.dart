@@ -51,16 +51,16 @@ class EmergencySettings {
       isEmergencyAlertsEnabled:
           map['isEmergencyAlertsEnabled'] as bool? ?? true,
       lowThreshold:
-        (map['lowThreshold'] as num?)?.toDouble() ?? defaultLowThreshold,
+          (map['lowThreshold'] as num?)?.toDouble() ?? defaultLowThreshold,
       highThreshold:
-        (map['highThreshold'] as num?)?.toDouble() ?? defaultHighThreshold,
+          (map['highThreshold'] as num?)?.toDouble() ?? defaultHighThreshold,
       notifyEmergencyContact: map['notifyEmergencyContact'] as bool? ?? false,
       notifyDoctor: map['notifyDoctor'] as bool? ?? false,
       emergencyContactName: map['emergencyContactName'] as String? ?? '',
       emergencyContactPhone: map['emergencyContactPhone'] as String? ?? '',
       emergencyMessageTemplate:
-        map['emergencyMessageTemplate'] as String? ??
-        defaultEmergencyMessageTemplate,
+          map['emergencyMessageTemplate'] as String? ??
+          defaultEmergencyMessageTemplate,
       soundEnabled: map['soundEnabled'] as bool? ?? true,
       vibrationEnabled: map['vibrationEnabled'] as bool? ?? true,
     );

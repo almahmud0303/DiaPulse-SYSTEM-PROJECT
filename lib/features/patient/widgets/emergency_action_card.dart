@@ -22,10 +22,7 @@ class EmergencyActionCard extends StatelessWidget {
           backgroundColor: Colors.red.shade50,
           child: Icon(icon, color: Colors.red.shade700),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

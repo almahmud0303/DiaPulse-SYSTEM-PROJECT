@@ -51,16 +51,16 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
       setState(() {
         _alert = localUpdater(_alert);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Action failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Action failed: $e')));
     } finally {
       if (mounted) {
         setState(() => _processing = false);
@@ -95,7 +95,8 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
                     children: [
                       EmergencyStatusChip(
                         type: _alert.alertType,
-                        label: '${_alert.alertType.label} • ${_alert.severityLabel}',
+                        label:
+                            '${_alert.alertType.label} • ${_alert.severityLabel}',
                       ),
                       const Spacer(),
                       Text(
@@ -139,10 +140,7 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    _alert.message,
-                    style: TextStyle(color: subTextColor),
-                  ),
+                  Text(_alert.message, style: TextStyle(color: subTextColor)),
                   if ((_alert.readingId ?? '').isNotEmpty) ...[
                     const SizedBox(height: 10),
                     Text(
@@ -241,11 +239,11 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
                       onPressed: _alert.wasAcknowledged
                           ? null
                           : () => _runAction(
-                                widget.onAcknowledge,
-                                (current) =>
-                                    current.copyWith(wasAcknowledged: true),
-                                successMessage: 'Alert acknowledged.',
-                              ),
+                              widget.onAcknowledge,
+                              (current) =>
+                                  current.copyWith(wasAcknowledged: true),
+                              successMessage: 'Alert acknowledged.',
+                            ),
                       style: FilledButton.styleFrom(
                         backgroundColor: accentColor,
                       ),
@@ -270,13 +268,13 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
                           onPressed: _alert.emergencyContactNotified
                               ? null
                               : () => _runAction(
-                                    widget.onNotifyEmergencyContact,
-                                    (current) => current.copyWith(
-                                      emergencyContactNotified: true,
-                                    ),
-                                    successMessage:
-                                        'Emergency contact notification simulated.',
+                                  widget.onNotifyEmergencyContact,
+                                  (current) => current.copyWith(
+                                    emergencyContactNotified: true,
                                   ),
+                                  successMessage:
+                                      'Emergency contact notification simulated.',
+                                ),
                           icon: const Icon(Icons.call_outlined),
                           label: const Text('Notify Contact'),
                         ),
@@ -287,12 +285,12 @@ class _EmergencyAlertDetailsPageState extends State<EmergencyAlertDetailsPage> {
                           onPressed: _alert.doctorNotified
                               ? null
                               : () => _runAction(
-                                    widget.onNotifyDoctor,
-                                    (current) =>
-                                        current.copyWith(doctorNotified: true),
-                                    successMessage:
-                                        'Doctor notification simulated.',
-                                  ),
+                                  widget.onNotifyDoctor,
+                                  (current) =>
+                                      current.copyWith(doctorNotified: true),
+                                  successMessage:
+                                      'Doctor notification simulated.',
+                                ),
                           icon: const Icon(Icons.local_hospital_outlined),
                           label: const Text('Notify Doctor'),
                         ),

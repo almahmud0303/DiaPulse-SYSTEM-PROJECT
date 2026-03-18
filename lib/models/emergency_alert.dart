@@ -55,7 +55,8 @@ class EmergencyAlert {
   }
 
   factory EmergencyAlert.fromMap(Map<String, dynamic> map) {
-    final typeName = map['alertType'] as String? ?? EmergencyAlertType.criticalLow.name;
+    final typeName =
+        map['alertType'] as String? ?? EmergencyAlertType.criticalLow.name;
     final alertType = EmergencyAlertType.values.firstWhere(
       (value) => value.name == typeName,
       orElse: () => EmergencyAlertType.criticalLow,
@@ -70,11 +71,13 @@ class EmergencyAlert {
       timestamp: DateTime.parse(map['timestamp'] as String),
       readingId: map['readingId'] as String?,
       severityLabel: map['severityLabel'] as String? ?? alertType.severityLabel,
-      recommendedActions: (map['recommendedActions'] as List<dynamic>? ?? const [])
-          .whereType<String>()
-          .toList(),
+      recommendedActions:
+          (map['recommendedActions'] as List<dynamic>? ?? const [])
+              .whereType<String>()
+              .toList(),
       wasAcknowledged: map['wasAcknowledged'] as bool? ?? false,
-      emergencyContactNotified: map['emergencyContactNotified'] as bool? ?? false,
+      emergencyContactNotified:
+          map['emergencyContactNotified'] as bool? ?? false,
       doctorNotified: map['doctorNotified'] as bool? ?? false,
       createdAt: DateTime.parse(map['createdAt'] as String),
     );

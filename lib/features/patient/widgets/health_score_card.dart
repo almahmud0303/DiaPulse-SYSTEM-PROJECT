@@ -60,6 +60,13 @@ class HealthScoreCard extends StatelessWidget {
     }
   }
 
+  String _formatScoreValue(double value) {
+    if (value % 1 == 0) {
+      return value.toInt().toString();
+    }
+    return value.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final score = healthScore;
@@ -77,7 +84,7 @@ class HealthScoreCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.teal.withValues(alpha:0.10),
+                color: Colors.teal.withValues(alpha: 0.10),
                 blurRadius: 14,
                 offset: const Offset(0, 5),
               ),
@@ -90,146 +97,200 @@ class HealthScoreCard extends StatelessWidget {
               : score == null
               ? const _HealthScoreEmptyState()
               : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          colors: [Colors.teal.shade400, Colors.teal.shade600],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.monitor_heart_outlined,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final useCompactAction = constraints.maxWidth < 350;
+                        return Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.teal.shade400,
+                                    Colors.teal.shade600,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.monitor_heart_outlined,
+                                color: Colors.white,
+                              ),
                             ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    score.periodLabel,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (onViewDetails != null)
+                              useCompactAction
+                                  ? IconButton(
+                                      tooltip: 'View details',
+                                      onPressed: onViewDetails,
+                                      icon: const Icon(Icons.arrow_forward_ios),
+                                      iconSize: 16,
+                                    )
+                                  : TextButton(
+                                      onPressed: onViewDetails,
+                                      child: const Text('View Details'),
+                                    ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final statusChip = Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            score.periodLabel,
+                          decoration: BoxDecoration(
+                            color: _statusColor(
+                              score.status,
+                            ).withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            score.status,
                             style: TextStyle(
+                              color: _statusColor(score.status),
+                              fontWeight: FontWeight.w700,
                               fontSize: 12,
-                              color: Colors.grey.shade600,
                             ),
                           ),
-                        ],
-                      ),
+                        );
+
+                        final scoreText = FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                _formatScoreValue(score.totalScore),
+                                style: TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  color: _statusColor(score.status),
+                                  height: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Text(
+                                  '/ 100',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (constraints.maxWidth < 340) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              scoreText,
+                              const SizedBox(height: 8),
+                              statusChip,
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(child: scoreText),
+                            const SizedBox(width: 8),
+                            statusChip,
+                          ],
+                        );
+                      },
                     ),
-                    if (onViewDetails != null)
-                      TextButton(
-                        onPressed: onViewDetails,
-                        child: const Text('View Details'),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${score.totalScore}',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: _statusColor(score.status),
-                        height: 1,
-                      ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(
+                          _trendIcon(score.trend),
+                          size: 18,
+                          color: _trendColor(score.trend),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            score.trend,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _trendColor(score.trend),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        '/ 100',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w600,
+                    const SizedBox(height: 12),
+                    if (score.insights.isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Text(
+                          score.insights.first,
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontSize: 13,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _statusColor(score.status).withValues(alpha:0.14),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        score.status,
-                        style: TextStyle(
-                          color: _statusColor(score.status),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(
-                      _trendIcon(score.trend),
-                      size: 18,
-                      color: _trendColor(score.trend),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      score.trend,
-                      style: TextStyle(
-                        color: _trendColor(score.trend),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (score.insights.isNotEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Text(
-                      score.insights.first,
-                      style: TextStyle(
-                        color: Colors.grey.shade800,
-                        fontSize: 13,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-            ),
         ),
       ),
     );

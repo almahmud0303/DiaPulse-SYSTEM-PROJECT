@@ -96,7 +96,10 @@ class EmergencyNotificationService {
     );
   }
 
-  Future<void> showSimulationNotice({required String title, required String message}) async {
+  Future<void> showSimulationNotice({
+    required String title,
+    required String message,
+  }) async {
     await initialize();
 
     final details = NotificationDetails(

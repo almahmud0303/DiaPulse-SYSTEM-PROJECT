@@ -33,7 +33,10 @@ class EmergencyAlertService {
       return null;
     }
 
-    final type = getEmergencyTypeForValue(reading.glucoseLevel, settings: settings);
+    final type = getEmergencyTypeForValue(
+      reading.glucoseLevel,
+      settings: settings,
+    );
 
     if (type == null) {
       return null;
@@ -158,7 +161,10 @@ class EmergencyAlertService {
   }
 
   Future<void> markAlertAcknowledged(String alertId) async {
-    await _updateAlert(alertId, (alert) => alert.copyWith(wasAcknowledged: true));
+    await _updateAlert(
+      alertId,
+      (alert) => alert.copyWith(wasAcknowledged: true),
+    );
   }
 
   Future<void> markEmergencyContactNotified(String alertId) async {
@@ -169,7 +175,10 @@ class EmergencyAlertService {
   }
 
   Future<void> markDoctorNotified(String alertId) async {
-    await _updateAlert(alertId, (alert) => alert.copyWith(doctorNotified: true));
+    await _updateAlert(
+      alertId,
+      (alert) => alert.copyWith(doctorNotified: true),
+    );
   }
 
   Future<EmergencyAlert?> getLatestAlert() async {
@@ -271,11 +280,12 @@ class EmergencyAlertService {
     }
 
     final latest = history.first;
-    final sameReading = latest.readingId != null && latest.readingId == candidate.readingId;
+    final sameReading =
+        latest.readingId != null && latest.readingId == candidate.readingId;
     final sameType = latest.alertType == candidate.alertType;
     final withinCooldown =
-      candidate.createdAt.difference(latest.createdAt).inMinutes.abs() <
-      _duplicateCooldownMinutes;
+        candidate.createdAt.difference(latest.createdAt).inMinutes.abs() <
+        _duplicateCooldownMinutes;
 
     return sameReading && sameType && withinCooldown;
   }

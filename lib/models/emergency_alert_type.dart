@@ -1,8 +1,5 @@
 /// Type of emergency alert triggered by dangerous glucose values.
-enum EmergencyAlertType {
-  criticalLow,
-  criticalHigh,
-}
+enum EmergencyAlertType { criticalLow, criticalHigh }
 
 extension EmergencyAlertTypeX on EmergencyAlertType {
   /// Human-readable type label for UI.

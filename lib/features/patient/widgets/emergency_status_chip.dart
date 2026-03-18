@@ -2,11 +2,7 @@ import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:flutter/material.dart';
 
 class EmergencyStatusChip extends StatelessWidget {
-  const EmergencyStatusChip({
-    super.key,
-    required this.type,
-    this.label,
-  });
+  const EmergencyStatusChip({super.key, required this.type, this.label});
 
   final EmergencyAlertType type;
   final String? label;
