@@ -1,5 +1,6 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
+import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
 import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
@@ -332,6 +333,21 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ReminderSettingsPage()),
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.emergency, color: Colors.red),
+            title: const Text('Emergency Settings'),
+            subtitle: const Text('Configure critical low/high emergency alerts'),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EmergencySettingsPage()),
             ),
           ),
         ],
