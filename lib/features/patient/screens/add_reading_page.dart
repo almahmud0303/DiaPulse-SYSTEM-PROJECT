@@ -1,8 +1,12 @@
+import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
+import 'package:dia_plus/services/emergency_alert_service.dart';
 import 'package:dia_plus/features/patient/widgets/diabetes_control_dialog.dart';
 
 /// Beautiful blood glucose reading input screen with aesthetic widgets
@@ -19,18 +23,47 @@ class _AddReadingPageState extends State<AddReadingPage> {
   String _selectedMealTime = '';
   final ScrollController _scrollController = ScrollController();
   final GlucoseReadingService _readingService = GlucoseReadingService();
+  final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
   bool _isSaving = false;
 
   final List<Map<String, dynamic>> _mealTimes = [
-    {'label': 'Fasting', 'icon': Icons.wb_sunny_outlined, 'color': Colors.orange},
-    {'label': 'Before meal', 'icon': Icons.restaurant_outlined, 'color': Colors.amber},
+    {
+      'label': 'Fasting',
+      'icon': Icons.wb_sunny_outlined,
+      'color': Colors.orange,
+    },
+    {
+      'label': 'Before meal',
+      'icon': Icons.restaurant_outlined,
+      'color': Colors.amber,
+    },
     {'label': 'After meal', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {'label': 'Bedtime', 'icon': Icons.nightlight_round, 'color': Colors.indigo},
-    {'label': 'Post Breakfast', 'icon': Icons.free_breakfast, 'color': Colors.amber},
-    {'label': 'Pre Lunch', 'icon': Icons.lunch_dining_outlined, 'color': Colors.green},
+    {
+      'label': 'Bedtime',
+      'icon': Icons.nightlight_round,
+      'color': Colors.indigo,
+    },
+    {
+      'label': 'Post Breakfast',
+      'icon': Icons.free_breakfast,
+      'color': Colors.amber,
+    },
+    {
+      'label': 'Pre Lunch',
+      'icon': Icons.lunch_dining_outlined,
+      'color': Colors.green,
+    },
     {'label': 'Post Lunch', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {'label': 'Pre Dinner', 'icon': Icons.dinner_dining_outlined, 'color': Colors.indigo},
-    {'label': 'Post Dinner', 'icon': Icons.restaurant_menu, 'color': Colors.purple},
+    {
+      'label': 'Pre Dinner',
+      'icon': Icons.dinner_dining_outlined,
+      'color': Colors.indigo,
+    },
+    {
+      'label': 'Post Dinner',
+      'icon': Icons.restaurant_menu,
+      'color': Colors.purple,
+    },
     {'label': 'Random', 'icon': Icons.shuffle, 'color': Colors.grey},
   ];
 
@@ -137,7 +170,15 @@ class _AddReadingPageState extends State<AddReadingPage> {
       // Save to Firestore
       await _readingService.saveReading(reading);
 
+      // Run emergency detection for newly added reading.
+      final emergencyAlert = await _emergencyAlertService
+          .checkReadingForEmergency(reading);
+
       if (mounted) {
+        if (emergencyAlert != null) {
+          await _showEmergencyAlertDialog(emergencyAlert);
+        }
+
         // Show beautiful diabetes control feedback dialog
         await DiabetesControlDialog.show(
           context,
@@ -166,6 +207,83 @@ class _AddReadingPageState extends State<AddReadingPage> {
         });
       }
     }
+  }
+
+  Future<void> _showEmergencyAlertDialog(EmergencyAlert alert) async {
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+          title: Text(alert.title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${alert.glucoseValue.toStringAsFixed(0)} mg/dL • ${alert.alertType.label}',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(alert.message),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Dismiss'),
+            ),
+            OutlinedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => EmergencyAlertDetailsPage(
+                      alert: alert,
+                      onAcknowledge: (current) async {
+                        await _emergencyAlertService.markAlertAcknowledged(
+                          current.id,
+                        );
+                      },
+                      onNotifyDoctor: (current) async {
+                        await _emergencyAlertService.notifyDoctorSimulation(
+                          current,
+                        );
+                      },
+                      onNotifyEmergencyContact: (current) async {
+                        await _emergencyAlertService
+                            .notifyEmergencyContactSimulation(current);
+                      },
+                    ),
+                  ),
+                );
+              },
+              child: const Text('View Details'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _emergencyAlertService.markAlertAcknowledged(alert.id);
+                if (!dialogContext.mounted) {
+                  return;
+                }
+                Navigator.of(dialogContext).pop();
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+              ),
+              child: const Text('Acknowledge'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -216,7 +334,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -288,7 +406,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -324,15 +442,15 @@ class _AddReadingPageState extends State<AddReadingPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _getGlucoseLevelColor().withValues(alpha:0.2),
-                  _getGlucoseLevelColor().withValues(alpha:0.1),
+                  _getGlucoseLevelColor().withValues(alpha: 0.2),
+                  _getGlucoseLevelColor().withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: _getGlucoseLevelColor().withValues(alpha:0.3),
+                color: _getGlucoseLevelColor().withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -401,7 +519,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                   activeTrackColor: _getGlucoseLevelColor(),
                   inactiveTrackColor: Colors.grey.shade300,
                   thumbColor: _getGlucoseLevelColor(),
-                  overlayColor: _getGlucoseLevelColor().withValues(alpha:0.2),
+                  overlayColor: _getGlucoseLevelColor().withValues(alpha: 0.2),
                 ),
                 child: Slider(
                   value: _glucoseLevel,
@@ -502,7 +620,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -551,7 +669,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -607,7 +725,9 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     gradient: isSelected
                         ? LinearGradient(
                             colors: [
-                              (mealTime['color'] as Color).withValues(alpha:0.8),
+                              (mealTime['color'] as Color).withValues(
+                                alpha: 0.8,
+                              ),
                               mealTime['color'] as Color,
                             ],
                           )
@@ -623,8 +743,8 @@ class _AddReadingPageState extends State<AddReadingPage> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: (mealTime['color'] as Color).withValues(alpha:
-                                0.3,
+                              color: (mealTime['color'] as Color).withValues(
+                                alpha: 0.3,
                               ),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
@@ -685,7 +805,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.teal.withValues(alpha:0.4),
+            color: Colors.teal.withValues(alpha: 0.4),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
