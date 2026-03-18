@@ -6,16 +6,20 @@ import 'package:dia_plus/services/medicine_service.dart';
 /// Threshold (mg/dL) above which a reading is considered "very high" for alerts.
 const int kVeryHighGlucoseThreshold = 200;
 
+/// Emergency thresholds aligned with emergency alert defaults.
+const int kCriticalLowGlucoseThreshold = 60;
+const int kCriticalHighGlucoseThreshold = 300;
+
 /// Number of days to look back for very-high sugar and missed-medicine alerts.
 const int kAlertLookbackDays = 2;
 
-/// Fetches alerts for the doctor: very high sugar and missed medicines.
+/// Fetches alerts for the doctor: critical/very high sugar and missed medicines.
 class DoctorAlertService {
   final DoctorPatientService _patientService = DoctorPatientService();
   final GlucoseReadingService _glucoseService = GlucoseReadingService();
   final MedicineService _medicineService = MedicineService();
 
-  /// Returns all alerts (very high glucose in last [kAlertLookbackDays] days,
+  /// Returns all alerts (critical/very high glucose in last [kAlertLookbackDays] days,
   /// and missed medicine entries in the same period), sorted by timestamp descending.
   Future<List<DoctorAlert>> getAlerts() async {
     final alerts = <DoctorAlert>[];
@@ -26,13 +30,41 @@ class DoctorAlertService {
 
     final patients = await _patientService.getPatients();
     for (final patient in patients) {
-      // Very high sugar: any reading > 200 in the lookback period
+      // Glucose alerts in lookback period.
       final readings = await _glucoseService.getReadingsByDateRange(
         patient.uid,
         start,
         now,
       );
       for (final r in readings) {
+        if (r.glucoseLevel < kCriticalLowGlucoseThreshold) {
+          alerts.add(DoctorAlert(
+            type: DoctorAlertType.veryHighSugar,
+            patientId: patient.uid,
+            patientName: patient.displayName.isEmpty ? patient.email : patient.displayName,
+            title: 'Critical low glucose emergency',
+            message: '${r.glucoseLevel.toStringAsFixed(0)} mg/dL (${r.mealTime}). Immediate follow-up recommended.',
+            timestamp: r.createdAt,
+            glucoseValue: r.glucoseLevel,
+            readingDate: r.date,
+          ));
+          continue;
+        }
+
+        if (r.glucoseLevel > kCriticalHighGlucoseThreshold) {
+          alerts.add(DoctorAlert(
+            type: DoctorAlertType.veryHighSugar,
+            patientId: patient.uid,
+            patientName: patient.displayName.isEmpty ? patient.email : patient.displayName,
+            title: 'Critical high glucose emergency',
+            message: '${r.glucoseLevel.toStringAsFixed(0)} mg/dL (${r.mealTime}). Immediate follow-up recommended.',
+            timestamp: r.createdAt,
+            glucoseValue: r.glucoseLevel,
+            readingDate: r.date,
+          ));
+          continue;
+        }
+
         if (r.glucoseLevel >= kVeryHighGlucoseThreshold) {
           alerts.add(DoctorAlert(
             type: DoctorAlertType.veryHighSugar,
