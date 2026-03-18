@@ -2,6 +2,7 @@ import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
+import 'package:dia_plus/ui/responsive.dart';
 import 'package:flutter/material.dart';
 
 import 'doctor_patient_profile_page.dart';
@@ -152,18 +153,20 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadPatients,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        itemCount: _patients.length,
-                        itemBuilder: (context, index) {
-                          final patient = _patients[index];
-                          final risk = index < _risks.length ? _risks[index] : null;
-                          return _PatientTile(
-                            patient: patient,
-                            risk: risk,
-                            onTap: () => _openProfile(patient),
-                          );
-                        },
+                      child: ResponsiveCenter(
+                        child: ListView.builder(
+                          padding: Responsive.pagePadding(context),
+                          itemCount: _patients.length,
+                          itemBuilder: (context, index) {
+                            final patient = _patients[index];
+                            final risk = index < _risks.length ? _risks[index] : null;
+                            return _PatientTile(
+                              patient: patient,
+                              risk: risk,
+                              onTap: () => _openProfile(patient),
+                            );
+                          },
+                        ),
                       ),
                     ),
     );

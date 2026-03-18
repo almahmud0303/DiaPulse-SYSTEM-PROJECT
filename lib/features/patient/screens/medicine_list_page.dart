@@ -5,6 +5,7 @@ import 'package:dia_plus/models/medicine_entry.dart';
 import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:dia_plus/services/reminder_notification_service.dart';
+import 'package:dia_plus/ui/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -296,54 +297,83 @@ class _MedicineListPageState extends State<MedicineListPage> {
     final entry = _todayEntries[m.id];
     final taken = entry?.taken ?? false;
     final missed = entry != null && !entry.taken;
+    final subtitle = missed
+        ? 'Missed • ${m.dosage} • ${Medicine.medicineTimesLabel(m)}'
+        : '${m.dosage} • ${Medicine.medicineTimesLabel(m)} • ${m.frequency.replaceAll('_', ' ')}';
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: taken
-              ? Colors.green.shade100
-              : missed
-                  ? Colors.orange.shade100
-                  : Colors.purple.shade50,
-          child: Icon(
-            taken ? Icons.check : (missed ? Icons.close : Icons.medication),
-            color: taken ? Colors.green : (missed ? Colors.orange : Colors.purple),
-          ),
-        ),
-        title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          missed
-              ? 'Missed • ${m.dosage} • ${Medicine.medicineTimesLabel(m)}'
-              : '${m.dosage} • ${Medicine.medicineTimesLabel(m)} • ${m.frequency.replaceAll('_', ' ')}',
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Column(
           children: [
-            if (!taken && !missed) ...[
-              TextButton(
-                onPressed: () => _markTaken(m),
-                child: const Text('Take'),
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: taken
+                    ? Colors.green.shade100
+                    : missed
+                        ? Colors.orange.shade100
+                        : Colors.purple.shade50,
+                child: Icon(
+                  taken ? Icons.check : (missed ? Icons.close : Icons.medication),
+                  color: taken ? Colors.green : (missed ? Colors.orange : Colors.purple),
+                ),
               ),
-              TextButton(
-                onPressed: () => _markMissed(m),
-                child: const Text('Missed'),
+              title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(subtitle),
+              // Use a compact trailing menu so text doesn't get squeezed on small screens.
+              trailing: PopupMenuButton<String>(
+                tooltip: 'Options',
+                onSelected: (v) async {
+                  if (v == 'edit') {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddEditMedicinePage(medicine: m),
+                      ),
+                    );
+                    _load();
+                  } else if (v == 'delete') {
+                    await _deleteMedicine(m);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
               ),
-            ],
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AddEditMedicinePage(medicine: m),
-                  ),
-                );
-                _load();
-              },
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline, color: Colors.red[400]),
-              onPressed: () => _deleteMedicine(m),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                children: [
+                  if (!taken && !missed) ...[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _markTaken(m),
+                        icon: const Icon(Icons.check, size: 18),
+                        label: const Text('Take'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _markMissed(m),
+                        icon: const Icon(Icons.close, size: 18),
+                        label: const Text('Missed'),
+                      ),
+                    ),
+                  ] else
+                    Expanded(
+                      child: Text(
+                        taken ? 'Taken today' : 'Missed today',
+                        style: TextStyle(
+                          color: taken ? Colors.green.shade700 : Colors.orange.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
@@ -381,7 +411,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: _buildGroupedList(),
+                  child: ResponsiveCenter(child: _buildGroupedList()),
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {

@@ -3,6 +3,7 @@ import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:dia_plus/ui/responsive.dart';
 
 import 'doctor_patients_page.dart';
 
@@ -130,26 +131,25 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
                   ? _buildEmpty()
                   : RefreshIndicator(
                       onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                      child: ResponsiveCenter(
+                        child: ListView.builder(
+                          padding: Responsive.pagePadding(context),
+                          itemCount: _appointments.length,
+                          itemBuilder: (context, index) {
+                            final a = _appointments[index];
+                            return _AppointmentTile(
+                              appointment: a,
+                              dateFmt: dateFmt,
+                              onAccept: a.status == AppointmentStatus.requested
+                                  ? () => _accept(a)
+                                  : null,
+                              onReject: a.status == AppointmentStatus.requested
+                                  ? () => _reject(a)
+                                  : null,
+                              onTapPatient: () => _openInMyPatients(a.patientId),
+                            );
+                          },
                         ),
-                        itemCount: _appointments.length,
-                        itemBuilder: (context, index) {
-                          final a = _appointments[index];
-                          return _AppointmentTile(
-                            appointment: a,
-                            dateFmt: dateFmt,
-                            onAccept: a.status == AppointmentStatus.requested
-                                ? () => _accept(a)
-                                : null,
-                            onReject: a.status == AppointmentStatus.requested
-                                ? () => _reject(a)
-                                : null,
-                            onTapPatient: () => _openInMyPatients(a.patientId),
-                          );
-                        },
                       ),
                     ),
     );

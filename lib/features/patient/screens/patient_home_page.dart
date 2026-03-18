@@ -19,9 +19,6 @@ import 'package:dia_plus/models/health_score.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
-import 'package:dia_plus/models/glucose_reading.dart';
-import 'package:dia_plus/models/health_score.dart';
-import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/emergency_alert_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
@@ -33,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dia_plus/ui/responsive.dart';
 
 /// Patient main dashboard - greeting, latest glucose, today summary,
 /// quick actions, mini weekly graph, reminders, health score.
@@ -230,41 +228,44 @@ class _PatientHomePageState extends State<PatientHomePage> {
       );
     }
 
+    final pad = Responsive.pagePadding(context);
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                _buildGreeting(),
-                const SizedBox(height: 12),
-                _buildEmergencyBanner(),
-                const SizedBox(height: 20),
-                _buildLatestGlucoseCard(),
-                const SizedBox(height: 20),
-                _buildTodaySummary(),
-                const SizedBox(height: 20),
-                _buildQuickActions(),
-                const SizedBox(height: 20),
-                _buildMiniWeeklyGraph(),
-                const SizedBox(height: 20),
-                _buildUpcomingReminder(),
-                const SizedBox(height: 20),
-                _buildHealthScore(),
-                const SizedBox(height: 20),
-                _buildDoctorConsultSection(),
-                const SizedBox(height: 20),
-                _buildMessagesSection(),
-                const SizedBox(height: 20),
-                _buildDiabetesEssentialsSection(),
-              ],
+          child: ResponsiveCenter(
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: pad,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 24),
+                  _buildGreeting(),
+                  const SizedBox(height: 12),
+                  _buildEmergencyBanner(),
+                  const SizedBox(height: 20),
+                  _buildLatestGlucoseCard(),
+                  const SizedBox(height: 20),
+                  _buildTodaySummary(),
+                  const SizedBox(height: 20),
+                  _buildQuickActions(),
+                  const SizedBox(height: 20),
+                  _buildMiniWeeklyGraph(),
+                  const SizedBox(height: 20),
+                  _buildUpcomingReminder(),
+                  const SizedBox(height: 20),
+                  _buildHealthScore(),
+                  const SizedBox(height: 20),
+                  _buildDoctorConsultSection(),
+                  const SizedBox(height: 20),
+                  _buildMessagesSection(),
+                  const SizedBox(height: 20),
+                  _buildDiabetesEssentialsSection(),
+                ],
+              ),
             ),
           ),
         ),

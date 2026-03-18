@@ -8,6 +8,7 @@ import 'package:dia_plus/services/consultation_note_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/ui/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -114,31 +115,33 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                 )
               : RefreshIndicator(
                   onRefresh: _loadData,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildProfileCard(context),
-                        const SizedBox(height: 20),
-                        if (_patientRisk != null) ...[
-                          _buildRiskCard(context),
+                  child: ResponsiveCenter(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: Responsive.pagePadding(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProfileCard(context),
                           const SizedBox(height: 20),
+                          if (_patientRisk != null) ...[
+                            _buildRiskCard(context),
+                            const SizedBox(height: 20),
+                          ],
+                          _buildContactCard(context),
+                          const SizedBox(height: 20),
+                          _buildBasicInfoCard(context, age: age, weight: weight, height: height, diabetesType: diabetesType),
+                          const SizedBox(height: 20),
+                          _buildGlucoseTrendCard(context),
+                          const SizedBox(height: 20),
+                          _buildRecentGlucoseCard(context),
+                          const SizedBox(height: 20),
+                          _buildMedicinesCard(context),
+                          const SizedBox(height: 20),
+                          _buildConsultationNotesCard(context),
+                          const SizedBox(height: 24),
                         ],
-                        _buildContactCard(context),
-                        const SizedBox(height: 20),
-                        _buildBasicInfoCard(context, age: age, weight: weight, height: height, diabetesType: diabetesType),
-                        const SizedBox(height: 20),
-                        _buildGlucoseTrendCard(context),
-                        const SizedBox(height: 20),
-                        _buildRecentGlucoseCard(context),
-                        const SizedBox(height: 20),
-                        _buildMedicinesCard(context),
-                        const SizedBox(height: 20),
-                        _buildConsultationNotesCard(context),
-                        const SizedBox(height: 24),
-                      ],
+                      ),
                     ),
                   ),
                 ),
