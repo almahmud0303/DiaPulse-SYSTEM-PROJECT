@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
+import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
 import 'package:dia_plus/features/patient/screens/health_score_details_page.dart';
 import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
@@ -6,6 +7,7 @@ import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
+import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:dia_plus/features/shared/screens/diabetes_essentials_page.dart';
 import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
@@ -15,6 +17,11 @@ import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/health_score.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/appointment_service.dart';
+import 'package:dia_plus/models/emergency_alert_type.dart';
+import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/models/health_score.dart';
+import 'package:dia_plus/models/reminder.dart';
+import 'package:dia_plus/services/emergency_alert_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
@@ -41,6 +48,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   final _reminderService = ReminderService();
   final _healthScoreService = HealthScoreService();
   final _appointmentService = AppointmentService();
+  final _emergencyAlertService = EmergencyAlertService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -56,6 +64,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   AppointmentStatus? _nextAppointmentStatus;
   Reminder? _nextReminder;
   DateTime? _nextReminderAt;
+  EmergencyAlert? _latestEmergencyAlert;
   HealthScore? _healthScore;
   bool _healthScoreLoading = false;
   String? _healthScoreError;
@@ -77,6 +86,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
     if (user == null) {
       setState(() {
         _loading = false;
+        _latestEmergencyAlert = null;
         _healthScore = null;
         _healthScoreLoading = false;
         _healthScoreError = null;
@@ -115,6 +125,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
       Reminder? smartNextReminder;
       DateTime? smartNextReminderAt;
+      EmergencyAlert? latestEmergency;
       HealthScore? score;
       String? scoreError;
       try {
@@ -125,6 +136,17 @@ class _PatientHomePageState extends State<PatientHomePage> {
             smartNextReminder,
           );
         }
+      } catch (_) {}
+
+      try {
+        final unacknowledged = await _emergencyAlertService
+            .getUnacknowledgedAlerts();
+        final userAlerts =
+            unacknowledged
+                .where((alert) => _belongsToUser(alert, user.uid))
+                .toList()
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        latestEmergency = userAlerts.isEmpty ? null : userAlerts.first;
       } catch (_) {}
 
       try {
@@ -161,6 +183,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           _nextGlucoseTest = 'Before lunch'; // Placeholder
           _nextReminder = smartNextReminder;
           _nextReminderAt = smartNextReminderAt;
+          _latestEmergencyAlert = latestEmergency;
           _healthScore = score;
           _healthScoreLoading = false;
           _healthScoreError = scoreError;
@@ -220,6 +243,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 _buildHeader(),
                 const SizedBox(height: 24),
                 _buildGreeting(),
+                const SizedBox(height: 12),
+                _buildEmergencyBanner(),
                 const SizedBox(height: 20),
                 _buildLatestGlucoseCard(),
                 const SizedBox(height: 20),
@@ -298,6 +323,124 @@ class _PatientHomePageState extends State<PatientHomePage> {
     );
   }
 
+  Widget _buildEmergencyBanner() {
+    final alert = _latestEmergencyAlert;
+    if (alert == null) {
+      return const SizedBox.shrink();
+    }
+
+    final color = alert.isCriticalLow
+        ? Colors.orange.shade700
+        : Colors.red.shade700;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.emergency, color: color, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Emergency Alert',
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${alert.glucoseValue.toStringAsFixed(0)} mg/dL • ${alert.alertType.label}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  alert.message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              TextButton(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => EmergencyAlertDetailsPage(
+                        alert: alert,
+                        onAcknowledge: (current) async {
+                          await _emergencyAlertService.markAlertAcknowledged(
+                            current.id,
+                          );
+                        },
+                        onNotifyDoctor: (current) async {
+                          await _emergencyAlertService.notifyDoctorSimulation(
+                            current,
+                          );
+                        },
+                        onNotifyEmergencyContact: (current) async {
+                          await _emergencyAlertService
+                              .notifyEmergencyContactSimulation(current);
+                        },
+                      ),
+                    ),
+                  );
+                  await _loadData();
+                },
+                child: const Text('View'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  await _emergencyAlertService.markAlertAcknowledged(alert.id);
+                  if (!mounted) {
+                    return;
+                  }
+                  setState(() {
+                    _latestEmergencyAlert = null;
+                  });
+                },
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(68, 30),
+                  backgroundColor: color,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                child: const Text('Ack'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _belongsToUser(EmergencyAlert alert, String userId) {
+    final fromAlertId = alert.id.startsWith('${userId}_');
+    final fromReadingId = (alert.readingId ?? '').startsWith('${userId}_');
+    return fromAlertId || fromReadingId;
+  }
+
   Widget _buildLatestGlucoseCard() {
     final reading = _latestReading;
     if (reading == null) {
@@ -312,19 +455,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha:0.2),
+            color: color.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: color.withValues(alpha:0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(Icons.water_drop, color: color, size: 40),
@@ -400,7 +543,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.teal.withValues(alpha:0.3),
+              color: Colors.teal.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -428,7 +571,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               'Start monitoring your blood glucose',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha:0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ],
@@ -449,7 +592,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -584,7 +727,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
-      shadowColor: Colors.grey.withValues(alpha:0.2),
+      shadowColor: Colors.grey.withValues(alpha: 0.2),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -619,7 +762,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -743,7 +886,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           drawVerticalLine: false,
           horizontalInterval: maxY / 4,
           getDrawingHorizontalLine: (_) =>
-              FlLine(color: Colors.grey.withValues(alpha:0.2), strokeWidth: 1),
+              FlLine(color: Colors.grey.withValues(alpha: 0.2), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
       ),
@@ -759,7 +902,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -826,8 +969,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 _nextAppointmentStatus == AppointmentStatus.accepted
                     ? Colors.green
                     : _nextAppointmentStatus == AppointmentStatus.rejected
-                        ? Colors.grey
-                        : Colors.blue,
+                    ? Colors.grey
+                    : Colors.blue,
               ),
             ),
           ],
@@ -854,7 +997,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withValues(alpha:0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -935,7 +1078,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha:0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1006,11 +1149,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(
-                Icons.chat,
-                color: Colors.orange.shade600,
-                size: 40,
-              ),
+              child: Icon(Icons.chat, color: Colors.orange.shade600, size: 40),
             ),
             const SizedBox(width: 20),
             const Expanded(
@@ -1044,7 +1183,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1109,7 +1248,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 20),

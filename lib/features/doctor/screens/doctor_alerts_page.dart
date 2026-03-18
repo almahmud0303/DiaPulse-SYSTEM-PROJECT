@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 import 'doctor_patient_profile_page.dart';
 
-/// Lists doctor alerts: very high sugar and missed medicines (last 2 days).
+/// Lists doctor alerts: critical/very high sugar and missed medicines (last 2 days).
 /// Tap opens patient profile.
 class DoctorAlertsPage extends StatefulWidget {
   const DoctorAlertsPage({super.key});
@@ -155,7 +155,7 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Very high glucose (≥200 mg/dL) and missed medicines in the last 2 days will appear here.',
+              'Critical low glucose (<60), critical/very high glucose (>=200), and missed medicines in the last 2 days will appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
             ),
@@ -179,6 +179,7 @@ class _AlertTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEmergency = alert.title.toLowerCase().contains('critical');
     final isSugar = alert.type == DoctorAlertType.veryHighSugar;
     final color = isSugar ? Colors.red : Colors.orange;
     final icon = isSugar ? Icons.warning_amber_rounded : Icons.medication_liquid;
@@ -226,6 +227,27 @@ class _AlertTile extends StatelessWidget {
                         color: color,
                       ),
                     ),
+                    if (isEmergency) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade700,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Text(
+                          'Emergency',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       alert.message,

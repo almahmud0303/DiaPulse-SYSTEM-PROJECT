@@ -125,7 +125,7 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha:0.12),
+            color: color.withValues(alpha: 0.12),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -134,62 +134,80 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final statusChip = Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha:0.14),
+                  color: color.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   score.status,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w700),
                 ),
-              ),
-              const Spacer(),
-              Icon(_trendIcon(score.trend), size: 18, color: color),
-              const SizedBox(width: 6),
-              Text(
-                score.trend,
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-            ],
+              );
+
+              final trendRow = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_trendIcon(score.trend), size: 18, color: color),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      score.trend,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ),
+                ],
+              );
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [statusChip, const SizedBox(height: 8), trendRow],
+                );
+              }
+
+              return Row(children: [statusChip, const Spacer(), trendRow]);
+            },
           ),
           const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${score.totalScore}',
-                style: TextStyle(
-                  fontSize: 44,
-                  height: 1,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  '/ 100',
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${score.totalScore}',
                   style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 44,
+                    height: 1,
+                    fontWeight: FontWeight.w800,
+                    color: color,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '/ 100',
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            score.summary,
-            style: TextStyle(color: Colors.grey.shade800),
-          ),
+          Text(score.summary, style: TextStyle(color: Colors.grey.shade800)),
         ],
       ),
     );
@@ -204,7 +222,7 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -288,7 +306,7 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -343,7 +361,7 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -399,10 +417,7 @@ class _HealthScoreDetailsPageState extends State<HealthScoreDetailsPage> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                child: Text(_error!, style: const TextStyle(color: Colors.red)),
               )
             else if (_score == null)
               Container(
