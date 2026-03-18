@@ -1,6 +1,7 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/services/messaging_service.dart';
+import 'package:dia_plus/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -21,6 +22,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final MessagingService _messagingService = MessagingService();
+  final NotificationService _notificationService = NotificationService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -40,6 +42,18 @@ class _ChatPageState extends State<ChatPage> {
       if (mounted) setState(() => _messages = list);
     });
     _loadInitial();
+    _markNotificationsRead();
+  }
+
+  Future<void> _markNotificationsRead() async {
+    try {
+      await _notificationService.markConversationRead(
+        userId: widget.currentUser.uid,
+        conversationId: _conversationId,
+      );
+    } catch (_) {
+      // Non-blocking: chat should work even if marking read fails.
+    }
   }
 
   Future<void> _loadInitial() async {
@@ -68,6 +82,9 @@ class _ChatPageState extends State<ChatPage> {
         senderId: widget.currentUser.uid,
         receiverId: widget.otherUser.uid,
         text: text,
+        senderName: widget.currentUser.displayName.isNotEmpty
+            ? widget.currentUser.displayName
+            : widget.currentUser.email,
       );
     } finally {
       if (mounted) setState(() => _sending = false);

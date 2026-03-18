@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/models/conversation.dart';
+import 'package:dia_plus/services/notification_service.dart';
 
 /// Manages doctor–patient messaging. Firestore: `conversations`, `messages`.
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _conversationsCollection = 'conversations';
   static const String _messagesCollection = 'messages';
+  final NotificationService _notificationService = NotificationService();
 
   /// conversationId = sorted [uid1, uid2] joined by '_'
   String conversationId(String uid1, String uid2) {
@@ -19,6 +21,7 @@ class MessagingService {
     required String senderId,
     required String receiverId,
     required String text,
+    String? senderName,
   }) async {
     final cid = conversationId(senderId, receiverId);
     final now = DateTime.now();
@@ -38,6 +41,15 @@ class MessagingService {
       'lastMessageText': text,
       'lastMessageSenderId': senderId,
     }, SetOptions(merge: true));
+
+    // In-app notification for receiver.
+    await _notificationService.createMessageNotification(
+      receiverId: receiverId,
+      senderId: senderId,
+      conversationId: cid,
+      messageText: text,
+      senderName: senderName,
+    );
   }
 
   /// List conversations for the current user, sorted by last message descending.

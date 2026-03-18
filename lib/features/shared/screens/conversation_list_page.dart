@@ -3,10 +3,12 @@ import 'package:dia_plus/models/conversation.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/messaging_service.dart';
+import 'package:dia_plus/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'chat_page.dart';
+import 'notifications_page.dart';
 import 'select_conversation_partner_page.dart';
 
 /// Lists conversations for the current user (doctor or patient). Tap to open chat.
@@ -21,6 +23,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
   final AuthService _authService = AuthService();
   final MessagingService _messagingService = MessagingService();
   final DoctorPatientService _userService = DoctorPatientService();
+  final NotificationService _notificationService = NotificationService();
 
   AppUser? _currentUser;
   List<Conversation> _conversations = [];
@@ -84,6 +87,53 @@ class _ConversationListPageState extends State<ConversationListPage> {
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         actions: [
+          if (_currentUser != null)
+            StreamBuilder<int>(
+              stream: _notificationService.streamUnreadCount(_currentUser!.uid),
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                return IconButton(
+                  tooltip: 'Notifications',
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => const NotificationsPage(),
+                      ),
+                    );
+                  },
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications),
+                      if (count > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            child: Text(
+                              count > 99 ? '99+' : '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loading ? null : _load,
