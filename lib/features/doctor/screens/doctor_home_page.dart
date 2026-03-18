@@ -4,6 +4,7 @@ import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:flutter/material.dart';
 
 import 'doctor_alerts_page.dart';
+import 'doctor_appointments_page.dart';
 import 'doctor_monitoring_dashboard_page.dart';
 import 'doctor_patients_page.dart';
 
@@ -155,6 +156,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 title: 'Appointments',
                 subtitle: 'Upcoming and past appointments',
                 color: Colors.green,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => const DoctorAppointmentsPage(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildCard(
