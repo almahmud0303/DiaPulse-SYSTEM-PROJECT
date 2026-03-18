@@ -18,6 +18,7 @@ import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/services/reminder_notification_service.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +109,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
         if (next != null) nextMed = '${next.time} (${next.name})';
+        // Schedule local notifications at each medicine time (daily).
+        ReminderNotificationService().scheduleMedicineReminders(medicines);
       } catch (_) {}
 
       Reminder? smartNextReminder;

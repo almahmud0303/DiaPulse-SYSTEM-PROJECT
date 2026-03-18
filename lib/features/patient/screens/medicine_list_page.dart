@@ -3,6 +3,7 @@ import 'package:dia_plus/features/patient/screens/medicine_history_page.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/medicine_entry.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/services/reminder_notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -45,6 +46,8 @@ class _MedicineListPageState extends State<MedicineListPage> {
     _medSub?.cancel();
     _medSub = _service.getMedicinesStream(_userId!).listen((medicines) async {
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      // Schedule local notifications at each medicine time when list changes.
+      ReminderNotificationService().scheduleMedicineReminders(medicines);
       try {
         final entries =
             await _service.getEntries(_userId!, fromDate: today, toDate: today);

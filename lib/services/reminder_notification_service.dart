@@ -1,3 +1,4 @@
+import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/models/reminder_repeat_mode.dart';
 import 'package:dia_plus/models/reminder_type.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -244,6 +246,126 @@ class ReminderNotificationService {
       'This is a test reminder notification.',
       details,
     );
+  }
+
+  static const String _scheduledMedicineIdsKey = 'scheduled_medicine_notification_ids';
+
+  /// Schedules a daily notification at each medicine's time. Call when medicine list loads or changes.
+  /// Cancels previously scheduled medicine notifications first.
+  Future<void> scheduleMedicineReminders(List<Medicine> medicines) async {
+    await initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final previousIds = prefs.getStringList(_scheduledMedicineIdsKey);
+    if (previousIds != null) {
+      for (final idStr in previousIds) {
+        final id = int.tryParse(idStr);
+        if (id != null) await _plugin.cancel(id);
+      }
+      await prefs.remove(_scheduledMedicineIdsKey);
+    }
+
+    if (medicines.isEmpty) return;
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'diapulse_reminders_channel',
+        'DiaPulse Reminders',
+        channelDescription: 'Reminder notifications for DiaPulse users',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    final now = DateTime.now();
+    final scheduledIds = <int>[];
+
+    for (final m in medicines) {
+      final parts = m.time.split(':');
+      final hour = parts.isNotEmpty ? (int.tryParse(parts[0].trim()) ?? 9) : 9;
+      final minute = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 0) : 0;
+
+      final todayAt = DateTime(now.year, now.month, now.day, hour, minute);
+      final next = todayAt.isAfter(now)
+          ? todayAt
+          : todayAt.add(const Duration(days: 1));
+      final tzScheduled = tz.TZDateTime.from(next, tz.local);
+
+      final id = _medicineNotificationId(m.id);
+      try {
+        await _plugin.zonedSchedule(
+          id,
+          'Time to take medicine',
+          '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+          tzScheduled,
+          details,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          payload: 'medicine_${m.id}',
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+        scheduledIds.add(id);
+      } on PlatformException catch (e) {
+        if (e.code == 'exact_alarms_not_permitted') {
+          try {
+            await _plugin.zonedSchedule(
+              id,
+              'Time to take medicine',
+              '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+              tzScheduled,
+              details,
+              uiLocalNotificationDateInterpretation:
+                  UILocalNotificationDateInterpretation.absoluteTime,
+              payload: 'medicine_${m.id}',
+              androidScheduleMode: AndroidScheduleMode.alarmClock,
+              matchDateTimeComponents: DateTimeComponents.time,
+            );
+            scheduledIds.add(id);
+          } on PlatformException {
+            await _plugin.zonedSchedule(
+              id,
+              'Time to take medicine',
+              '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+              tzScheduled,
+              details,
+              uiLocalNotificationDateInterpretation:
+                  UILocalNotificationDateInterpretation.absoluteTime,
+              payload: 'medicine_${m.id}',
+              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+              matchDateTimeComponents: DateTimeComponents.time,
+            );
+            scheduledIds.add(id);
+          }
+        } else {
+          rethrow;
+        }
+      }
+    }
+
+    await prefs.setStringList(
+      _scheduledMedicineIdsKey,
+      scheduledIds.map((e) => e.toString()).toList(),
+    );
+    debugPrint('[MedicineReminders] scheduled ${scheduledIds.length} medicine reminders');
+  }
+
+  /// Cancels all scheduled medicine-time notifications.
+  Future<void> cancelMedicineReminders() async {
+    await initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_scheduledMedicineIdsKey);
+    if (ids != null) {
+      for (final idStr in ids) {
+        final id = int.tryParse(idStr);
+        if (id != null) await _plugin.cancel(id);
+      }
+      await prefs.remove(_scheduledMedicineIdsKey);
+    }
+  }
+
+  int _medicineNotificationId(String medicineId) {
+    return 400000 + (medicineId.hashCode.abs() % 10000);
   }
 
   int _buildNotificationId(String reminderId, int suffix) {
