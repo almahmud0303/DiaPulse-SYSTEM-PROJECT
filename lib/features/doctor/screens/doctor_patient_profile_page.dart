@@ -37,7 +37,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
   List<Prescription> _prescriptions = [];
   List<ConsultationNote> _consultationNotes = [];
   PatientRisk? _patientRisk;
-  Set<String> _expandedPrescriptionIds = {};
+  final Set<String> _expandedPrescriptionIds = {};
   bool _loading = true;
   String? _error;
 

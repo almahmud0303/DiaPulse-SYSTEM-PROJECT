@@ -59,10 +59,12 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _loadInitial() async {
     setState(() => _loading = true);
     final list = await _messagingService.getMessages(_conversationId);
-    if (mounted) setState(() {
+    if (mounted) {
+      setState(() {
       _messages = list;
       _loading = false;
     });
+    }
   }
 
   @override

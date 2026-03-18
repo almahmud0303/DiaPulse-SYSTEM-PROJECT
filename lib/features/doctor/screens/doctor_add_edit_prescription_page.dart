@@ -763,7 +763,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
               if (_isInsulin) ...[
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _insulinType,
+                  initialValue: _insulinType,
                   decoration: const InputDecoration(
                     labelText: 'Insulin type',
                     border: OutlineInputBorder(),
@@ -807,7 +807,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: whenValue,
+          initialValue: whenValue,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             prefixIcon: Icon(Icons.schedule),

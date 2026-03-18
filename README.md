@@ -22,7 +22,7 @@ Auth flow: **Login/Register** → Email verification → (Second password for Do
 ### Tech Stack
 - **Flutter** (Dart 3.x)
 - **Firebase** – Authentication, Firestore
-- **Packages** – `intl`, `shared_preferences`, `crypto`, `fl_chart` (charts)
+- **Packages** – `intl`, `shared_preferences`, `crypto`, `fl_chart` (charts), `pdf` & `printing` (reports), `flutter_local_notifications` & `timezone` (reminders)
 
 ## Project Structure
 
@@ -34,18 +34,20 @@ lib/
 │   ├── navigation/app_router.dart
 │   ├── theme/app_theme.dart, theme_notifier.dart
 │   └── utils/page_transitions.dart
-├── models/                  # Domain models (user, glucose, medicine, meal, activity, reminder, health score, reports)
-├── services/                 # Auth, CRUD, reminders, reports, PDF
+├── ui/
+│   └── responsive.dart      # ResponsiveCenter, breakpoints (phone/tablet/web)
+├── models/                  # Domain models (user, glucose, medicine, prescription, appointment, reminder, etc.)
+├── services/                # Auth, CRUD, reminders, reports, PDF, appointments, prescriptions, alerts, messaging
 └── features/
     ├── auth/screens/        # Starting, Login, Register, Email verify, Second password
     ├── home/screens/        # MainNavigationPage (tab bar)
     ├── patient/             # Screens, widgets, history (data + presentation)
-    ├── doctor/screens/      # DoctorHomePage, DoctorPatientsPage, DoctorPatientProfilePage, DoctorAddEditPrescriptionPage, DoctorAddEditConsultationNotePage
+    ├── doctor/screens/      # Home, Patients, Appointments, Patient profile, Prescription detail, Add/edit prescription, Consultation note, Monitoring, Alerts
     ├── admin/screens/       # AdminHomePage, InviteCodesPage
-    └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials
+    └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials, Chat, Emergency, Notifications
 ```
 
-See **PROJECT_STRUCTURE.md** for the full file tree and Firestore collections.
+See **PROJECT_STRUCTURE.md** for the full file tree, layer summary, and Firestore collections.
 
 ## Prerequisites
 
@@ -94,15 +96,32 @@ flutter run -d chrome
 flutter run -d windows
 ```
 
+To deploy Firestore rules:
+
+```bash
+firebase use <your-project-id>
+firebase deploy --only firestore:rules
+```
+
 ## Firestore Collections
 
-| Collection         | Purpose |
-|--------------------|--------|
-| `users/{uid}`      | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
-| `inviteCodes/{id}` | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
-| `glucose_readings` | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
-| `medicines`        | Medicines/prescriptions: userId, name, dosage, time, frequency (doctor can add for patient) |
+| Collection           | Purpose |
+|----------------------|--------|
+| `users/{uid}`        | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
+| `inviteCodes/{id}`   | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
+| `glucose_readings`   | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
+| `medicines`          | Medicines: userId, name, dosage, time, times?, frequency, prescriptionId?, createdAt |
+| `prescriptions/{id}` | Prescription groups: patientId, createdAt |
 | `consultation_notes` | Doctor notes/diagnosis: patientId, doctorId, note, diagnosis, createdAt, updatedAt? |
+| `appointments`      | Appointment requests: patientId, doctorId, status (pending/accepted/rejected), createdAt |
+| `conversations`      | Chat: participants, lastMessageAt |
+| `messages`           | Chat messages: conversationId, senderId, receiverId, text, createdAt |
+
+See **PROJECT_STRUCTURE.md** for more collections and details.
+
+## Additional docs
+
+- **docs/C_DRIVE_SPACE.md** – How to move Gradle and Pub cache off the C: drive to save disk space.
 
 ## License
 

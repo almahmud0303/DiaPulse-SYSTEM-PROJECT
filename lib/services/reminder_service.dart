@@ -290,6 +290,7 @@ class ReminderService {
         }
         return earliest;
     }
+    return null;
   }
 
   Future<List<Reminder>> getUpcomingEnabledReminders() async {
