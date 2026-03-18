@@ -6,6 +6,7 @@ import 'package:dia_plus/services/medicine_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class MedicineListPage extends StatefulWidget {
   const MedicineListPage({super.key});
@@ -20,15 +21,60 @@ class _MedicineListPageState extends State<MedicineListPage> {
   List<Medicine> _medicines = [];
   Map<String, MedicineEntry?> _todayEntries = {};
   bool _loading = true;
+  StreamSubscription<List<Medicine>>? _medSub;
 
   @override
   void initState() {
     super.initState();
     _userId = FirebaseAuth.instance.currentUser?.uid;
-    _load();
+    _startRealtime();
+  }
+
+  @override
+  void dispose() {
+    _medSub?.cancel();
+    super.dispose();
+  }
+
+  void _startRealtime() {
+    if (_userId == null) {
+      setState(() => _loading = false);
+      return;
+    }
+    setState(() => _loading = true);
+    _medSub?.cancel();
+    _medSub = _service.getMedicinesStream(_userId!).listen((medicines) async {
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      try {
+        final entries =
+            await _service.getEntries(_userId!, fromDate: today, toDate: today);
+        final entryMap = {for (var e in entries) e.medicineId: e};
+        if (!mounted) return;
+        setState(() {
+          _medicines = medicines;
+          _todayEntries = {for (var m in medicines) m.id: entryMap[m.id]};
+          _loading = false;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _medicines = medicines;
+          _todayEntries = {for (var m in medicines) m.id: null};
+          _loading = false;
+        });
+      }
+    }, onError: (_) {
+      if (!mounted) return;
+      setState(() {
+        _medicines = [];
+        _todayEntries = {};
+        _loading = false;
+      });
+    });
   }
 
   Future<void> _load() async {
+    // Manual refresh still supported; realtime keeps it updated.
     if (_userId == null) {
       setState(() => _loading = false);
       return;
