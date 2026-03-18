@@ -1,19 +1,24 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
 
 import 'doctor_patient_profile_page.dart';
 
 /// Lists all patients for the doctor; tap opens [DoctorPatientProfilePage].
+/// If [selectedPatientId] is set, opens that patient's profile after load (e.g. from Appointments).
 class DoctorPatientsPage extends StatefulWidget {
-  const DoctorPatientsPage({super.key});
+  const DoctorPatientsPage({super.key, this.selectedPatientId});
+
+  final String? selectedPatientId;
 
   @override
   State<DoctorPatientsPage> createState() => _DoctorPatientsPageState();
 }
 
 class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
+  final AuthService _authService = AuthService();
   final DoctorPatientService _service = DoctorPatientService();
   List<AppUser> _patients = [];
   List<PatientRisk?> _risks = [];
@@ -32,7 +37,17 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       _error = null;
     });
     try {
-      final list = await _service.getPatients();
+      final me = await _authService.getAppUser();
+      if (me == null || !me.isDoctor) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Not signed in as doctor';
+          _loading = false;
+        });
+        return;
+      }
+
+      final list = await _service.getMyPatientsForDoctor(me.uid);
       final risks = await Future.wait(list.map((p) => _service.getPatientRisk(p.uid)));
       if (!mounted) return;
       setState(() {
@@ -40,6 +55,33 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         _risks = risks;
         _loading = false;
       });
+      final id = widget.selectedPatientId;
+      if (id != null && id.isNotEmpty) {
+        final match = list.where((p) => p.uid == id);
+        final patient = match.isEmpty ? null : match.first;
+        if (patient != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => DoctorPatientProfilePage(patient: patient),
+              ),
+            );
+          });
+        } else {
+          final fetched = await _service.getPatientProfile(id);
+          if (fetched != null && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => DoctorPatientProfilePage(patient: fetched),
+                ),
+              );
+            });
+          }
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

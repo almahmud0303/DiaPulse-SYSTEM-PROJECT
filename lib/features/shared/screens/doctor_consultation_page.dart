@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class DoctorConsultationPage extends StatefulWidget {
 class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
   final AuthService _authService = AuthService();
   final DoctorPatientService _doctorService = DoctorPatientService();
+  final AppointmentService _appointmentService = AppointmentService();
 
   List<AppUser> _doctors = [];
   AppUser? _currentUser;
@@ -342,14 +344,14 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
         : doctor.email;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Book appointment with $name'),
         content: const SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Choose how you would like to consult:'),
+              Text('Request an appointment. The doctor will accept or reject.'),
               SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.video_call, color: Colors.purple),
@@ -371,26 +373,46 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Appointment request sent to $name. You will receive a confirmation shortly.',
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              if (_currentUser == null) return;
+              try {
+                await _appointmentService.createRequest(
+                  patientId: _currentUser!.uid,
+                  doctorId: doctor.uid,
+                  patientName: _currentUser!.displayName.isNotEmpty
+                      ? _currentUser!.displayName
+                      : _currentUser!.email,
+                  doctorName: name,
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Appointment request sent to $name. You will be notified when they respond.',
+                    ),
+                    backgroundColor: Colors.green,
                   ),
-                  backgroundColor: Colors.green,
-                ),
-              );
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to send request: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Confirm'),
+            child: const Text('Send request'),
           ),
         ],
       ),

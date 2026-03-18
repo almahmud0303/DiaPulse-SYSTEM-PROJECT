@@ -1,17 +1,52 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/medicine.dart';
+import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
+import 'doctor_prescription_detail_page.dart';
 
 /// Doctor: add or edit a prescription (medicine) for a patient.
 class DoctorAddEditPrescriptionPage extends StatefulWidget {
-  const DoctorAddEditPrescriptionPage({super.key, required this.patient, this.medicine});
+  const DoctorAddEditPrescriptionPage({
+    super.key,
+    required this.patient,
+    this.medicine,
+    this.appendToPrescriptionId,
+  });
 
   final AppUser patient;
   final Medicine? medicine;
+  /// When set, saving in add-mode appends medicines to this prescription group.
+  final String? appendToPrescriptionId;
 
   @override
   State<DoctorAddEditPrescriptionPage> createState() => _DoctorAddEditPrescriptionPageState();
+}
+
+class _PrescriptionDraftItem {
+  const _PrescriptionDraftItem({
+    required this.name,
+    required this.dosage,
+    required this.frequency,
+    required this.times,
+    required this.isInsulin,
+    this.insulinType,
+    this.adjustmentInstructions,
+  });
+
+  final String name;
+  final String dosage;
+  final String frequency;
+  final List<String> times;
+  final bool isInsulin;
+  final String? insulinType;
+  final String? adjustmentInstructions;
 }
 
 class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptionPage> {
@@ -21,11 +56,16 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   final _adjustmentInstructionsController = TextEditingController();
   final MedicineService _medicineService = MedicineService();
 
-  TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
+  /// 'specific' = use time picker; otherwise meal-relative key (after_lunch, etc.)
+  String _whenToTake1 = 'specific';
+  TimeOfDay _time1 = const TimeOfDay(hour: 9, minute: 0);
+  String _whenToTake2 = 'specific';
+  TimeOfDay _time2 = const TimeOfDay(hour: 19, minute: 0);
   String _frequency = 'daily';
   bool _isInsulin = false;
   String _insulinType = 'rapid_acting';
   bool _saving = false;
+  final List<_PrescriptionDraftItem> _draftItems = [];
 
   static const List<Map<String, String>> frequencies = [
     {'value': 'daily', 'label': 'Once daily'},
@@ -48,14 +88,12 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     if (m != null) {
       _nameController.text = m.name;
       _dosageController.text = m.dosage;
-      final parts = m.time.split(':');
-      if (parts.length >= 2) {
-        _time = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 9,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
       _frequency = m.frequency;
+      final times = m.effectiveTimes;
+      _applyTimeToState(isSecond: false, value: times.isNotEmpty ? times.first : m.time);
+      if (times.length > 1) {
+        _applyTimeToState(isSecond: true, value: times[1]);
+      }
       _isInsulin = m.isInsulin;
       _insulinType = m.insulinType ?? 'rapid_acting';
       _adjustmentInstructionsController.text = m.adjustmentInstructions ?? '';
@@ -71,29 +109,393 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
-    if (picked != null) setState(() => _time = picked);
+    final picked = await showTimePicker(context: context, initialTime: _time1);
+    if (picked != null) setState(() => _time1 = picked);
   }
 
-  String get _timeString =>
-      '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
+  Future<void> _pickTime2() async {
+    final picked = await showTimePicker(context: context, initialTime: _time2);
+    if (picked != null) setState(() => _time2 = picked);
+  }
 
-  Future<void> _save() async {
+  void _applyTimeToState({required bool isSecond, required String value}) {
+    if (Medicine.isMealRelativeTime(value)) {
+      if (isSecond) {
+        _whenToTake2 = value;
+      } else {
+        _whenToTake1 = value;
+      }
+      return;
+    }
+    final parts = value.split(':');
+    final t = (parts.length >= 2)
+        ? TimeOfDay(
+            hour: int.tryParse(parts[0]) ?? 9,
+            minute: int.tryParse(parts[1]) ?? 0,
+          )
+        : const TimeOfDay(hour: 9, minute: 0);
+    if (isSecond) {
+      _whenToTake2 = 'specific';
+      _time2 = t;
+    } else {
+      _whenToTake1 = 'specific';
+      _time1 = t;
+    }
+  }
+
+  String _timeString(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  String get _savedTime1 => _whenToTake1 == 'specific' ? _timeString(_time1) : _whenToTake1;
+  String get _savedTime2 => _whenToTake2 == 'specific' ? _timeString(_time2) : _whenToTake2;
+
+  List<String> get _savedTimes {
+    if (_frequency == 'twice_daily') {
+      return [_savedTime1, _savedTime2];
+    }
+    return [_savedTime1];
+  }
+
+  void _resetForNext() {
+    _nameController.clear();
+    _dosageController.clear();
+    _adjustmentInstructionsController.clear();
+    _frequency = 'daily';
+    _whenToTake1 = 'specific';
+    _time1 = const TimeOfDay(hour: 9, minute: 0);
+    _whenToTake2 = 'specific';
+    _time2 = const TimeOfDay(hour: 19, minute: 0);
+    _isInsulin = false;
+    _insulinType = 'rapid_acting';
+  }
+
+  bool get _hasAnyInput =>
+      _nameController.text.trim().isNotEmpty ||
+      _dosageController.text.trim().isNotEmpty ||
+      (_isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty);
+
+  _PrescriptionDraftItem _buildDraftFromForm() {
+    final times = _savedTimes;
+    return _PrescriptionDraftItem(
+      name: _nameController.text.trim(),
+      dosage: _dosageController.text.trim(),
+      frequency: _frequency,
+      times: times,
+      isInsulin: _isInsulin,
+      insulinType: _isInsulin ? _insulinType : null,
+      adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
+          ? _adjustmentInstructionsController.text.trim()
+          : null,
+    );
+  }
+
+  Future<void> _addCurrentToList() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _draftItems.add(_buildDraftFromForm());
+      _resetForNext();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Added to prescription list'), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> _confirmDelete(Medicine existing) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete prescription?'),
+        content: Text('Delete "${existing.name}" for this patient? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _saving = true);
+    try {
+      await _medicineService.deleteMedicine(existing.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prescription deleted'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _openAppendToSamePrescription() async {
+    final existing = widget.medicine;
+    final pid = existing?.prescriptionId;
+    if (pid == null || pid.isEmpty) return;
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => DoctorAddEditPrescriptionPage(
+          patient: widget.patient,
+          appendToPrescriptionId: pid,
+        ),
+      ),
+    );
+    if (mounted) Navigator.pop(context, true);
+  }
+
+  Future<Uint8List> _buildPrescriptionPdfBytes({
+    required AppUser patient,
+    required List<_PrescriptionDraftItem> items,
+    required bool includeDraftCount,
+  }) async {
+    final doc = pw.Document();
+    final now = DateTime.now();
+    final df = DateFormat('MMM d, yyyy • HH:mm');
+
+    pw.Widget header() {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Prescription',
+            style: pw.TextStyle(
+              fontSize: 22,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text('Patient: ${patient.displayName.isNotEmpty ? patient.displayName : patient.email}'),
+          pw.Text('Generated: ${df.format(now)}'),
+          if (includeDraftCount)
+            pw.Text('Medicines: ${items.length}'),
+        ],
+      );
+    }
+
+    pw.Widget medicinesTable() {
+      final headers = ['Medicine', 'Dosage', 'When to take', 'Frequency'];
+      final data = items.map((item) {
+        final when = item.times.map(Medicine.timeDisplayLabel).join(' / ');
+        final freq = item.frequency.replaceAll('_', ' ');
+        final name = item.isInsulin
+            ? '${item.name} (${Medicine.insulinTypeLabel(item.insulinType)})'
+            : item.name;
+        return [
+          name,
+          item.dosage,
+          when,
+          freq,
+        ];
+      }).toList();
+
+      return pw.TableHelper.fromTextArray(
+        headers: headers,
+        data: data,
+        headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+        headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+        cellAlignment: pw.Alignment.centerLeft,
+        cellStyle: const pw.TextStyle(fontSize: 10),
+        headerHeight: 22,
+        cellHeight: 22,
+        columnWidths: {
+          0: const pw.FlexColumnWidth(3.2),
+          1: const pw.FlexColumnWidth(1.3),
+          2: const pw.FlexColumnWidth(2.2),
+          3: const pw.FlexColumnWidth(1.5),
+        },
+      );
+    }
+
+    pw.Widget notesSection() {
+      final notes = items
+          .where((i) => i.adjustmentInstructions != null && i.adjustmentInstructions!.trim().isNotEmpty)
+          .toList();
+      if (notes.isEmpty) return pw.SizedBox.shrink();
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.SizedBox(height: 14),
+          pw.Text('Notes', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          ...notes.map((i) {
+            final title = i.isInsulin
+                ? '${i.name} (${Medicine.insulinTypeLabel(i.insulinType)})'
+                : i.name;
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              child: pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(text: '$title: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.TextSpan(text: i.adjustmentInstructions!.trim()),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      );
+    }
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (_) => [
+          header(),
+          pw.SizedBox(height: 16),
+          medicinesTable(),
+          notesSection(),
+        ],
+      ),
+    );
+
+    return doc.save();
+  }
+
+  /// Generate PDF for current draft list (add mode only).
+  Future<void> _generatePdf() async {
+    final items = <_PrescriptionDraftItem>[..._draftItems];
+    if (_hasAnyInput) {
+      if (!_formKey.currentState!.validate()) return;
+      items.add(_buildDraftFromForm());
+    }
+    if (items.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add at least one medicine to generate PDF'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    final bytes = await _buildPrescriptionPdfBytes(
+      patient: widget.patient,
+      items: items,
+      includeDraftCount: true,
+    );
+    await Printing.layoutPdf(
+      onLayout: (_) async => bytes,
+      name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
+    );
+  }
+
+  Future<void> _showAfterSaveDialog(Prescription prescription, {required int savedCount}) async {
+    if (!mounted) return;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Prescription saved'),
+        content: Text('$savedCount medicine${savedCount == 1 ? '' : 's'} saved. What would you like to do?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'add_more'),
+            child: const Text('Add more medicine'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'pdf'),
+            child: const Text('Generate PDF'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 'view'),
+            child: const Text('View prescription'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case 'view':
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DoctorPrescriptionDetailPage(
+              patient: widget.patient,
+              prescription: prescription,
+            ),
+          ),
+        );
+        Navigator.pop(context, true);
+        break;
+      case 'pdf':
+        final list = await _medicineService.getMedicinesForPrescription(widget.patient.uid, prescription.id);
+        if (list.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No medicines to export')));
+        } else {
+          final doc = pw.Document();
+          final df = DateFormat('MMM d, yyyy · HH:mm');
+          pw.Widget header() {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Prescription', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 6),
+                pw.Text('Patient: ${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.email}'),
+                pw.Text('Date: ${df.format(prescription.createdAt)}'),
+                pw.Text('Medicines: ${list.length}'),
+              ],
+            );
+          }
+          pw.Widget table() {
+            final data = list.map((m) {
+              final when = Medicine.medicineTimesLabel(m);
+              final name = m.isInsulin ? '${m.name} (${Medicine.insulinTypeLabel(m.insulinType)})' : m.name;
+              return [name, m.dosage, when, m.frequency.replaceAll('_', ' ')];
+            }).toList();
+            return pw.TableHelper.fromTextArray(
+              headers: const ['Medicine', 'Dosage', 'When to take', 'Frequency'],
+              data: data,
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              cellAlignment: pw.Alignment.centerLeft,
+              cellStyle: const pw.TextStyle(fontSize: 10),
+              headerHeight: 22,
+              cellHeight: 22,
+              columnWidths: {0: const pw.FlexColumnWidth(3.2), 1: const pw.FlexColumnWidth(1.3), 2: const pw.FlexColumnWidth(2.2), 3: const pw.FlexColumnWidth(1.5)},
+            );
+          }
+          doc.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(32), build: (_) => [header(), pw.SizedBox(height: 16), table()]));
+          final bytes = await doc.save();
+          await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'prescription_${widget.patient.uid}.pdf');
+        }
+        Navigator.pop(context, true);
+        break;
+      case 'add_more':
+        setState(() {
+          _draftItems.clear();
+          _resetForNext();
+        });
+        break;
+      default:
+        Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _saveAll() async {
     final patient = widget.patient;
     final existing = widget.medicine;
+    final appendToId = widget.appendToPrescriptionId;
 
     setState(() => _saving = true);
     try {
       if (existing != null) {
+        if (!_formKey.currentState!.validate()) return;
+        final times = _savedTimes;
         final updated = Medicine(
           id: existing.id,
           userId: patient.uid,
           name: _nameController.text.trim(),
           dosage: _dosageController.text.trim(),
-          time: _timeString,
+          time: times.first,
+          times: times.length > 1 ? times : null,
           frequency: _frequency,
           createdAt: existing.createdAt,
+          prescriptionId: existing.prescriptionId,
           isInsulin: _isInsulin,
           insulinType: _isInsulin ? _insulinType : null,
           adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
@@ -102,26 +504,55 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
         );
         await _medicineService.updateMedicine(updated);
       } else {
-        final medicine = Medicine(
-          id: '${patient.uid}_med_${DateTime.now().millisecondsSinceEpoch}',
-          userId: patient.uid,
-          name: _nameController.text.trim(),
-          dosage: _dosageController.text.trim(),
-          time: _timeString,
-          frequency: _frequency,
-          createdAt: DateTime.now(),
-          isInsulin: _isInsulin,
-          insulinType: _isInsulin ? _insulinType : null,
-          adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
-              ? _adjustmentInstructionsController.text.trim()
-              : null,
-        );
-        await _medicineService.addMedicine(medicine);
+        // Add mode: save multiple medicines if the doctor used the + list builder.
+        final items = <_PrescriptionDraftItem>[..._draftItems];
+        if (_hasAnyInput) {
+          // If something is typed in the form, include it too (validated).
+          if (!_formKey.currentState!.validate()) return;
+          items.add(_buildDraftFromForm());
+        }
+        if (items.isEmpty) {
+          throw Exception('Add at least one medicine');
+        }
+        final now = DateTime.now();
+        final medicines = <Medicine>[];
+        for (var i = 0; i < items.length; i++) {
+          final item = items[i];
+          final times = item.times;
+          medicines.add(Medicine(
+            id: '${patient.uid}_med_${now.millisecondsSinceEpoch}_$i',
+            userId: patient.uid,
+            name: item.name,
+            dosage: item.dosage,
+            time: times.first,
+            times: times.length > 1 ? times : null,
+            frequency: item.frequency,
+            createdAt: now,
+            isInsulin: item.isInsulin,
+            insulinType: item.insulinType,
+            adjustmentInstructions: item.adjustmentInstructions,
+          ));
+        }
+        if (appendToId != null && appendToId.isNotEmpty) {
+          await _medicineService.addMedicinesToPrescription(
+            patientId: patient.uid,
+            prescriptionId: appendToId,
+            medicines: medicines,
+          );
+        } else {
+          final prescription = await _medicineService.addPrescriptionWithMedicines(patient.uid, medicines);
+          if (mounted && prescription != null) {
+            await _showAfterSaveDialog(prescription, savedCount: medicines.length);
+            return;
+          }
+        }
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(existing != null ? 'Prescription updated' : 'Prescription added'),
+            content: Text(existing != null
+                ? 'Prescription updated'
+                : 'Prescription saved'),
             backgroundColor: Colors.green,
           ),
         );
@@ -141,19 +572,85 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.medicine != null;
+    final isAppending = !isEdit && widget.appendToPrescriptionId != null && widget.appendToPrescriptionId!.isNotEmpty;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'Edit prescription' : 'Add prescription'),
+        title: Text(isEdit ? 'Edit prescription' : (isAppending ? 'Add medicine' : 'Add prescription')),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            tooltip: 'Generate PDF',
+            onPressed: _saving ? null : _generatePdf,
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+          ),
+          if (isEdit)
+            PopupMenuButton<String>(
+              tooltip: 'More',
+              onSelected: (v) async {
+                if (v == 'delete_medicine') {
+                  await _confirmDelete(widget.medicine!);
+                } else if (v == 'delete_prescription') {
+                  final pid = widget.medicine!.prescriptionId;
+                  if (pid == null || pid.isEmpty) return;
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete prescription?'),
+                      content: const Text('This will delete the whole prescription (all medicines in this group).'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (ok != true) return;
+                  setState(() => _saving = true);
+                  try {
+                    await _medicineService.deletePrescription(
+                      prescriptionId: pid,
+                      patientId: widget.patient.uid,
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Prescription deleted'), backgroundColor: Colors.green),
+                    );
+                    Navigator.pop(context, true);
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+                    );
+                  } finally {
+                    if (mounted) setState(() => _saving = false);
+                  }
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'delete_medicine', child: Text('Delete medicine')),
+                PopupMenuItem(value: 'delete_prescription', child: Text('Delete prescription')),
+              ],
+              icon: const Icon(Icons.more_vert),
+            ),
           TextButton(
-            onPressed: _saving ? null : _save,
+            onPressed: _saving ? null : _saveAll,
             child: _saving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saving
+            ? null
+            : (isEdit ? _openAppendToSamePrescription : _addCurrentToList),
+        tooltip: isEdit ? 'Add medicine' : 'Add to list',
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -167,6 +664,36 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 20),
+              if (!isEdit && _draftItems.isNotEmpty) ...[
+                Text(
+                  'Prescription medicines (${_draftItems.length})',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                ..._draftItems.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final item = entry.value;
+                  final timesLabel = item.times.map(Medicine.timeDisplayLabel).join(' / ');
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: const Icon(Icons.medication_outlined),
+                      title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text('${item.dosage} · $timesLabel · ${item.frequency.replaceAll('_', ' ')}'),
+                      trailing: IconButton(
+                        tooltip: 'Remove',
+                        icon: const Icon(Icons.close),
+                        onPressed: _saving
+                            ? null
+                            : () => setState(() {
+                                  _draftItems.removeAt(idx);
+                                }),
+                      ),
+                    ),
+                  );
+                }),
+                const Divider(height: 32),
+              ],
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -187,14 +714,25 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Time'),
-                subtitle: Text(_timeString),
-                trailing: const Icon(Icons.access_time),
-                onTap: _pickTime,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                tileColor: Colors.grey.shade100,
+              const Text('When to take', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              _dosePicker(
+                label: 'Dose 1',
+                whenValue: _whenToTake1,
+                onWhenChanged: (v) => setState(() => _whenToTake1 = v ?? 'specific'),
+                timeText: _timeString(_time1),
+                onPickTime: _pickTime,
               ),
+              if (_frequency == 'twice_daily') ...[
+                const SizedBox(height: 12),
+                _dosePicker(
+                  label: 'Dose 2',
+                  whenValue: _whenToTake2,
+                  onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
+                  timeText: _timeString(_time2),
+                  onPickTime: _pickTime2,
+                ),
+              ],
               const SizedBox(height: 16),
               const Text('Frequency', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
@@ -253,6 +791,47 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           ),
         ),
       ),
+    );
+  }
+
+  Widget _dosePicker({
+    required String label,
+    required String whenValue,
+    required ValueChanged<String?> onWhenChanged,
+    required String timeText,
+    required VoidCallback onPickTime,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: whenValue,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.schedule),
+          ),
+          items: medicineTimeOptions
+              .map((o) => DropdownMenuItem<String>(
+                    value: o['value']!,
+                    child: Text(o['label']!),
+                  ))
+              .toList(),
+          onChanged: onWhenChanged,
+        ),
+        if (whenValue == 'specific') ...[
+          const SizedBox(height: 10),
+          ListTile(
+            title: const Text('Time'),
+            subtitle: Text(timeText),
+            trailing: const Icon(Icons.access_time),
+            onTap: onPickTime,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.grey.shade100,
+          ),
+        ],
+      ],
     );
   }
 }

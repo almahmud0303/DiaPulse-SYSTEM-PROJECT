@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/models/appointment.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 
@@ -9,6 +10,36 @@ import 'package:dia_plus/services/glucose_reading_service.dart';
 class DoctorPatientService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GlucoseReadingService _glucoseService = GlucoseReadingService();
+
+  /// Patients who have an accepted appointment with this doctor.
+  /// Uses a single-field query and filters status in Dart to avoid composite indexes.
+  Future<List<AppUser>> getMyPatientsForDoctor(String doctorId) async {
+    final snapshot = await _firestore
+        .collection('appointments')
+        .where('doctorId', isEqualTo: doctorId)
+        .get();
+
+    final appointments = snapshot.docs
+        .map((d) => Appointment.fromMap(d.data()))
+        .where((a) => a.status == AppointmentStatus.accepted)
+        .toList();
+
+    final patientIds = <String>{};
+    for (final a in appointments) {
+      patientIds.add(a.patientId);
+    }
+
+    final patients = <AppUser>[];
+    for (final pid in patientIds) {
+      final doc = await _firestore.collection('users').doc(pid).get();
+      final data = doc.data();
+      if (data == null) continue;
+      patients.add(AppUser.fromMap(doc.id, data));
+    }
+
+    patients.sort((a, b) => a.displayName.compareTo(b.displayName));
+    return patients;
+  }
 
   /// Fetches all users with role [UserRole.patient].
   Future<List<AppUser>> getPatients() async {

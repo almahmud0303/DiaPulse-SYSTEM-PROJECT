@@ -281,64 +281,65 @@ class ReminderNotificationService {
     final scheduledIds = <int>[];
 
     for (final m in medicines) {
-      final parts = m.time.split(':');
-      final hour = parts.isNotEmpty ? (int.tryParse(parts[0].trim()) ?? 9) : 9;
-      final minute = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 0) : 0;
+      final times = m.effectiveTimes;
+      for (var i = 0; i < times.length; i++) {
+        final (hour, minute) = Medicine.reminderTimeFrom(times[i]);
 
-      final todayAt = DateTime(now.year, now.month, now.day, hour, minute);
-      final next = todayAt.isAfter(now)
-          ? todayAt
-          : todayAt.add(const Duration(days: 1));
-      final tzScheduled = tz.TZDateTime.from(next, tz.local);
+        final todayAt = DateTime(now.year, now.month, now.day, hour, minute);
+        final next = todayAt.isAfter(now)
+            ? todayAt
+            : todayAt.add(const Duration(days: 1));
+        final tzScheduled = tz.TZDateTime.from(next, tz.local);
 
-      final id = _medicineNotificationId(m.id);
-      try {
-        await _plugin.zonedSchedule(
-          id,
-          'Time to take medicine',
-          '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
-          tzScheduled,
-          details,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
-          payload: 'medicine_${m.id}',
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          matchDateTimeComponents: DateTimeComponents.time,
-        );
-        scheduledIds.add(id);
-      } on PlatformException catch (e) {
-        if (e.code == 'exact_alarms_not_permitted') {
-          try {
-            await _plugin.zonedSchedule(
-              id,
-              'Time to take medicine',
-              '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
-              tzScheduled,
-              details,
-              uiLocalNotificationDateInterpretation:
-                  UILocalNotificationDateInterpretation.absoluteTime,
-              payload: 'medicine_${m.id}',
-              androidScheduleMode: AndroidScheduleMode.alarmClock,
-              matchDateTimeComponents: DateTimeComponents.time,
-            );
-            scheduledIds.add(id);
-          } on PlatformException {
-            await _plugin.zonedSchedule(
-              id,
-              'Time to take medicine',
-              '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
-              tzScheduled,
-              details,
-              uiLocalNotificationDateInterpretation:
-                  UILocalNotificationDateInterpretation.absoluteTime,
-              payload: 'medicine_${m.id}',
-              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-              matchDateTimeComponents: DateTimeComponents.time,
-            );
-            scheduledIds.add(id);
+        final id = _medicineNotificationId(m.id, i);
+        try {
+          await _plugin.zonedSchedule(
+            id,
+            'Time to take medicine',
+            '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+            tzScheduled,
+            details,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: 'medicine_${m.id}_dose_$i',
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+          scheduledIds.add(id);
+        } on PlatformException catch (e) {
+          if (e.code == 'exact_alarms_not_permitted') {
+            try {
+              await _plugin.zonedSchedule(
+                id,
+                'Time to take medicine',
+                '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+                tzScheduled,
+                details,
+                uiLocalNotificationDateInterpretation:
+                    UILocalNotificationDateInterpretation.absoluteTime,
+                payload: 'medicine_${m.id}_dose_$i',
+                androidScheduleMode: AndroidScheduleMode.alarmClock,
+                matchDateTimeComponents: DateTimeComponents.time,
+              );
+              scheduledIds.add(id);
+            } on PlatformException {
+              await _plugin.zonedSchedule(
+                id,
+                'Time to take medicine',
+                '${m.name}${m.dosage.isNotEmpty ? ' · ${m.dosage}' : ''}',
+                tzScheduled,
+                details,
+                uiLocalNotificationDateInterpretation:
+                    UILocalNotificationDateInterpretation.absoluteTime,
+                payload: 'medicine_${m.id}_dose_$i',
+                androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+                matchDateTimeComponents: DateTimeComponents.time,
+              );
+              scheduledIds.add(id);
+            }
+          } else {
+            rethrow;
           }
-        } else {
-          rethrow;
         }
       }
     }
@@ -364,8 +365,10 @@ class ReminderNotificationService {
     }
   }
 
-  int _medicineNotificationId(String medicineId) {
-    return 400000 + (medicineId.hashCode.abs() % 10000);
+  int _medicineNotificationId(String medicineId, int doseIndex) {
+    final base = medicineId.hashCode.abs() % 9000; // keep room for per-dose suffix
+    final suffix = doseIndex.clamp(0, 9);
+    return 400000 + (base * 10) + suffix;
   }
 
   int _buildNotificationId(String reminderId, int suffix) {

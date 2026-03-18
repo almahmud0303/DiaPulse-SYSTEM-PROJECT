@@ -14,6 +14,7 @@ import 'package:dia_plus/features/shared/screens/doctor_consultation_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_appointments_page.dart';
 import 'package:dia_plus/models/appointment.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/health_score.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/appointment_service.dart';
@@ -118,7 +119,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         );
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
-        if (next != null) nextMed = '${next.time} (${next.name})';
+        if (next != null) nextMed = '${Medicine.medicineTimesLabel(next)} (${next.name})';
         // Schedule local notifications at each medicine time (daily).
         ReminderNotificationService().scheduleMedicineReminders(medicines);
       } catch (_) {}

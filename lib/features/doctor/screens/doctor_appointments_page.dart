@@ -1,11 +1,10 @@
 import 'package:dia_plus/models/appointment.dart';
 import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
-import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'doctor_patient_profile_page.dart';
+import 'doctor_patients_page.dart';
 
 /// Doctor view: list appointment requests; accept or reject.
 class DoctorAppointmentsPage extends StatefulWidget {
@@ -18,7 +17,6 @@ class DoctorAppointmentsPage extends StatefulWidget {
 class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
   final AuthService _authService = AuthService();
   final AppointmentService _appointmentService = AppointmentService();
-  final DoctorPatientService _patientService = DoctorPatientService();
 
   List<Appointment> _appointments = [];
   bool _loading = true;
@@ -98,13 +96,10 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
     }
   }
 
-  Future<void> _openPatientProfile(String patientId) async {
-    final patient = await _patientService.getPatientProfile(patientId);
-    if (!mounted) return;
-    if (patient == null) return;
+  void _openInMyPatients(String patientId) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => DoctorPatientProfilePage(patient: patient),
+        builder: (context) => DoctorPatientsPage(selectedPatientId: patientId),
       ),
     );
   }
@@ -152,7 +147,7 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
                             onReject: a.status == AppointmentStatus.requested
                                 ? () => _reject(a)
                                 : null,
-                            onTapPatient: () => _openPatientProfile(a.patientId),
+                            onTapPatient: () => _openInMyPatients(a.patientId),
                           );
                         },
                       ),
@@ -252,12 +247,9 @@ class _AppointmentTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade200),
       ),
-      child: InkWell(
-        onTap: onTapPatient,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -330,31 +322,33 @@ class _AppointmentTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              if (onAccept != null || onReject != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (onReject != null)
-                      TextButton(
-                        onPressed: onReject,
-                        child: const Text('Reject'),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: onTapPatient,
+                    icon: const Icon(Icons.person_outline, size: 18),
+                    label: const Text('View in My Patients'),
+                  ),
+                  if (onReject != null)
+                    TextButton(
+                      onPressed: onReject,
+                      child: const Text('Reject'),
+                    ),
+                  if (onAccept != null) ...[
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: onAccept,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.green,
                       ),
-                    if (onAccept != null) ...[
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: onAccept,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.green,
-                        ),
-                        child: const Text('Accept'),
-                      ),
-                    ],
+                      child: const Text('Accept'),
+                    ),
                   ],
-                ),
-              ],
+                ],
+              ),
             ],
-          ),
         ),
       ),
     );

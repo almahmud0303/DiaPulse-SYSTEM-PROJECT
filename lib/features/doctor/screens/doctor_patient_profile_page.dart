@@ -3,6 +3,7 @@ import 'package:dia_plus/models/consultation_note.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/consultation_note_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
@@ -12,6 +13,7 @@ import 'package:intl/intl.dart';
 
 import 'doctor_add_edit_consultation_note_page.dart';
 import 'doctor_add_edit_prescription_page.dart';
+import 'doctor_prescription_detail_page.dart';
 
 /// Doctor view of a single patient: profile, health history, glucose trends, meds.
 class DoctorPatientProfilePage extends StatefulWidget {
@@ -31,8 +33,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
 
   List<GlucoseReading> _recentReadings = [];
   List<Medicine> _medicines = [];
+  List<Prescription> _prescriptions = [];
   List<ConsultationNote> _consultationNotes = [];
   PatientRisk? _patientRisk;
+  Set<String> _expandedPrescriptionIds = {};
   bool _loading = true;
   String? _error;
 
@@ -53,6 +57,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       final results = await Future.wait([
         _glucoseService.getUserReadings(patient.uid),
         _medicineService.getMedicines(patient.uid),
+        _medicineService.getPrescriptions(patient.uid),
         _consultationNoteService.getNotesForPatient(patient.uid),
         _doctorPatientService.getPatientRisk(patient.uid),
       ]);
@@ -60,8 +65,9 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       setState(() {
         _recentReadings = (results[0] as List<GlucoseReading>).take(15).toList();
         _medicines = results[1] as List<Medicine>;
-        _consultationNotes = results[2] as List<ConsultationNote>;
-        _patientRisk = results[3] as PatientRisk?;
+        _prescriptions = results[2] as List<Prescription>;
+        _consultationNotes = results[3] as List<ConsultationNote>;
+        _patientRisk = results[4] as PatientRisk?;
         _loading = false;
       });
     } catch (e) {
@@ -438,26 +444,142 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
     );
   }
 
+  /// Medicines grouped by prescriptionId; null key = legacy (no group).
+  Map<String?, List<Medicine>> get _medicinesByPrescription {
+    final map = <String?, List<Medicine>>{};
+    for (final m in _medicines) {
+      map.putIfAbsent(m.prescriptionId, () => []).add(m);
+    }
+    for (final list in map.values) {
+      list.sort((a, b) => a.name.compareTo(b.name));
+    }
+    return map;
+  }
+
   Widget _buildMedicinesCard(BuildContext context) {
     return _sectionCard(
       context,
       title: 'Prescriptions / Medicines',
       icon: Icons.medication,
-      trailing: TextButton.icon(
-        onPressed: _openAddPrescription,
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Add'),
-      ),
+      trailing: null,
       child: _medicines.isEmpty
-          ? Text('No prescriptions yet. Tap Add to prescribe.', style: TextStyle(color: Colors.grey.shade600))
-          : Column(
-              children: _medicines.map((m) => _medicineTile(context, m)).toList(),
-            ),
+          ? Text('No prescriptions yet. Tap + to add medicine.', style: TextStyle(color: Colors.grey.shade600))
+          : _buildPrescriptionGroups(context),
     );
   }
 
+  Widget _buildPrescriptionGroups(BuildContext context) {
+    final byRx = _medicinesByPrescription;
+    final df = DateFormat('MMM d, yyyy · HH:mm');
+
+    // Prescription groups (with id and date from _prescriptions)
+    final groups = <Widget>[];
+    for (final rx in _prescriptions) {
+      final list = byRx[rx.id];
+      if (list == null || list.isEmpty) continue;
+      final isExpanded = _expandedPrescriptionIds.contains(rx.id);
+      groups.add(
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(Icons.assignment_outlined, color: Colors.blue.shade700),
+                title: Text(
+                  'Prescription · ${df.format(rx.createdAt)}',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text('${list.length} medicine${list.length == 1 ? '' : 's'}'),
+                trailing: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
+                onTap: () {
+                  setState(() {
+                    if (isExpanded) {
+                      _expandedPrescriptionIds.remove(rx.id);
+                    } else {
+                      _expandedPrescriptionIds.add(rx.id);
+                    }
+                  });
+                },
+              ),
+              if (isExpanded)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DoctorPrescriptionDetailPage(
+                                    patient: patient,
+                                    prescription: rx,
+                                    medicines: list,
+                                  ),
+                                ),
+                              );
+                              if (mounted) _loadData();
+                            },
+                            icon: const Icon(Icons.visibility_outlined, size: 18),
+                            label: const Text('View prescription'),
+                          ),
+                        ],
+                      ),
+                      ...list.map((m) => _medicineTile(context, m)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Legacy medicines (no prescriptionId)
+    final legacy = byRx[null];
+    if (legacy != null && legacy.isNotEmpty) {
+      groups.add(
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(Icons.medication_outlined, color: Colors.grey.shade600),
+                title: const Text('Other medicines', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('${legacy.length} item${legacy.length == 1 ? '' : 's'}'),
+                trailing: Icon(_expandedPrescriptionIds.contains('legacy') ? Icons.expand_less : Icons.expand_more),
+                onTap: () {
+                  setState(() {
+                    if (_expandedPrescriptionIds.contains('legacy')) {
+                      _expandedPrescriptionIds.remove('legacy');
+                    } else {
+                      _expandedPrescriptionIds.add('legacy');
+                    }
+                  });
+                },
+              ),
+              if (_expandedPrescriptionIds.contains('legacy'))
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Column(
+                    children: legacy.map((m) => _medicineTile(context, m)).toList(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(children: groups);
+  }
+
   Widget _medicineTile(BuildContext context, Medicine m) {
-    final baseSubtitle = '${m.dosage} · ${m.time} · ${m.frequency.replaceAll('_', ' ')}';
+    final baseSubtitle = '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
     final insulinLine = m.isInsulin
         ? ' · ${Medicine.insulinTypeLabel(m.insulinType)}'
         : '';
@@ -467,12 +589,22 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         ? '\n${m.adjustmentInstructions!.length > 60 ? '${m.adjustmentInstructions!.trim().substring(0, 60)}…' : m.adjustmentInstructions!.trim()}'
         : '';
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 6),
       child: ListTile(
-        leading: Icon(Icons.medication_outlined, color: Colors.blue.shade700),
+        leading: Icon(Icons.medication_outlined, color: Colors.blue.shade700, size: 20),
         title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text('$baseSubtitle$insulinLine$adjustmentLine'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton.icon(
+              onPressed: () => _openEditPrescription(m),
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: const Text('Edit'),
+            ),
+            const Icon(Icons.chevron_right, size: 20),
+          ],
+        ),
         onTap: () => _openEditPrescription(m),
       ),
     );

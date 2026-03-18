@@ -18,7 +18,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   final _dosageController = TextEditingController();
   final _medicineService = MedicineService();
 
-  TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
+  String _whenToTake1 = 'specific';
+  TimeOfDay _time1 = const TimeOfDay(hour: 9, minute: 0);
+  String _whenToTake2 = 'specific';
+  TimeOfDay _time2 = const TimeOfDay(hour: 19, minute: 0);
   String _frequency = 'daily';
   bool _saving = false;
 
@@ -35,14 +38,12 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     if (m != null) {
       _nameController.text = m.name;
       _dosageController.text = m.dosage;
-      final parts = m.time.split(':');
-      if (parts.length >= 2) {
-        _time = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 9,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
       _frequency = m.frequency;
+      final times = m.effectiveTimes;
+      _applyTimeToState(isSecond: false, value: times.isNotEmpty ? times.first : m.time);
+      if (times.length > 1) {
+        _applyTimeToState(isSecond: true, value: times[1]);
+      }
     }
   }
 
@@ -56,13 +57,54 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: _time,
+      initialTime: _time1,
     );
-    if (picked != null) setState(() => _time = picked);
+    if (picked != null) setState(() => _time1 = picked);
   }
 
-  String get _timeString =>
-      '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
+  Future<void> _pickTime2() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _time2,
+    );
+    if (picked != null) setState(() => _time2 = picked);
+  }
+
+  void _applyTimeToState({required bool isSecond, required String value}) {
+    if (Medicine.isMealRelativeTime(value)) {
+      if (isSecond) {
+        _whenToTake2 = value;
+      } else {
+        _whenToTake1 = value;
+      }
+      return;
+    }
+    final parts = value.split(':');
+    final t = (parts.length >= 2)
+        ? TimeOfDay(
+            hour: int.tryParse(parts[0]) ?? 9,
+            minute: int.tryParse(parts[1]) ?? 0,
+          )
+        : const TimeOfDay(hour: 9, minute: 0);
+    if (isSecond) {
+      _whenToTake2 = 'specific';
+      _time2 = t;
+    } else {
+      _whenToTake1 = 'specific';
+      _time1 = t;
+    }
+  }
+
+  String _timeString(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  String get _savedTime1 => _whenToTake1 == 'specific' ? _timeString(_time1) : _whenToTake1;
+  String get _savedTime2 => _whenToTake2 == 'specific' ? _timeString(_time2) : _whenToTake2;
+
+  List<String> get _savedTimes {
+    if (_frequency == 'twice_daily') return [_savedTime1, _savedTime2];
+    return [_savedTime1];
+  }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -72,23 +114,27 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     setState(() => _saving = true);
     try {
       if (widget.medicine != null) {
+        final times = _savedTimes;
         final updated = Medicine(
           id: widget.medicine!.id,
           userId: user.uid,
           name: _nameController.text.trim(),
           dosage: _dosageController.text.trim(),
-          time: _timeString,
+          time: times.first,
+          times: times.length > 1 ? times : null,
           frequency: _frequency,
           createdAt: widget.medicine!.createdAt,
         );
         await _medicineService.updateMedicine(updated);
       } else {
+        final times = _savedTimes;
         final medicine = Medicine(
           id: '${user.uid}_med_${DateTime.now().millisecondsSinceEpoch}',
           userId: user.uid,
           name: _nameController.text.trim(),
           dosage: _dosageController.text.trim(),
-          time: _timeString,
+          time: times.first,
+          times: times.length > 1 ? times : null,
           frequency: _frequency,
           createdAt: DateTime.now(),
         );
@@ -150,14 +196,25 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Time'),
-                subtitle: Text(_timeString),
-                trailing: const Icon(Icons.access_time),
-                onTap: _pickTime,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                tileColor: Colors.grey.shade100,
+              const Text('When to take', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              _dosePicker(
+                label: 'Dose 1',
+                whenValue: _whenToTake1,
+                onWhenChanged: (v) => setState(() => _whenToTake1 = v ?? 'specific'),
+                timeText: _timeString(_time1),
+                onPickTime: _pickTime,
               ),
+              if (_frequency == 'twice_daily') ...[
+                const SizedBox(height: 12),
+                _dosePicker(
+                  label: 'Dose 2',
+                  whenValue: _whenToTake2,
+                  onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
+                  timeText: _timeString(_time2),
+                  onPickTime: _pickTime2,
+                ),
+              ],
               const SizedBox(height: 16),
               const Text('Frequency', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
@@ -177,6 +234,47 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _dosePicker({
+    required String label,
+    required String whenValue,
+    required ValueChanged<String?> onWhenChanged,
+    required String timeText,
+    required VoidCallback onPickTime,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: whenValue,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.schedule),
+          ),
+          items: medicineTimeOptions
+              .map((o) => DropdownMenuItem<String>(
+                    value: o['value']!,
+                    child: Text(o['label']!),
+                  ))
+              .toList(),
+          onChanged: onWhenChanged,
+        ),
+        if (whenValue == 'specific') ...[
+          const SizedBox(height: 10),
+          ListTile(
+            title: const Text('Time'),
+            subtitle: Text(timeText),
+            trailing: const Icon(Icons.access_time),
+            onTap: onPickTime,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.grey.shade100,
+          ),
+        ],
+      ],
     );
   }
 }

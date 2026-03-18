@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -37,6 +38,14 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.userId;
       allow update, delete: if request.auth != null
         && request.auth.uid == resource.data.userId;
+    }
+
+    // Prescriptions: patient or doctor can read; doctor can create (when saving medicine group).
+    match /prescriptions/{rxId} {
+      allow read: if request.auth != null
+        && (resource.data.patientId == request.auth.uid || isDoctor());
+      allow create: if request.auth != null && isDoctor();
+      allow update, delete: if request.auth != null && isDoctor();
     }
 
     // Medicines: owner or doctor can read; owner or doctor can create/update/delete (doctors manage prescriptions).
@@ -105,6 +114,17 @@ service cloud.firestore {
         && request.resource.data.senderId == request.auth.uid;
       allow update, delete: if request.auth != null
         && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+    }
+
+    // Appointments: patient creates request; doctor or patient can read; doctor can update (accept/reject).
+    match /appointments/{appId} {
+      allow read: if request.auth != null
+        && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.patientId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.doctorId == request.auth.uid;
+      allow delete: if false;
     }
 
     // In-app notifications: recipient can read/update; actor can create.
