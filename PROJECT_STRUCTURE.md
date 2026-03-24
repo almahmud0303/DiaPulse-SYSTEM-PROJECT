@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. History uses a data/presentation split with reports and PDF export. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
+NFlutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. History uses a data/presentation split with reports and PDF export. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
 
 ## Folder Structure
 
