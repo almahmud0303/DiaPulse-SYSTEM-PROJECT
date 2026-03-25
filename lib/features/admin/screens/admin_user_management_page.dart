@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/user_role.dart';
+import 'package:dia_plus/services/admin_user_service.dart';
 import 'package:dia_plus/ui/responsive.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class AdminUserManagementPage extends StatefulWidget {
 class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
   final _searchController = TextEditingController();
   UserRole? _roleFilter;
+  final _adminUserService = AdminUserService();
 
   @override
   void dispose() {
@@ -90,7 +92,26 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
                       return ListView.separated(
                         itemCount: users.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, i) => _UserCard(user: users[i]),
+                        itemBuilder: (context, i) => _UserCard(
+                          user: users[i],
+                          onChangeRole: (newRole) async {
+                            try {
+                              await _adminUserService.setUserRole(
+                                uid: users[i].uid,
+                                role: newRole,
+                              );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Role updated to ${newRole.displayName}')),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to update role: $e')),
+                              );
+                            }
+                          },
+                        ),
                       );
                     },
                   ),
@@ -174,9 +195,10 @@ class _FiltersBar extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
-  const _UserCard({required this.user});
+  const _UserCard({required this.user, required this.onChangeRole});
 
   final AppUser user;
+  final Future<void> Function(UserRole newRole) onChangeRole;
 
   @override
   Widget build(BuildContext context) {
@@ -210,6 +232,31 @@ class _UserCard extends StatelessWidget {
                         ),
                       ),
                       _RoleChip(role: user.role),
+                      const SizedBox(width: 6),
+                      PopupMenuButton<_UserAction>(
+                        tooltip: 'Actions',
+                        onSelected: (action) async {
+                          switch (action) {
+                            case _UserAction.changeRole:
+                              final picked = await showDialog<UserRole>(
+                                context: context,
+                                builder: (context) => _RolePickerDialog(current: user.role),
+                              );
+                              if (picked == null || picked == user.role) return;
+                              await onChangeRole(picked);
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: _UserAction.changeRole,
+                            child: ListTile(
+                              dense: true,
+                              leading: Icon(Icons.admin_panel_settings_outlined),
+                              title: Text('Change role'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -292,6 +339,39 @@ class _EmptyUsers extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+enum _UserAction { changeRole }
+
+class _RolePickerDialog extends StatelessWidget {
+  const _RolePickerDialog({required this.current});
+
+  final UserRole current;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Change role'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final r in UserRole.values)
+            RadioListTile<UserRole>(
+              value: r,
+              groupValue: current,
+              onChanged: (v) => Navigator.of(context).pop(v),
+              title: Text(r.displayName),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
     );
   }
 }
