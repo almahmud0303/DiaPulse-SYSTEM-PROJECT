@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
 import 'package:dia_plus/models/user_role.dart';
@@ -85,6 +86,22 @@ class AdminHomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AdminUserManagementPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.bar_chart,
+                title: 'System Monitoring',
+                subtitle: 'Readings and active users trends (last 14 days)',
+                color: Colors.blueGrey,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminSystemMonitoringPage(),
                     ),
                   );
                 },
