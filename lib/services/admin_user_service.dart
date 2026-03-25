@@ -16,5 +16,17 @@ class AdminUserService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  Future<void> setUserBlocked({
+    required String uid,
+    required bool blocked,
+  }) async {
+    await _firestore.collection('users').doc(uid).update({
+      'blocked': blocked,
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (blocked) 'blockedAt': FieldValue.serverTimestamp(),
+      if (!blocked) 'unblockedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }
 

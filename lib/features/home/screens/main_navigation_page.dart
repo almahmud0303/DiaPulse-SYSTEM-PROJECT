@@ -31,6 +31,12 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   Future<void> _loadUser() async {
     final user = await _authService.getAppUser();
+    if (user != null && user.blocked) {
+      await _authService.signOut();
+      if (!mounted) return;
+      AppRouter.goToStart(context);
+      return;
+    }
     if (user != null) {
       final prefs = await SharedPreferences.getInstance();
       final existingName = prefs.getString('userName');

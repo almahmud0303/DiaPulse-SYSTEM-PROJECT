@@ -111,6 +111,25 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
                               );
                             }
                           },
+                          onToggleBlocked: (blocked) async {
+                            try {
+                              await _adminUserService.setUserBlocked(
+                                uid: users[i].uid,
+                                blocked: blocked,
+                              );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(blocked ? 'User suspended' : 'User unsuspended'),
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to update: $e')),
+                              );
+                            }
+                          },
                         ),
                       );
                     },
@@ -195,10 +214,15 @@ class _FiltersBar extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
-  const _UserCard({required this.user, required this.onChangeRole});
+  const _UserCard({
+    required this.user,
+    required this.onChangeRole,
+    required this.onToggleBlocked,
+  });
 
   final AppUser user;
   final Future<void> Function(UserRole newRole) onChangeRole;
+  final Future<void> Function(bool blocked) onToggleBlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +268,31 @@ class _UserCard extends StatelessWidget {
                               );
                               if (picked == null || picked == user.role) return;
                               await onChangeRole(picked);
+                            case _UserAction.suspend:
+                              final ok = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Suspend account'),
+                                  content: Text(
+                                    'Suspend ${user.displayName.isEmpty ? user.uid : user.displayName}? '
+                                    'They will be signed out and won’t be able to log in.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Suspend'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (ok != true) return;
+                              await onToggleBlocked(true);
+                            case _UserAction.unsuspend:
+                              await onToggleBlocked(false);
                           }
                         },
                         itemBuilder: (context) => const [
@@ -253,6 +302,23 @@ class _UserCard extends StatelessWidget {
                               dense: true,
                               leading: Icon(Icons.admin_panel_settings_outlined),
                               title: Text('Change role'),
+                            ),
+                          ),
+                          PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: _UserAction.suspend,
+                            child: ListTile(
+                              dense: true,
+                              leading: Icon(Icons.block),
+                              title: Text('Suspend'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: _UserAction.unsuspend,
+                            child: ListTile(
+                              dense: true,
+                              leading: Icon(Icons.check_circle_outline),
+                              title: Text('Unsuspend'),
                             ),
                           ),
                         ],
@@ -343,7 +409,7 @@ class _EmptyUsers extends StatelessWidget {
   }
 }
 
-enum _UserAction { changeRole }
+enum _UserAction { changeRole, suspend, unsuspend }
 
 class _RolePickerDialog extends StatelessWidget {
   const _RolePickerDialog({required this.current});
