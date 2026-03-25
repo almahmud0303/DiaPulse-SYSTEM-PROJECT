@@ -130,6 +130,37 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
                               );
                             }
                           },
+                          onDeleteUser: () async {
+                            final u = users[i];
+                            final typed = await showDialog<String>(
+                              context: context,
+                              builder: (context) => _DeleteUserDialog(user: u),
+                            );
+                            if (typed == null) return;
+                            if (typed.trim() != u.email.trim()) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Delete cancelled: email did not match')),
+                              );
+                              return;
+                            }
+                            try {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Deleting user data…')),
+                              );
+                              final deleted = await _adminUserService.deleteUserDataEverywhere(uid: u.uid);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Deleted $deleted documents')),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Delete failed: $e')),
+                              );
+                            }
+                          },
                         ),
                       );
                     },
@@ -176,7 +207,7 @@ class _FiltersBar extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<UserRole?>(
-                value: roleFilter,
+                initialValue: roleFilter,
                 decoration: InputDecoration(
                   labelText: 'Role',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -218,11 +249,13 @@ class _UserCard extends StatelessWidget {
     required this.user,
     required this.onChangeRole,
     required this.onToggleBlocked,
+    required this.onDeleteUser,
   });
 
   final AppUser user;
   final Future<void> Function(UserRole newRole) onChangeRole;
   final Future<void> Function(bool blocked) onToggleBlocked;
+  final Future<void> Function() onDeleteUser;
 
   @override
   Widget build(BuildContext context) {
@@ -293,6 +326,8 @@ class _UserCard extends StatelessWidget {
                               await onToggleBlocked(true);
                             case _UserAction.unsuspend:
                               await onToggleBlocked(false);
+                            case _UserAction.delete:
+                              await onDeleteUser();
                           }
                         },
                         itemBuilder: (context) => const [
@@ -319,6 +354,15 @@ class _UserCard extends StatelessWidget {
                               dense: true,
                               leading: Icon(Icons.check_circle_outline),
                               title: Text('Unsuspend'),
+                            ),
+                          ),
+                          PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: _UserAction.delete,
+                            child: ListTile(
+                              dense: true,
+                              leading: Icon(Icons.delete_outline, color: Colors.red),
+                              title: Text('Delete user', style: TextStyle(color: Colors.red)),
                             ),
                           ),
                         ],
@@ -409,7 +453,7 @@ class _EmptyUsers extends StatelessWidget {
   }
 }
 
-enum _UserAction { changeRole, suspend, unsuspend }
+enum _UserAction { changeRole, suspend, unsuspend, delete }
 
 class _RolePickerDialog extends StatelessWidget {
   const _RolePickerDialog({required this.current});
@@ -436,6 +480,66 @@ class _RolePickerDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeleteUserDialog extends StatefulWidget {
+  const _DeleteUserDialog({required this.user});
+
+  final AppUser user;
+
+  @override
+  State<_DeleteUserDialog> createState() => _DeleteUserDialogState();
+}
+
+class _DeleteUserDialogState extends State<_DeleteUserDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final email = widget.user.email.trim();
+    return AlertDialog(
+      title: const Text('Delete user'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'This deletes the user profile and related Firestore data (readings, medicines, appointments, chat, etc.).',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Type the user email to confirm:\n$email',
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            decoration: const InputDecoration(
+              labelText: 'User email',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Delete'),
         ),
       ],
     );
