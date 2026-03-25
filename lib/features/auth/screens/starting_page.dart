@@ -31,7 +31,14 @@ class _StartingPageState extends State<StartingPage> {
       if (mounted) setState(() => _checkingAuth = false);
       return;
     }
-    final role = await _authService.getCurrentUserRole();
+    final me = await _authService.getAppUser();
+    if (me != null && me.blocked) {
+      await _authService.signOut();
+      if (!mounted) return;
+      setState(() => _checkingAuth = false);
+      return;
+    }
+    final role = me?.role ?? await _authService.getCurrentUserRole();
     if (!mounted) return;
     setState(() => _checkingAuth = false);
     if (role != null && role.requiresSecondPassword) {

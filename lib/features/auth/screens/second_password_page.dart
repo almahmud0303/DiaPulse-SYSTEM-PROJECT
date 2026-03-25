@@ -37,7 +37,14 @@ class _SecondPasswordPageState extends State<SecondPasswordPage> {
 
   Future<void> _loadRole() async {
     final hasSecond = await _authService.hasSecondPassword();
-    final role = await _authService.getCurrentUserRole();
+    final me = await _authService.getAppUser();
+    if (me != null && me.blocked) {
+      await _authService.signOut();
+      if (!mounted) return;
+      AppRouter.goToStart(context);
+      return;
+    }
+    final role = me?.role ?? await _authService.getCurrentUserRole();
     if (mounted) {
       setState(() {
         _needsSetup = !hasSecond && role != null && role.requiresSecondPassword;

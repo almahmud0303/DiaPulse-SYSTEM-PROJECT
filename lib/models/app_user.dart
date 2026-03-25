@@ -13,6 +13,7 @@ class AppUser {
     this.createdAt,
     this.updatedAt,
     this.photoUrl,
+    this.blocked = false,
     this.extra = const {},
   });
 
@@ -24,6 +25,7 @@ class AppUser {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? photoUrl;
+  final bool blocked;
   /// Custom fields for future extension. Avoid storing sensitive data.
   final Map<String, dynamic> extra;
 
@@ -52,6 +54,7 @@ class AppUser {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? photoUrl,
+    bool? blocked,
     Map<String, dynamic>? extra,
   }) {
     return AppUser(
@@ -63,6 +66,7 @@ class AppUser {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       photoUrl: photoUrl ?? this.photoUrl,
+      blocked: blocked ?? this.blocked,
       extra: extra ?? this.extra,
     );
   }
@@ -80,7 +84,7 @@ class AppUser {
     }
     const knownKeys = {
       'email', 'displayName', 'role', 'phone', 'createdAt', 'updatedAt',
-      'photoUrl', 'secondPasswordHash',
+      'photoUrl', 'secondPasswordHash', 'blocked', 'blockedAt', 'unblockedAt',
     };
     final extra = <String, dynamic>{};
     for (final e in data.entries) {
@@ -95,6 +99,7 @@ class AppUser {
       createdAt: createdAt,
       updatedAt: updatedAt,
       photoUrl: data['photoUrl'] as String?,
+      blocked: data['blocked'] as bool? ?? false,
       extra: extra,
     );
   }
@@ -108,6 +113,7 @@ class AppUser {
       'phone': phone ?? '',
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'blocked': blocked,
       if (photoUrl != null) 'photoUrl': photoUrl!,
       ...extra,
     };

@@ -43,8 +43,17 @@ class _LoginPageState extends State<LoginPage> {
       if (user != null && !user.emailVerified) {
         AppRouter.goToEmailVerification(context);
       } else {
-        final role = await _authService.getCurrentUserRole();
-        if (!mounted) return;
+        final me = await _authService.getAppUser();
+        if (me != null && me.blocked) {
+          await _authService.signOut();
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Your account is suspended. Please contact support.';
+          });
+          return;
+        }
+        final role = me?.role ?? await _authService.getCurrentUserRole();
         if (role != null && role.requiresSecondPassword) {
           AppRouter.goToSecondPassword(context);
         } else {
