@@ -1,5 +1,7 @@
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
+import 'package:dia_plus/models/user_role.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 /// Admin-specific home screen.
@@ -52,6 +54,8 @@ class AdminHomePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 32),
+              const _AdminActiveUsersStats(),
+              const SizedBox(height: 16),
               _buildCard(
                 context,
                 icon: Icons.vpn_key,
@@ -166,6 +170,182 @@ class AdminHomePage extends StatelessWidget {
             const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AdminActiveUsersStats extends StatelessWidget {
+  const _AdminActiveUsersStats();
+
+  @override
+  Widget build(BuildContext context) {
+    final users = FirebaseFirestore.instance.collection('users');
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: users.snapshots(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const _StatsCard(
+            title: 'Active users',
+            subtitle: 'Loading…',
+            rows: [],
+          );
+        }
+        if (snap.hasError) {
+          return _StatsCard(
+            title: 'Active users',
+            subtitle: 'Failed to load',
+            rows: [
+              _StatsRow(label: 'Error', value: snap.error.toString()),
+            ],
+          );
+        }
+
+        var total = 0;
+        var patients = 0;
+        var doctors = 0;
+        var admins = 0;
+        var suspended = 0;
+
+        for (final d in snap.data?.docs ?? const []) {
+          final data = d.data();
+          final blocked = data['blocked'] as bool? ?? false;
+          if (blocked) {
+            suspended += 1;
+            continue;
+          }
+          total += 1;
+          final role = UserRole.fromString(data['role'] as String?) ?? UserRole.patient;
+          switch (role) {
+            case UserRole.patient:
+              patients += 1;
+            case UserRole.doctor:
+              doctors += 1;
+            case UserRole.admin:
+              admins += 1;
+          }
+        }
+
+        return _StatsCard(
+          title: 'Active users',
+          subtitle: 'Not suspended (blocked=false)',
+          rows: [
+            _StatsRow(label: 'Total', value: '$total'),
+            _StatsRow(label: 'Patients', value: '$patients'),
+            _StatsRow(label: 'Doctors', value: '$doctors'),
+            _StatsRow(label: 'Admins', value: '$admins'),
+            _StatsRow(label: 'Suspended', value: '$suspended'),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  const _StatsCard({
+    required this.title,
+    required this.subtitle,
+    required this.rows,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<_StatsRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.teal.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.insights, color: Colors.teal, size: 26),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (rows.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: rows.map((r) => _StatPill(row: r)).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatsRow {
+  const _StatsRow({required this.label, required this.value});
+  final String label;
+  final String value;
+}
+
+class _StatPill extends StatelessWidget {
+  const _StatPill({required this.row});
+  final _StatsRow row;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            row.label,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            row.value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
+        ],
       ),
     );
   }
