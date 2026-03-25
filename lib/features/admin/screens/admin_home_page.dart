@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
@@ -102,6 +103,22 @@ class AdminHomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AdminSystemMonitoringPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.history,
+                title: 'Audit logs',
+                subtitle: 'Filter by action, user, and date; paginated list',
+                color: Colors.brown,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminAuditLogsPage(),
                     ),
                   );
                 },
