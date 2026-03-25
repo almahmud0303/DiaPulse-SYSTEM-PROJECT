@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
+import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
 import 'package:flutter/material.dart';
 
 /// Admin-specific home screen.
@@ -73,6 +74,14 @@ class AdminHomePage extends StatelessWidget {
                 title: 'User Management',
                 subtitle: 'Manage patients, doctors, and admins',
                 color: Colors.deepPurple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminUserManagementPage(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildCard(
