@@ -15,6 +15,9 @@ class AuditLogService {
 
   static const String collectionName = 'audit_logs';
 
+  /// Must match [functions/index.js] scheduled purge (days kept in Firestore).
+  static const int retentionDays = 90;
+
   Future<void> _append({
     required String action,
     required String category,
