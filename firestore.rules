@@ -17,6 +17,20 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
     }
 
+    function isValidAuditAction(action) {
+      return action in [
+        'login_success',
+        'login_blocked',
+        'admin_set_role',
+        'admin_set_blocked',
+        'admin_delete_user'
+      ];
+    }
+
+    function isValidAuditCategory(cat) {
+      return cat in ['auth', 'admin'];
+    }
+
     // Users: any authenticated user can read (so doctors can list patients; patients can load profiles).
     // Owner can update their doc EXCEPT protected fields (role/blocked).
     // Admin can update any user.
@@ -152,6 +166,25 @@ service cloud.firestore {
         && request.resource.data.actorId == request.auth.uid;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
       allow delete: if isAdmin();
+    }
+
+    // Audit log: append-only; actor must match caller. Retention: Cloud Function purges docs older than 90 days.
+    match /audit_logs/{logId} {
+      allow create: if request.auth != null
+        && request.resource.data.actorId == request.auth.uid
+        && request.resource.data.actorId is string
+        && request.resource.data.keys().hasAll(['actorId', 'action', 'category', 'createdAt', 'metadata'])
+        && request.resource.data.action is string
+        && request.resource.data.category is string
+        && isValidAuditAction(request.resource.data.action)
+        && isValidAuditCategory(request.resource.data.category)
+        && request.resource.data.metadata is map
+        && request.resource.data.metadata.size() <= 32
+        && (!('targetUserId' in request.resource.data)
+          || (request.resource.data.targetUserId is string
+            && request.resource.data.targetUserId.size() <= 128));
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
   }
 }

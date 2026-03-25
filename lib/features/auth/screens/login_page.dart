@@ -1,4 +1,5 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/services/audit_log_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _auditLog = AuditLogService();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -41,10 +43,20 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       final user = _authService.currentUser;
       if (user != null && !user.emailVerified) {
+        try {
+          await _auditLog.logLoginSuccess(
+            emailVerified: false,
+            flow: 'email_verification',
+          );
+        } catch (_) {}
+        if (!mounted) return;
         AppRouter.goToEmailVerification(context);
       } else {
         final me = await _authService.getAppUser();
         if (me != null && me.blocked) {
+          try {
+            await _auditLog.logLoginBlocked(targetUserId: me.uid);
+          } catch (_) {}
           await _authService.signOut();
           if (!mounted) return;
           setState(() {
@@ -54,6 +66,16 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
         final role = me?.role ?? await _authService.getCurrentUserRole();
+        try {
+          await _auditLog.logLoginSuccess(
+            emailVerified: user?.emailVerified ?? true,
+            requiresSecondPassword: role?.requiresSecondPassword ?? false,
+            flow: role != null && role.requiresSecondPassword
+                ? 'second_password'
+                : 'home',
+          );
+        } catch (_) {}
+        if (!mounted) return;
         if (role != null && role.requiresSecondPassword) {
           AppRouter.goToSecondPassword(context);
         } else {

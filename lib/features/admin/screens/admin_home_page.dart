@@ -1,3 +1,5 @@
+import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
+import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
 import 'package:dia_plus/models/user_role.dart';
@@ -56,6 +58,8 @@ class AdminHomePage extends StatelessWidget {
               const SizedBox(height: 32),
               const _AdminActiveUsersStats(),
               const SizedBox(height: 16),
+              const _AdminDailyReadingsStats(),
+              const SizedBox(height: 16),
               _buildCard(
                 context,
                 icon: Icons.vpn_key,
@@ -83,6 +87,38 @@ class AdminHomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AdminUserManagementPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.bar_chart,
+                title: 'System Monitoring',
+                subtitle: 'Readings and active users trends (last 14 days)',
+                color: Colors.blueGrey,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminSystemMonitoringPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.history,
+                title: 'Audit logs',
+                subtitle: 'Filter by action, user, and date; paginated list',
+                color: Colors.brown,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminAuditLogsPage(),
                     ),
                   );
                 },
@@ -189,6 +225,8 @@ class _AdminActiveUsersStats extends StatelessWidget {
             title: 'Active users',
             subtitle: 'Loading…',
             rows: [],
+            icon: Icons.people_outline,
+            iconColor: Colors.teal,
           );
         }
         if (snap.hasError) {
@@ -198,6 +236,8 @@ class _AdminActiveUsersStats extends StatelessWidget {
             rows: [
               _StatsRow(label: 'Error', value: snap.error.toString()),
             ],
+            icon: Icons.people_outline,
+            iconColor: Colors.teal,
           );
         }
 
@@ -236,6 +276,80 @@ class _AdminActiveUsersStats extends StatelessWidget {
             _StatsRow(label: 'Admins', value: '$admins'),
             _StatsRow(label: 'Suspended', value: '$suspended'),
           ],
+          icon: Icons.people_outline,
+          iconColor: Colors.teal,
+        );
+      },
+    );
+  }
+}
+
+/// Glucose readings in `glucose_readings` use `date` (ISO string) per [GlucoseReading].
+class _AdminDailyReadingsStats extends StatelessWidget {
+  const _AdminDailyReadingsStats();
+
+  static DateTime? _parseDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is Timestamp) return raw.toDate();
+    if (raw is String) return DateTime.tryParse(raw);
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final readings = FirebaseFirestore.instance.collection('glucose_readings');
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: readings.snapshots(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const _StatsCard(
+            title: 'Glucose readings',
+            subtitle: 'Loading…',
+            rows: [],
+            icon: Icons.monitor_heart_outlined,
+            iconColor: Colors.deepOrange,
+          );
+        }
+        if (snap.hasError) {
+          return _StatsCard(
+            title: 'Glucose readings',
+            subtitle: 'Failed to load',
+            rows: [
+              _StatsRow(label: 'Error', value: snap.error.toString()),
+            ],
+            icon: Icons.monitor_heart_outlined,
+            iconColor: Colors.deepOrange,
+          );
+        }
+
+        final now = DateTime.now();
+        final todayStart = DateTime(now.year, now.month, now.day);
+        final tomorrowStart = todayStart.add(const Duration(days: 1));
+        final weekStart = todayStart.subtract(const Duration(days: 6));
+
+        var todayCount = 0;
+        var last7Count = 0;
+
+        for (final d in snap.data?.docs ?? const []) {
+          final dt = _parseDate(d.data()['date']);
+          if (dt == null) continue;
+          if (!dt.isBefore(todayStart) && dt.isBefore(tomorrowStart)) {
+            todayCount += 1;
+          }
+          if (!dt.isBefore(weekStart) && dt.isBefore(tomorrowStart)) {
+            last7Count += 1;
+          }
+        }
+
+        return _StatsCard(
+          title: 'Glucose readings',
+          subtitle: 'All patients (local calendar day)',
+          rows: [
+            _StatsRow(label: 'Today', value: '$todayCount'),
+            _StatsRow(label: 'Last 7 days', value: '$last7Count'),
+          ],
+          icon: Icons.monitor_heart_outlined,
+          iconColor: Colors.deepOrange,
         );
       },
     );
@@ -247,11 +361,15 @@ class _StatsCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.rows,
+    this.icon = Icons.insights,
+    this.iconColor = Colors.teal,
   });
 
   final String title;
   final String subtitle;
   final List<_StatsRow> rows;
+  final IconData icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -276,10 +394,10 @@ class _StatsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.teal.withValues(alpha: 0.10),
+                  color: iconColor.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.insights, color: Colors.teal, size: 26),
+                child: Icon(icon, color: iconColor, size: 26),
               ),
               const SizedBox(width: 12),
               Expanded(
