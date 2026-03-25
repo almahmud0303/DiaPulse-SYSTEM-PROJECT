@@ -153,5 +153,14 @@ service cloud.firestore {
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
       allow delete: if isAdmin();
     }
+
+    // Audit log: append-only; actor must match caller. Read reserved for admins (UI in later todo).
+    match /audit_logs/{logId} {
+      allow create: if request.auth != null
+        && request.resource.data.actorId == request.auth.uid
+        && request.resource.data.keys().hasAll(['actorId', 'action', 'category', 'createdAt', 'metadata']);
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/admin_user_service.dart';
+import 'package:dia_plus/services/audit_log_service.dart';
 import 'package:dia_plus/ui/responsive.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,7 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
   final _searchController = TextEditingController();
   UserRole? _roleFilter;
   final _adminUserService = AdminUserService();
+  final _auditLog = AuditLogService();
 
   @override
   void dispose() {
@@ -100,6 +102,12 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
                                 uid: users[i].uid,
                                 role: newRole,
                               );
+                              try {
+                                await _auditLog.logAdminSetRole(
+                                  targetUserId: users[i].uid,
+                                  newRole: newRole.value,
+                                );
+                              } catch (_) {}
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Role updated to ${newRole.displayName}')),
@@ -150,6 +158,12 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
                                 const SnackBar(content: Text('Deleting user data…')),
                               );
                               final deleted = await _adminUserService.deleteUserDataEverywhere(uid: u.uid);
+                              try {
+                                await _auditLog.logAdminDeleteUser(
+                                  targetUserId: u.uid,
+                                  deletedDocumentCount: deleted,
+                                );
+                              } catch (_) {}
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Deleted $deleted documents')),
