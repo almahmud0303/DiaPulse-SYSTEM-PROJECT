@@ -62,7 +62,8 @@ service cloud.firestore {
       allow create: if request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
-      allow update: if request.auth != null;
+      // Prevent arbitrary users from modifying invite codes.
+      allow update: if isAdmin();
       allow delete: if request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
@@ -167,9 +168,28 @@ service cloud.firestore {
     // In-app notifications: recipient can read/update; actor can create.
     match /notifications/{nid} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Actor creates a notification (often for another user).
       allow create: if request.auth != null
-        && request.resource.data.actorId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+        && request.resource.data.actorId == request.auth.uid
+        && request.resource.data.userId is string
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && request.resource.data.read == false
+        && request.resource.data.createdAt is string;
+      // Recipient can only mark read/unread, not rewrite content.
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.actorId == resource.data.actorId
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.title == resource.data.title
+        && request.resource.data.body == resource.data.body
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.conversationId == resource.data.conversationId
+        && request.resource.data.otherUserId == resource.data.otherUserId
+        && request.resource.data.appointmentId == resource.data.appointmentId
+        && request.resource.data.appointmentStatus == resource.data.appointmentStatus
+        && request.resource.data.read is bool;
       allow delete: if isAdmin();
     }
 
@@ -177,7 +197,15 @@ service cloud.firestore {
     match /announcements/{aid} {
       allow read: if request.auth != null
         && (isAdmin() || resource.data.get('published', false) == true);
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && request.resource.data.published is bool;
+      allow update: if isAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && request.resource.data.published is bool;
+      allow delete: if isAdmin();
     }
 
     // Audit log: append-only; actor must match caller. Retention: Cloud Function purges docs older than 90 days.
