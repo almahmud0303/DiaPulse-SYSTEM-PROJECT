@@ -2,7 +2,7 @@
 
 ## Overview
 
-NFlutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. History uses a data/presentation split with reports and PDF export. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
+Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. Admins manage users, monitoring, audit logs, backups, and announcements. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
 
 ## Folder Structure
 
@@ -27,6 +27,8 @@ dia_plus/
 │   ├── models/
 │   │   ├── user_role.dart
 │   │   ├── app_user.dart
+│   │   ├── audit_log_entry.dart
+│   │   ├── announcement.dart
 │   │   ├── glucose_reading.dart
 │   │   ├── glucose_report_data.dart
 │   │   ├── glucose_report_stats.dart
@@ -57,6 +59,15 @@ dia_plus/
 │   │   ├── auth_service.dart
 │   │   ├── role_service.dart
 │   │   ├── invite_code_service.dart
+│   │   ├── audit_log_service.dart
+│   │   ├── admin_user_service.dart
+│   │   ├── admin_backup_service.dart
+│   │   ├── admin_restore_service.dart
+│   │   ├── backup_file_saver.dart          # Conditional import wrapper (web/io)
+│   │   ├── backup_file_saver_io.dart       # Desktop: write JSON file
+│   │   ├── backup_file_saver_web.dart      # Web: trigger browser download
+│   │   ├── admin_announcement_service.dart
+│   │   ├── announcement_service.dart       # Client announcements + read receipts
 │   │   ├── glucose_reading_service.dart
 │   │   ├── medicine_service.dart
 │   │   ├── meal_service.dart
@@ -161,6 +172,12 @@ dia_plus/
 │       │
 │       ├── admin/screens/
 │       │   ├── admin_home_page.dart
+│       │   ├── admin_user_management_page.dart
+│       │   ├── admin_system_monitoring_page.dart
+│       │   ├── admin_audit_logs_page.dart
+│       │   ├── admin_backup_export_page.dart
+│       │   ├── admin_backup_restore_page.dart
+│       │   ├── admin_announcement_management_page.dart
 │       │   └── invite_codes_page.dart
 │       │
 │       └── shared/screens/
@@ -172,15 +189,20 @@ dia_plus/
 │           ├── chat_page.dart
 │           ├── select_conversation_partner_page.dart
 │           ├── emergency_settings_page.dart
-│           └── notifications_page.dart
+│           ├── notifications_page.dart     # Notifications + Announcements tabs
+│           └── announcements_page.dart
 │
 ├── android/                  # Android app (Gradle, manifest, build)
 ├── ios/                      # iOS app
+├── functions/                # Firebase Cloud Functions (scheduled retention, etc.)
 ├── docs/
 │   └── C_DRIVE_SPACE.md      # Moving Gradle/Pub cache off C: drive
 ├── firestore.rules
+├── firestore.indexes.json
+├── firebase.json
 ├── pubspec.yaml
 ├── README.md
+├── SECURITY_HARDENING.md     # Rules + server-side notes
 └── PROJECT_STRUCTURE.md      # This file
 ```
 
@@ -226,6 +248,7 @@ Start → Login/Register → (Email verify) → (Second password for Doctor/Admi
 | Collection           | Purpose / key fields |
 |---------------------|-----------------------|
 | `users/{uid}`       | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
+| `users/{uid}/announcement_reads/{announcementId}` | Per-user announcement read receipts: readAt |
 | `inviteCodes/{id}`  | role, used, usedBy, usedAt, createdBy, createdAt |
 | `glucose_readings`  | userId, value, type, date, time, notes, createdAt |
 | `medicines`         | userId, name, dosage, time, times?, frequency, prescriptionId?, createdAt |
@@ -237,7 +260,10 @@ Start → Login/Register → (Email verify) → (Second password for Doctor/Admi
 | `activities`        | userId, date, type, durationMinutes, calories, notes, createdAt |
 | `conversations`     | participants, lastMessageAt |
 | `messages`          | conversationId, senderId, receiverId, text, createdAt |
-| (others)            | doctor_alert, emergency, notifications as implemented |
+| `notifications`     | In-app notifications (messages/appointments), read flag, createdAt |
+| `announcements`     | Admin broadcast announcements/campaigns (published, targetRole, timestamps) |
+| `audit_logs`        | Append-only audit trail (admin/auth events; retention purged by function) |
+| (others)            | doctor_alert, emergency, etc. as implemented |
 
 Reminders/settings may use local storage or Firestore via reminder_storage_service.
 
