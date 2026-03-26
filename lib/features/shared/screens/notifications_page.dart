@@ -1,4 +1,6 @@
 import 'package:dia_plus/models/app_notification.dart';
+import 'package:dia_plus/features/shared/screens/announcements_page.dart';
+import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/notification_service.dart';
@@ -23,6 +25,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   final DoctorPatientService _userService = DoctorPatientService();
 
   String? _uid;
+  AppUser? _me;
   bool _loading = true;
   String? _error;
   List<AppNotification> _notifications = [];
@@ -52,6 +55,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (!mounted) return;
       setState(() {
         _uid = user.uid;
+        _me = user;
         _notifications = list;
         _loading = false;
       });
@@ -127,26 +131,54 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? _buildError()
-              : _notifications.isEmpty
-                  ? _buildEmpty()
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+              : DefaultTabController(
+                  length: 2,
+                  child: Column(
+                    children: [
+                      Material(
+                        color: Colors.indigo,
+                        child: const TabBar(
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white70,
+                          indicatorColor: Colors.white,
+                          tabs: [
+                            Tab(text: 'Notifications'),
+                            Tab(text: 'Announcements'),
+                          ],
                         ),
-                        itemCount: _notifications.length,
-                        itemBuilder: (context, index) {
-                          final n = _notifications[index];
-                          return _NotificationTile(
-                            notification: n,
-                            dateFmt: dateFmt,
-                            onTap: () => _openNotification(n),
-                          );
-                        },
                       ),
-                    ),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            _notifications.isEmpty
+                                ? _buildEmpty()
+                                : RefreshIndicator(
+                                    onRefresh: _load,
+                                    child: ListView.builder(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      itemCount: _notifications.length,
+                                      itemBuilder: (context, index) {
+                                        final n = _notifications[index];
+                                        return _NotificationTile(
+                                          notification: n,
+                                          dateFmt: dateFmt,
+                                          onTap: () => _openNotification(n),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                            _me == null
+                                ? const Center(child: Text('Not signed in'))
+                                : AnnouncementsPage(user: _me!),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 
