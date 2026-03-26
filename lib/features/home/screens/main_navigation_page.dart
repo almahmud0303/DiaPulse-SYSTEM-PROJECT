@@ -4,9 +4,12 @@ import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
 import 'package:dia_plus/features/patient/history/presentation/screens/history_page.dart';
 import 'package:dia_plus/features/patient/screens/readings_page.dart';
+import 'package:dia_plus/features/shared/screens/notifications_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/services/announcement_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
+import 'package:dia_plus/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -109,6 +112,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       user.isPatient
           ? const HistoryPage()
           : const Center(child: Text('History - Coming Soon')),
+      const NotificationsPage(),
       SettingsPage(user: user),
     ];
 
@@ -129,8 +133,14 @@ class _NavScaffold extends StatefulWidget {
 class _NavScaffoldState extends State<_NavScaffold> {
   int _currentIndex = 0;
 
+  final _notificationService = NotificationService();
+  final _announcementService = AnnouncementService();
+
   @override
   Widget build(BuildContext context) {
+    final uid = widget.user.uid;
+    final role = widget.user.role.value;
+
     return Scaffold(
       body: widget.pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -139,22 +149,81 @@ class _NavScaffoldState extends State<_NavScaffold> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: 'Readings',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          const BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
           BottomNavigationBarItem(
+            icon: StreamBuilder<int>(
+              stream: _notificationService.streamUnreadCount(uid),
+              builder: (context, notifSnap) {
+                return StreamBuilder<int>(
+                  stream: _announcementService.streamUnreadCount(uid: uid, role: role),
+                  builder: (context, annSnap) {
+                    final n1 = notifSnap.data ?? 0;
+                    final n2 = annSnap.data ?? 0;
+                    final total = n1 + n2;
+                    return _BadgeIcon(
+                      icon: Icons.notifications,
+                      count: total,
+                    );
+                  },
+                );
+              },
+            ),
+            label: 'Updates',
+          ),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BadgeIcon extends StatelessWidget {
+  const _BadgeIcon({required this.icon, required this.count});
+
+  final IconData icon;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon),
+        if (count > 0)
+          Positioned(
+            right: -6,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              constraints: const BoxConstraints(minWidth: 16),
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

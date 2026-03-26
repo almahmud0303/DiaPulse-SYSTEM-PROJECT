@@ -50,6 +50,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Per-user announcement read receipts.
+    match /users/{userId}/announcement_reads/{announcementId} {
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Invite codes: admins create/delete. Read allowed without auth so users can
     // validate codes during registration (before they're logged in).
     match /inviteCodes/{codeId} {
