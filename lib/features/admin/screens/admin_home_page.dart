@@ -1,5 +1,6 @@
 import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_backup_export_page.dart';
+import 'package:dia_plus/features/admin/screens/admin_backup_restore_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
@@ -136,6 +137,22 @@ class AdminHomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AdminBackupExportPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.restore,
+                title: 'Data Restore Import',
+                subtitle: 'Validate backup JSON, dry-run, then import',
+                color: Colors.redAccent,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminBackupRestorePage(),
                     ),
                   );
                 },
