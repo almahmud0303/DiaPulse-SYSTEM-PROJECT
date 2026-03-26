@@ -168,6 +168,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Broadcast campaigns/announcements. Admin writes; signed-in users read published.
+    match /announcements/{aid} {
+      allow read: if request.auth != null
+        && (isAdmin() || resource.data.get('published', false) == true);
+      allow create, update, delete: if isAdmin();
+    }
+
     // Audit log: append-only; actor must match caller. Retention: Cloud Function purges docs older than 90 days.
     match /audit_logs/{logId} {
       allow create: if request.auth != null
