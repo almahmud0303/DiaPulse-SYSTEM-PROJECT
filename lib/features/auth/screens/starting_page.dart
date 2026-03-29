@@ -42,7 +42,11 @@ class _StartingPageState extends State<StartingPage> {
     if (!mounted) return;
     setState(() => _checkingAuth = false);
     if (role != null && role.requiresSecondPassword) {
-      AppRouter.goToSecondPassword(context);
+      if (me != null && me.needsProfessionalInviteCompletion) {
+        AppRouter.goToProfessionalAccessRequest(context);
+      } else {
+        AppRouter.goToSecondPassword(context);
+      }
     } else {
       AppRouter.goToHome(context);
     }

@@ -14,6 +14,7 @@ class AppUser {
     this.updatedAt,
     this.photoUrl,
     this.blocked = false,
+    this.professionalInvitePending = false,
     this.extra = const {},
   });
 
@@ -26,12 +27,18 @@ class AppUser {
   final DateTime? updatedAt;
   final String? photoUrl;
   final bool blocked;
+  /// Doctor/Admin: true until admin-approved professional setup (second password) is complete.
+  final bool professionalInvitePending;
   /// Custom fields for future extension. Avoid storing sensitive data.
   final Map<String, dynamic> extra;
 
   bool get isPatient => role == UserRole.patient;
   bool get isDoctor => role == UserRole.doctor;
   bool get isAdmin => role == UserRole.admin;
+
+  /// Doctor/Admin still needs admin-approved access + second password after email verification.
+  bool get needsProfessionalInviteCompletion =>
+      role.requiresSecondPassword && professionalInvitePending;
 
   /// Initials from display name (e.g. "John Doe" -> "JD").
   String get initials {
@@ -55,6 +62,7 @@ class AppUser {
     DateTime? updatedAt,
     String? photoUrl,
     bool? blocked,
+    bool? professionalInvitePending,
     Map<String, dynamic>? extra,
   }) {
     return AppUser(
@@ -67,6 +75,8 @@ class AppUser {
       updatedAt: updatedAt ?? this.updatedAt,
       photoUrl: photoUrl ?? this.photoUrl,
       blocked: blocked ?? this.blocked,
+      professionalInvitePending:
+          professionalInvitePending ?? this.professionalInvitePending,
       extra: extra ?? this.extra,
     );
   }
@@ -85,6 +95,7 @@ class AppUser {
     const knownKeys = {
       'email', 'displayName', 'role', 'phone', 'createdAt', 'updatedAt',
       'photoUrl', 'secondPasswordHash', 'blocked', 'blockedAt', 'unblockedAt',
+      'professionalInvitePending',
     };
     final extra = <String, dynamic>{};
     for (final e in data.entries) {
@@ -100,6 +111,8 @@ class AppUser {
       updatedAt: updatedAt,
       photoUrl: data['photoUrl'] as String?,
       blocked: data['blocked'] as bool? ?? false,
+      professionalInvitePending:
+          data['professionalInvitePending'] as bool? ?? false,
       extra: extra,
     );
   }
@@ -114,6 +127,7 @@ class AppUser {
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'blocked': blocked,
+      'professionalInvitePending': professionalInvitePending,
       if (photoUrl != null) 'photoUrl': photoUrl!,
       ...extra,
     };

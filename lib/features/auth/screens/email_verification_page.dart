@@ -35,15 +35,42 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       if (user?.emailVerified ?? false) {
         timer.cancel();
         if (!mounted) return;
-        final role = await _authService.getCurrentUserRole();
-        if (!mounted) return;
-        if (role != null && role.requiresSecondPassword) {
-          AppRouter.goToSecondPassword(context);
-        } else {
-          AppRouter.goToHome(context);
-        }
+        await _navigateAfterVerified();
       }
     });
+  }
+
+  Future<void> _navigateAfterVerified() async {
+    final me = await _authService.getAppUser();
+    final role = me?.role ?? await _authService.getCurrentUserRole();
+    if (!mounted) return;
+    if (me != null && me.needsProfessionalInviteCompletion) {
+      AppRouter.goToProfessionalAccessRequest(context);
+    } else if (role != null && role.requiresSecondPassword) {
+      AppRouter.goToSecondPassword(context);
+    } else {
+      AppRouter.goToHome(context);
+    }
+  }
+
+  Future<void> _checkVerifiedNow() async {
+    try {
+      await _authService.currentUser?.reload();
+    } catch (_) {}
+    if (!mounted) return;
+    final user = _authService.currentUser;
+    if (user?.emailVerified ?? false) {
+      _timer?.cancel();
+      await _navigateAfterVerified();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Still not verified. Open the link in the email (check spam), then try again.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _resendVerificationEmail() async {
@@ -131,7 +158,13 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   'Checking verification status...',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: _isResending ? null : _checkVerifiedNow,
+                  icon: const Icon(Icons.refresh, size: 20),
+                  label: const Text('I\'ve verified — continue'),
+                ),
+                const SizedBox(height: 16),
                 const Text(
                   'Didn\'t receive the email?',
                   style: TextStyle(fontSize: 14),
@@ -145,7 +178,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Resend Verification Email'),
+                      : const Text('Resend verification email'),
                 ),
               ],
             ),

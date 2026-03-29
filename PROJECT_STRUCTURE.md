@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin require invite codes and a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. Admins manage users, monitoring, audit logs, backups, and announcements. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
+Flutter diabetes app with **3 roles** (Patient, Doctor, Admin). Doctor/Admin request professional access (admin approves), then set a second password. Patients track glucose, medicines, meals, activities, reminders, and health scores; doctors manage **My Patients** (from accepted appointments), prescriptions (grouped), consultation notes, appointments, and alerts. Admins manage users, monitoring, audit logs, backups, and announcements. UI is responsive (phone/tablet/web) via `lib/ui/responsive.dart`.
 
 ## Folder Structure
 
@@ -50,6 +50,7 @@ dia_plus/
 │   │   ├── chat_message.dart
 │   │   ├── doctor_alert.dart
 │   │   ├── app_notification.dart
+│   │   ├── invite_access_request.dart
 │   │   ├── emergency_alert.dart
 │   │   ├── emergency_alert_type.dart
 │   │   ├── emergency_settings.dart
@@ -58,7 +59,7 @@ dia_plus/
 │   ├── services/
 │   │   ├── auth_service.dart
 │   │   ├── role_service.dart
-│   │   ├── invite_code_service.dart
+│   │   ├── invite_access_request_service.dart
 │   │   ├── audit_log_service.dart
 │   │   ├── admin_user_service.dart
 │   │   ├── admin_backup_service.dart
@@ -178,7 +179,7 @@ dia_plus/
 │       │   ├── admin_backup_export_page.dart
 │       │   ├── admin_backup_restore_page.dart
 │       │   ├── admin_announcement_management_page.dart
-│       │   └── invite_codes_page.dart
+│       │   └── admin_invite_access_requests_page.dart
 │       │
 │       └── shared/screens/
 │           ├── settings_page.dart
@@ -195,14 +196,11 @@ dia_plus/
 ├── android/                  # Android app (Gradle, manifest, build)
 ├── ios/                      # iOS app
 ├── functions/                # Firebase Cloud Functions (scheduled retention, etc.)
-├── docs/
-│   └── C_DRIVE_SPACE.md      # Moving Gradle/Pub cache off C: drive
 ├── firestore.rules
 ├── firestore.indexes.json
 ├── firebase.json
 ├── pubspec.yaml
 ├── README.md
-├── SECURITY_HARDENING.md     # Rules + server-side notes
 └── PROJECT_STRUCTURE.md      # This file
 ```
 
@@ -240,8 +238,8 @@ dia_plus/
 Start → Login/Register → (Email verify) → (Second password for Doctor/Admin) → Home.
 
 - **AppRouter** (`core/navigation`): pushLogin, pushRegister, goToHome, goToStart, etc.
-- **Invite codes**: Admin generates; user enters at registration (Doctor/Admin only).
-- **Second password**: Setup for Doctor/Admin when missing.
+- **Professional access**: Doctor/Admin submit a request; admin approves in-app; user completes second password setup.
+- **Second password**: Required for Doctor/Admin after approval.
 
 ## Firestore Collections
 
@@ -249,7 +247,7 @@ Start → Login/Register → (Email verify) → (Second password for Doctor/Admi
 |---------------------|-----------------------|
 | `users/{uid}`       | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
 | `users/{uid}/announcement_reads/{announcementId}` | Per-user announcement read receipts: readAt |
-| `inviteCodes/{id}`  | role, used, usedBy, usedAt, createdBy, createdAt |
+| `users/{uid}/access_requests/{id}` | Doctor/Admin access requests: status, email, role, createdAt |
 | `glucose_readings`  | userId, value, type, date, time, notes, createdAt |
 | `medicines`         | userId, name, dosage, time, times?, frequency, prescriptionId?, createdAt |
 | `prescriptions/{id}`| patientId, createdAt (group for medicines) |

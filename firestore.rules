@@ -52,21 +52,33 @@ service cloud.firestore {
 
     // Per-user announcement read receipts.
     match /users/{userId}/announcement_reads/{announcementId} {
-      allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create, update: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Invite codes: admins create/delete. Read allowed without auth so users can
-    // validate codes during registration (before they're logged in).
-    match /inviteCodes/{codeId} {
-      allow read: if true;
+    // Doctor/Admin access requests under the applicant's user doc (reliable client reads).
+    match /users/{userId}/access_requests/{requestId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+
       allow create: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
-      // Prevent arbitrary users from modifying invite codes.
-      allow update: if isAdmin();
-      allow delete: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin';
+        && request.auth.uid == userId
+        && exists(/databases/$(database)/documents/users/$(userId))
+        && request.resource.data.userId == userId
+        && request.resource.data.status == 'pending'
+        && request.resource.data.email is string
+        && request.resource.data.displayName is string
+        && request.resource.data.role is string
+        && request.resource.data.role == get(/databases/$(database)/documents/users/$(userId)).data.get('role', '')
+        && (request.resource.data.role == 'doctor' || request.resource.data.role == 'admin')
+        && (!('message' in request.resource.data) || request.resource.data.message == null || request.resource.data.message is string);
+
+      allow update, delete: if isAdmin();
+    }
+
+    // Collection-group queries (admin pending queue): explicit read so rules match all paths.
+    match /{path=**}/access_requests/{requestId} {
+      allow read: if isAdmin();
     }
 
     // Glucose readings: owner read/write; any authenticated user can read/list (doctors need to view patient readings).
@@ -81,7 +93,7 @@ service cloud.firestore {
     // Prescriptions: patient or doctor can read; doctor can create (when saving medicine group).
     match /prescriptions/{rxId} {
       allow read: if request.auth != null
-        && (resource.data.patientId == request.auth.uid || isDoctor());
+        && (resource.data.patientId == request.auth.uid || isDoctor() || isAdmin());
       allow create: if request.auth != null && isDoctor();
       allow update, delete: if request.auth != null && (isDoctor() || isAdmin());
     }
@@ -89,7 +101,7 @@ service cloud.firestore {
     // Medicines: owner or doctor can read; owner or doctor can create/update/delete (doctors manage prescriptions).
     match /medicines/{medId} {
       allow read: if request.auth != null
-        && (resource.data.userId == request.auth.uid || isDoctor());
+        && (resource.data.userId == request.auth.uid || isDoctor() || isAdmin());
       allow create: if request.auth != null
         && (request.resource.data.userId == request.auth.uid || isDoctor());
       allow update, delete: if request.auth != null
@@ -99,7 +111,7 @@ service cloud.firestore {
     // Medicine entries: owner or doctor can read; only owner can create/update/delete (patients log adherence).
     match /medicine_entries/{entryId} {
       allow read: if request.auth != null
-        && (resource.data.userId == request.auth.uid || isDoctor());
+        && (resource.data.userId == request.auth.uid || isDoctor() || isAdmin());
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null
@@ -109,7 +121,7 @@ service cloud.firestore {
     // Meals: owner or doctor can read; only owner can write.
     match /meals/{mealId} {
       allow read: if request.auth != null
-        && (resource.data.userId == request.auth.uid || isDoctor());
+        && (resource.data.userId == request.auth.uid || isDoctor() || isAdmin());
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null
@@ -119,7 +131,7 @@ service cloud.firestore {
     // Activities: owner or doctor can read; only owner can write.
     match /activities/{activityId} {
       allow read: if request.auth != null
-        && (resource.data.userId == request.auth.uid || isDoctor());
+        && (resource.data.userId == request.auth.uid || isDoctor() || isAdmin());
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null
@@ -129,7 +141,10 @@ service cloud.firestore {
     // Consultation notes: doctor (author or any) and patient can read; doctor can create/update/delete for their notes.
     match /consultation_notes/{noteId} {
       allow read: if request.auth != null
-        && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid || isDoctor());
+        && (resource.data.patientId == request.auth.uid
+          || resource.data.doctorId == request.auth.uid
+          || isDoctor()
+          || isAdmin());
       allow create: if request.auth != null
         && (request.resource.data.doctorId == request.auth.uid || isDoctor());
       allow update, delete: if request.auth != null
@@ -157,7 +172,9 @@ service cloud.firestore {
     // Appointments: patient creates request; doctor or patient can read; doctor can update (accept/reject).
     match /appointments/{appId} {
       allow read: if request.auth != null
-        && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid);
+        && (resource.data.patientId == request.auth.uid
+          || resource.data.doctorId == request.auth.uid
+          || isAdmin());
       allow create: if request.auth != null
         && request.resource.data.patientId == request.auth.uid;
       allow update: if request.auth != null
@@ -167,7 +184,8 @@ service cloud.firestore {
 
     // In-app notifications: recipient can read/update; actor can create.
     match /notifications/{nid} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
       // Actor creates a notification (often for another user).
       allow create: if request.auth != null
         && request.resource.data.actorId == request.auth.uid
