@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/user_role.dart';
-import 'package:dia_plus/services/invite_code_service.dart';
+import 'package:dia_plus/services/invite_access_request_service.dart';
 import 'package:dia_plus/services/role_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,7 +10,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final RoleService _roleService = RoleService();
-  final InviteCodeService _inviteCodeService = InviteCodeService();
+  final InviteAccessRequestService _inviteAccessRequestService =
+      InviteAccessRequestService();
 
   User? get currentUser => _auth.currentUser;
 
@@ -32,34 +33,17 @@ class AuthService {
   }
 
   /// Register with email and password and save user info in Firestore.
-  /// Doctor and Admin require a valid [inviteCode] from an admin.
+  /// Doctor and Admin register in two steps: this call creates the account only;
+  /// then apply for access; after an admin approves, they finish on
+  /// [CompleteProfessionalRegistrationPage] (second password only).
   Future<UserCredential?> registerWithEmailPassword({
     required String email,
     required String password,
     required String displayName,
     required UserRole role,
     String? phone,
-    String? secondPassword,
-    String? inviteCode,
   }) async {
     try {
-      if (role.requiresSecondPassword) {
-        if (inviteCode == null || inviteCode.trim().isEmpty) {
-          throw ArgumentError(
-            'An invite code is required to register as ${role.displayName}. '
-            'Please obtain one from your administrator.',
-          );
-        }
-        final valid = await _inviteCodeService.validateCode(
-          code: inviteCode.trim(),
-          role: role,
-        );
-        if (!valid) {
-          throw ArgumentError(
-            'Invalid or expired invite code. Please check and try again.',
-          );
-        }
-      }
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
@@ -72,26 +56,54 @@ class AuthService {
           displayName: displayName,
           role: role,
           phone: phone,
+          professionalInvitePending: role.requiresSecondPassword,
         );
-        if (role.requiresSecondPassword && secondPassword != null && secondPassword.isNotEmpty) {
-          await _roleService.setSecondPassword(
-            uid: cred.user!.uid,
-            secondPassword: secondPassword,
-            primaryPassword: password,
-          );
-        }
-        if (role.requiresSecondPassword && inviteCode != null) {
-          await _inviteCodeService.consumeCode(
-            code: inviteCode.trim(),
-            usedByUid: cred.user!.uid,
-            usedByEmail: email.trim(),
-          );
-        }
       }
       return cred;
     } on FirebaseAuthException {
       rethrow;
     }
+  }
+
+  /// After admin approves the access request: reauthenticate, set second password, clear pending flag.
+  Future<void> completeProfessionalRegistration({
+    required String primaryPassword,
+    required String secondPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null || user.email!.isEmpty) {
+      throw ArgumentError('Not signed in or email missing.');
+    }
+    final me = await getAppUser();
+    if (me == null) {
+      throw ArgumentError('User profile not found.');
+    }
+    if (!me.role.requiresSecondPassword) {
+      throw ArgumentError('This account does not require this step.');
+    }
+    if (!me.professionalInvitePending) {
+      throw ArgumentError(
+        'Setup is already complete. Sign in with your second password.',
+      );
+    }
+    final latestRequest =
+        await _inviteAccessRequestService.fetchLatestForUser(user.uid);
+    if (latestRequest == null || !latestRequest.isApproved) {
+      throw ArgumentError(
+        'An administrator must approve your access request before you can continue.',
+      );
+    }
+    final cred = EmailAuthProvider.credential(
+      email: user.email!,
+      password: primaryPassword,
+    );
+    await user.reauthenticateWithCredential(cred);
+    await _roleService.setSecondPassword(
+      uid: user.uid,
+      secondPassword: secondPassword,
+      primaryPassword: primaryPassword,
+      clearProfessionalInvitePending: true,
+    );
   }
 
   /// Save user profile to Firestore (users collection).
@@ -101,14 +113,19 @@ class AuthService {
     required String displayName,
     required UserRole role,
     String? phone,
+    bool professionalInvitePending = false,
   }) async {
-    await _firestore.collection('users').doc(uid).set({
+    final data = <String, dynamic>{
       'email': email,
       'displayName': displayName,
       'role': role.name,
       'phone': phone ?? '',
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (professionalInvitePending) {
+      data['professionalInvitePending'] = true;
+    }
+    await _firestore.collection('users').doc(uid).set(data);
   }
 
   /// Get current user profile as AppUser from Firestore.

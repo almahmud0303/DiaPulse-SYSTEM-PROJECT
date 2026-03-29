@@ -9,24 +9,35 @@ class AnnouncementService {
 
   static const String announcementsCollection = 'announcements';
 
-  /// Client-side feed. Pulls latest published announcements and filters by role in Dart
-  /// to support legacy docs where `targetRole` might be null.
+  /// Published feed for the signed-in user's role.
+  ///
+  /// Uses only `where('published' == true)` so no composite index is required (unlike
+  /// `orderBy('publishedAt')`, which breaks until an index exists). Sorting is done here.
+  static bool _visibleForRole(Announcement a, String roleLower) {
+    final t = a.targetRole?.trim();
+    if (t == null || t.isEmpty) return true;
+    final tl = t.toLowerCase();
+    if (tl == 'all' || tl == 'everyone') return true;
+    return tl == roleLower;
+  }
+
   Stream<List<Announcement>> streamPublished({required String role}) {
+    final roleLower = role.toLowerCase().trim();
     return _firestore
         .collection(announcementsCollection)
         .where('published', isEqualTo: true)
-        .orderBy('publishedAt', descending: true)
         .limit(200)
         .snapshots()
         .map((snap) {
       final list = snap.docs
           .map((d) => Announcement.fromMap(d.id, d.data()))
-          .where((a) {
-        final t = a.targetRole;
-        if (t == null || t.isEmpty) return true; // legacy: treat as all
-        if (t == 'all') return true;
-        return t == role;
-      }).toList();
+          .where((a) => _visibleForRole(a, roleLower))
+          .toList()
+        ..sort((a, b) {
+          final da = a.publishedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final db = b.publishedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return db.compareTo(da);
+        });
       return list;
     });
   }

@@ -106,8 +106,12 @@ class AdminUserService {
       _firestore.collection('conversations').where('participants', arrayContains: uid),
     );
 
+    final userRef = _firestore.collection('users').doc(uid);
+    deleted += await _deleteByQuery(userRef.collection('access_requests'));
+    deleted += await _deleteByQuery(userRef.collection('announcement_reads'));
+
     // Finally delete the user profile.
-    await _firestore.collection('users').doc(uid).delete();
+    await userRef.delete();
     deleted += 1;
 
     return deleted;

@@ -21,6 +21,7 @@ class RoleService {
     required String uid,
     required String secondPassword,
     required String primaryPassword,
+    bool clearProfessionalInvitePending = false,
   }) async {
     if (secondPassword == primaryPassword) {
       throw ArgumentError('Second password must be different from your main password');
@@ -29,9 +30,13 @@ class RoleService {
       throw ArgumentError('Second password must be at least 6 characters');
     }
     final hash = _hashPassword(secondPassword, uid);
-    await _firestore.collection('users').doc(uid).update({
+    final update = <String, dynamic>{
       'secondPasswordHash': hash,
-    });
+    };
+    if (clearProfessionalInvitePending) {
+      update['professionalInvitePending'] = false;
+    }
+    await _firestore.collection('users').doc(uid).update(update);
   }
 
   /// Verify the second password for doctor/admin.

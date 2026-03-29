@@ -4,17 +4,19 @@ import 'package:dia_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    runApp(const DiaPlusApp());
-  } catch (e) {
+  } catch (e, stackTrace) {
     debugPrint('Firebase initialization error: $e');
+    debugPrintStack(stackTrace: stackTrace);
     runApp(_FirebaseErrorApp(error: e.toString()));
+    return;
   }
+  runApp(const DiaPlusApp());
 }
 
 /// Shown when Firebase fails to initialize.

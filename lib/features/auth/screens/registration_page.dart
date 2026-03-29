@@ -18,16 +18,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _secondPasswordController = TextEditingController();
-  final _confirmSecondPasswordController = TextEditingController();
-  final _inviteCodeController = TextEditingController();
   final _authService = AuthService();
 
   UserRole _selectedRole = UserRole.patient;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
-  bool _obscureSecond = true;
-  bool _obscureConfirmSecond = true;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -38,9 +33,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
-    _secondPasswordController.dispose();
-    _confirmSecondPasswordController.dispose();
-    _inviteCodeController.dispose();
     super.dispose();
   }
 
@@ -51,10 +43,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
       _isLoading = true;
     });
     try {
-      String? secondPassword;
-      if (_selectedRole.requiresSecondPassword) {
-        secondPassword = _secondPasswordController.text;
-      }
       await _authService.registerWithEmailPassword(
         email: _emailController.text,
         password: _passwordController.text,
@@ -63,10 +51,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
-        secondPassword: secondPassword,
-        inviteCode: _selectedRole.requiresSecondPassword
-            ? _inviteCodeController.text.trim()
-            : null,
       );
       await _authService.sendEmailVerification();
       if (!mounted) return;
@@ -122,9 +106,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   onSelectionChanged: (Set<UserRole> selected) {
                     setState(() {
                       _selectedRole = selected.first;
-                      _secondPasswordController.clear();
-                      _confirmSecondPasswordController.clear();
-                      _inviteCodeController.clear();
                     });
                   },
                 ),
@@ -132,33 +113,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'Doctors and Admins require an invite code and a second password.',
+                      'Doctors and Admins: create your account and verify your email, then '
+                      'request professional access. After an administrator approves, you will '
+                      'set a second password in the app.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.orange.shade800,
                           ),
                     ),
                   ),
-                if (requiresSecond) ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _inviteCodeController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(
-                      labelText: 'Invite Code',
-                      hintText: 'Obtain from your administrator',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.vpn_key_outlined),
-                    ),
-                    validator: requiresSecond
-                        ? (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'Invite code required for ${_selectedRole.displayName}';
-                            }
-                            return null;
-                          }
-                        : null,
-                  ),
-                ],
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _nameController,
@@ -251,76 +213,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     return null;
                   },
                 ),
-                if (requiresSecond) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    'Second Password (must be different)',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _secondPasswordController,
-                    obscureText: _obscureSecond,
-                    decoration: InputDecoration(
-                      labelText: 'Second Password',
-                      hintText: 'Different from your main password',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.security),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureSecond
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() =>
-                              _obscureSecond = !_obscureSecond);
-                        },
-                      ),
-                    ),
-                    validator: requiresSecond
-                        ? (v) {
-                            if (v == null || v.isEmpty) return 'Required for ${_selectedRole.displayName}';
-                            if (v.length < 6) {
-                              return 'At least 6 characters';
-                            }
-                            if (v == _passwordController.text) {
-                              return 'Must be different from main password';
-                            }
-                            return null;
-                          }
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _confirmSecondPasswordController,
-                    obscureText: _obscureConfirmSecond,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Second Password',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmSecond
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscureConfirmSecond =
-                              !_obscureConfirmSecond);
-                        },
-                      ),
-                    ),
-                    validator: requiresSecond
-                        ? (v) {
-                            if (v != _secondPasswordController.text) {
-                              return 'Passwords do not match';
-                            }
-                            return null;
-                          }
-                        : null,
-                  ),
-                ],
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Text(

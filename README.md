@@ -1,15 +1,15 @@
 # Dia Plus
 
-A Flutter diabetes management app with role-based access for **Patients**, **Doctors**, and **Admins**. Patients track glucose readings, view history with graphs and statistics, and manage their health dashboard. Doctors and Admins use invite codes and a second password for extra security.
+A Flutter diabetes management app with role-based access for **Patients**, **Doctors**, and **Admins**. Patients track glucose readings, view history with graphs and statistics, and manage their health dashboard. Doctors and Admins request professional access (admin approval), then set a second password.
 
 ## Features
 
 ### Roles & Auth
 - **Patient** – Register or log in; track glucose, view history, use dashboard.
-- **Doctor** – Requires invite code and second password at registration; dedicated dashboard. **My Patients** lists all patients with risk badges; tap a patient for **Patient profile**: name, contact, basic info; **risk status** (from last 7 days glucose); **health history** (recent glucose); **glucose trends** (7-day summary); **prescriptions** (add/edit medicines); **consultation notes & diagnosis** (add/edit per patient).
-- **Admin** – Requires invite code and second password; can generate invite codes for Doctor/Admin.
+- **Doctor** – After registration and email verification, request professional access; once an admin approves, set a second password; dedicated dashboard. **My Patients** lists all patients with risk badges; tap a patient for **Patient profile**: name, contact, basic info; **risk status** (from last 7 days glucose); **health history** (recent glucose); **glucose trends** (7-day summary); **prescriptions** (add/edit medicines); **consultation notes & diagnosis** (add/edit per patient).
+- **Admin** – Same professional onboarding as Doctor for admin accounts; can approve access requests and manage users.
 
-Auth flow: **Login/Register** → Email verification → (Second password for Doctor/Admin) → **Dashboard**.
+Auth flow: **Login/Register** → Email verification → (Professional access request → approval → second password for Doctor/Admin) → **Dashboard**.
 
 ### Patient Features
 - **Dashboard** – Greeting, latest glucose card, today’s summary, quick actions (Add Reading, Log Meal, Log Activity, Take Medicine), 7-day mini graph, upcoming reminders, health score.
@@ -43,7 +43,7 @@ lib/
     ├── home/screens/        # MainNavigationPage (tab bar)
     ├── patient/             # Screens, widgets, history (data + presentation)
     ├── doctor/screens/      # Home, Patients, Appointments, Patient profile, Prescription detail, Add/edit prescription, Consultation note, Monitoring, Alerts
-    ├── admin/screens/       # AdminHomePage, InviteCodesPage
+    ├── admin/screens/       # AdminHomePage, user management, access requests, audit logs, backups
     └── shared/screens/      # Settings, Reminder settings, Doctor consultation, Diabetes essentials, Chat, Emergency, Notifications
 ```
 
@@ -74,7 +74,7 @@ See **PROJECT_STRUCTURE.md** for the full file tree, layer summary, and Firestor
      This creates/updates `lib/firebase_options.dart`.
 
 3. **Firestore rules**
-   - Deploy the rules so invite codes and glucose readings work:
+   - Deploy Firestore rules (security for users, readings, etc.):
      ```bash
      firebase use dia-plus-7c78c   # or your project ID
      firebase deploy --only firestore:rules
@@ -82,7 +82,7 @@ See **PROJECT_STRUCTURE.md** for the full file tree, layer summary, and Firestor
    - Ensure `.firebaserc` has the correct `default` project.
 
 4. **First admin user**
-   - Register a user in the app, then in **Firebase Console → Firestore → users**, open the document for that user’s UID and set `role` to `"admin"`. Then use that account to generate invite codes for Doctor/Admin.
+   - Register a user in the app, then in **Firebase Console → Firestore → users**, open the document for that user’s UID and set `role` to `"admin"`. Use that account to approve Doctor/Admin access requests in the app.
 
 ## Run
 
@@ -108,7 +108,7 @@ firebase deploy --only firestore:rules
 | Collection           | Purpose |
 |----------------------|--------|
 | `users/{uid}`        | Profile: email, displayName, role, phone, createdAt, secondPasswordHash? |
-| `inviteCodes/{id}`   | Invite codes: role, used, usedBy, usedAt, createdBy, createdAt |
+| `users/{uid}/access_requests/{id}` | Professional access requests (pending/approved/rejected) |
 | `glucose_readings`   | Readings: userId, date, glucoseLevel, mealTime, notes, createdAt |
 | `medicines`          | Medicines: userId, name, dosage, time, times?, frequency, prescriptionId?, createdAt |
 | `prescriptions/{id}` | Prescription groups: patientId, createdAt |

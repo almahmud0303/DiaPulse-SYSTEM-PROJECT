@@ -76,7 +76,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         } catch (_) {}
         if (!mounted) return;
-        if (role != null && role.requiresSecondPassword) {
+        if (me != null && me.needsProfessionalInviteCompletion) {
+          AppRouter.goToProfessionalAccessRequest(context);
+        } else if (role != null && role.requiresSecondPassword) {
           AppRouter.goToSecondPassword(context);
         } else {
           AppRouter.goToHome(context);

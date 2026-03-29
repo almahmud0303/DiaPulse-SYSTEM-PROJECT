@@ -1,11 +1,13 @@
+import 'package:dia_plus/features/admin/screens/admin_invite_access_requests_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_announcement_management_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_backup_export_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_backup_restore_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
-import 'package:dia_plus/features/admin/screens/invite_codes_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
+import 'package:dia_plus/models/invite_access_request.dart';
 import 'package:dia_plus/models/user_role.dart';
+import 'package:dia_plus/services/invite_access_request_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -63,18 +65,28 @@ class AdminHomePage extends StatelessWidget {
               const SizedBox(height: 16),
               const _AdminDailyReadingsStats(),
               const SizedBox(height: 16),
-              _buildCard(
-                context,
-                icon: Icons.vpn_key,
-                title: 'Invite Codes',
-                subtitle: 'Generate codes for Doctor and Admin registration',
-                color: Colors.orange,
-                onTap: () {
-                  Navigator.push(
+              StreamBuilder<List<InviteAccessRequest>>(
+                stream:
+                    InviteAccessRequestService().streamPendingForAdmin(),
+                builder: (context, snap) {
+                  final n = snap.data?.length ?? 0;
+                  return _buildCard(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const InviteCodesPage(),
-                    ),
+                    icon: Icons.pending_actions,
+                    title: 'Professional access requests',
+                    subtitle: n == 0
+                        ? 'Approve Doctor/Admin applicants'
+                        : '$n pending — review and approve',
+                    color: Colors.teal,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const AdminInviteAccessRequestsPage(),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -173,22 +185,6 @@ class AdminHomePage extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-              const SizedBox(height: 16),
-              _buildCard(
-                context,
-                icon: Icons.verified_user,
-                title: 'Role Assignment',
-                subtitle: 'Assign and modify user roles',
-                color: Colors.indigo,
-              ),
-              const SizedBox(height: 16),
-              _buildCard(
-                context,
-                icon: Icons.settings,
-                title: 'System Settings',
-                subtitle: 'Configure app-wide settings',
-                color: Colors.teal,
               ),
             ],
           ),

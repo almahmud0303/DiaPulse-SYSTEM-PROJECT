@@ -44,6 +44,11 @@ class _SecondPasswordPageState extends State<SecondPasswordPage> {
       AppRouter.goToStart(context);
       return;
     }
+    if (me != null && me.needsProfessionalInviteCompletion) {
+      if (!mounted) return;
+      AppRouter.goToProfessionalAccessRequest(context);
+      return;
+    }
     final role = me?.role ?? await _authService.getCurrentUserRole();
     if (mounted) {
       setState(() {
