@@ -6,6 +6,7 @@ import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
+import 'package:dia_plus/features/patient/widgets/patient_step_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
 import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
@@ -250,6 +251,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                   _buildLatestGlucoseCard(),
                   const SizedBox(height: 20),
                   _buildTodaySummary(),
+                  const SizedBox(height: 20),
+                  const PatientStepCard(),
                   const SizedBox(height: 20),
                   _buildQuickActions(),
                   const SizedBox(height: 20),

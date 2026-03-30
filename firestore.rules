@@ -56,6 +56,11 @@ service cloud.firestore {
       allow create, update: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Daily step totals (patient pedometer sync; one doc per calendar day id yyyy-MM-dd).
+    match /users/{userId}/daily_steps/{dayId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Doctor/Admin access requests under the applicant's user doc (reliable client reads).
     match /users/{userId}/access_requests/{requestId} {
       allow read: if request.auth != null

@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMotionUsageDescription</key>
+	<string>Dia Plus uses motion data to show your daily step count on the dashboard.</string>
 </dict>
 </plist>

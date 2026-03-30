@@ -1,3 +1,4 @@
+import 'package:dia_plus/background/step_counter_background.dart';
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/firebase_options.dart';
@@ -17,6 +18,9 @@ Future<void> main() async {
     return;
   }
   runApp(const DiaPlusApp());
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    registerStepBackgroundSync();
+  });
 }
 
 /// Shown when Firebase fails to initialize.
