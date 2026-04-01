@@ -9,6 +9,11 @@ class Medicine {
   final String frequency; // daily, twice_daily, weekly
   final DateTime createdAt;
 
+  /// Doctor metadata (optional). Present when prescribed by a doctor.
+  final String? prescribedByUid;
+  final String? prescribedByName;
+  final DateTime? prescribedAt;
+
   /// True if this prescription is for insulin (enables type and adjustment fields).
   final bool isInsulin;
 
@@ -26,6 +31,9 @@ class Medicine {
     required this.time,
     required this.frequency,
     required this.createdAt,
+    this.prescribedByUid,
+    this.prescribedByName,
+    this.prescribedAt,
     this.isInsulin = false,
     this.insulinType,
     this.adjustmentInstructions,
@@ -40,6 +48,10 @@ class Medicine {
       'time': time,
       'frequency': frequency,
       'createdAt': createdAt.toIso8601String(),
+      if (prescribedByUid != null) 'prescribedByUid': prescribedByUid,
+      if (prescribedByName != null && prescribedByName!.isNotEmpty)
+        'prescribedByName': prescribedByName,
+      if (prescribedAt != null) 'prescribedAt': prescribedAt!.toIso8601String(),
       'isInsulin': isInsulin,
       if (insulinType != null) 'insulinType': insulinType,
       if (adjustmentInstructions != null && adjustmentInstructions!.isNotEmpty)
@@ -56,6 +68,9 @@ class Medicine {
       time: map['time'] as String? ?? '09:00',
       frequency: map['frequency'] as String? ?? 'daily',
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      prescribedByUid: map['prescribedByUid'] as String?,
+      prescribedByName: map['prescribedByName'] as String?,
+      prescribedAt: DateTime.tryParse(map['prescribedAt'] as String? ?? ''),
       isInsulin: map['isInsulin'] as bool? ?? false,
       insulinType: map['insulinType'] as String?,
       adjustmentInstructions: map['adjustmentInstructions'] as String?,

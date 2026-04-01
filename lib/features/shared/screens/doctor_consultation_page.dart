@@ -1,7 +1,46 @@
+import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
 
-class DoctorConsultationPage extends StatelessWidget {
+class DoctorConsultationPage extends StatefulWidget {
   const DoctorConsultationPage({super.key});
+
+  @override
+  State<DoctorConsultationPage> createState() => _DoctorConsultationPageState();
+}
+
+class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
+  final DoctorPatientService _service = DoctorPatientService();
+  bool _loading = true;
+  String? _error;
+  List<AppUser> _doctors = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+  }
+
+  Future<void> _loadDoctors() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final list = await _service.getDoctors();
+      if (!mounted) return;
+      setState(() {
+        _doctors = list;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,17 +101,61 @@ class DoctorConsultationPage extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Sarah Johnson', 'Endocrinologist',
-                  'Diabetes & Hormone Specialist', '15 years experience',
-                  Icons.verified, Colors.blue),
-              const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Michael Chen', 'Diabetologist',
-                  'Type 1 & Type 2 Diabetes Expert', '12 years experience',
-                  Icons.verified, Colors.green),
-              const SizedBox(height: 15),
-              _buildDoctorCard(context, 'Dr. Emily Rodriguez', 'Nutritionist',
-                  'Diabetes Diet & Nutrition Specialist', '10 years experience',
-                  Icons.verified, Colors.orange),
+              if (_loading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (_error != null)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Failed to load doctors:\n$_error',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          onPressed: _loadDoctors,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (_doctors.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'No doctors available right now.',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ),
+                )
+              else
+                ..._doctors
+                    .map(
+                      (d) => Padding(
+                        padding: const EdgeInsets.only(bottom: 15),
+                        child: _buildDoctorCard(
+                          context,
+                          d.displayName.isNotEmpty ? d.displayName : d.email,
+                          'Doctor',
+                          'Available for consultation',
+                          '',
+                          Icons.verified,
+                          Colors.blue,
+                        ),
+                      ),
+                    )
+                    ,
               const SizedBox(height: 30),
               const Text(
                 'Consultation Services',
@@ -163,15 +246,17 @@ class DoctorConsultationPage extends StatelessWidget {
                     Text(expertise,
                         style: const TextStyle(fontSize: 13, color: Colors.grey)),
                     const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        const Icon(Icons.work, size: 16, color: Colors.grey),
-                        const SizedBox(width: 5),
-                        Text(experience,
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
+                    if (experience.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(Icons.work, size: 16, color: Colors.grey),
+                          const SizedBox(width: 5),
+                          Text(
+                            experience,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),

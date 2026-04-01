@@ -127,6 +127,76 @@ class _MedicineListPageState extends State<MedicineListPage> {
     }
   }
 
+  Future<void> _editMedicine(Medicine medicine) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AddEditMedicinePage(medicine: medicine)),
+    );
+    _load();
+  }
+
+  Future<void> _showActions(Medicine medicine, {required bool taken, required bool missed}) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.medication_outlined),
+                title: Text(medicine.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text('${medicine.dosage} • ${medicine.time}'),
+              ),
+              const Divider(height: 0),
+              if (!taken && !missed) ...[
+                ListTile(
+                  leading: const Icon(Icons.check_circle_outline),
+                  title: const Text('Mark as taken'),
+                  onTap: () => Navigator.pop(ctx, 'take'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.cancel_outlined),
+                  title: const Text('Mark as missed'),
+                  onTap: () => Navigator.pop(ctx, 'missed'),
+                ),
+              ],
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit'),
+                onTap: () => Navigator.pop(ctx, 'edit'),
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_outline, color: Colors.red[400]),
+                title: const Text('Delete'),
+                onTap: () => Navigator.pop(ctx, 'delete'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    switch (action) {
+      case 'take':
+        await _markTaken(medicine);
+        break;
+      case 'missed':
+        await _markMissed(medicine);
+        break;
+      case 'edit':
+        await _editMedicine(medicine);
+        break;
+      case 'delete':
+        await _deleteMedicine(medicine);
+        break;
+      default:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,37 +255,12 @@ class _MedicineListPageState extends State<MedicineListPage> {
                                 ? 'Missed • ${m.dosage} • ${m.time}'
                                 : '${m.dosage} • ${m.time} • ${m.frequency.replaceAll('_', ' ')}',
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!taken && !missed) ...[
-                                TextButton(
-                                  onPressed: () => _markTaken(m),
-                                  child: const Text('Take'),
-                                ),
-                                TextButton(
-                                  onPressed: () => _markMissed(m),
-                                  child: const Text('Missed'),
-                                ),
-                              ],
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AddEditMedicinePage(medicine: m),
-                                    ),
-                                  );
-                                  _load();
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete_outline, color: Colors.red[400]),
-                                onPressed: () => _deleteMedicine(m),
-                              ),
-                            ],
+                          trailing: IconButton(
+                            icon: const Icon(Icons.more_vert),
+                            tooltip: 'Actions',
+                            onPressed: () => _showActions(m, taken: taken, missed: missed),
                           ),
+                          onTap: () => _showActions(m, taken: taken, missed: missed),
                         ),
                       );
                     },

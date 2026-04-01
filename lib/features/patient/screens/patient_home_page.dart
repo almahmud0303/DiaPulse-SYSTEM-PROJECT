@@ -4,6 +4,7 @@ import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
+import 'package:dia_plus/features/patient/screens/prescriptions_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
@@ -15,6 +16,7 @@ import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:dia_plus/services/prescription_in_app_notification_service.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   final _medicineService = MedicineService();
   final _reminderService = ReminderService();
   final _healthScoreService = HealthScoreService();
+  final _prescriptionNotify = PrescriptionInAppNotificationService();
 
   String _userName = 'User';
   String _userInitials = 'U';
@@ -77,6 +80,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
       });
       return;
     }
+
+    // In-app notification when doctor prescribes (best-effort; requires app to be running).
+    // For true push while app is closed, Firebase Cloud Messaging + backend sender is required.
+    _prescriptionNotify.startForPatient(user.uid);
 
     setState(() {
       _healthScoreLoading = true;
@@ -547,6 +554,24 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 ),
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionButton(
+                'Prescriptions',
+                Icons.description_outlined,
+                Colors.teal,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrescriptionsPage()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: SizedBox()),
           ],
         ),
       ],

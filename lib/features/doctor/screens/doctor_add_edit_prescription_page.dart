@@ -1,6 +1,7 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 /// Doctor: add or edit a prescription (medicine) for a patient.
@@ -82,6 +83,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     if (!_formKey.currentState!.validate()) return;
     final patient = widget.patient;
     final existing = widget.medicine;
+    final doctor = FirebaseAuth.instance.currentUser;
+    final doctorUid = doctor?.uid;
+    final doctorName =
+        (doctor?.displayName?.trim().isNotEmpty ?? false) ? doctor!.displayName!.trim() : (doctor?.email ?? '');
 
     setState(() => _saving = true);
     try {
@@ -94,6 +99,9 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           time: _timeString,
           frequency: _frequency,
           createdAt: existing.createdAt,
+          prescribedByUid: existing.prescribedByUid,
+          prescribedByName: existing.prescribedByName,
+          prescribedAt: existing.prescribedAt,
           isInsulin: _isInsulin,
           insulinType: _isInsulin ? _insulinType : null,
           adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
@@ -110,6 +118,9 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           time: _timeString,
           frequency: _frequency,
           createdAt: DateTime.now(),
+          prescribedByUid: doctorUid,
+          prescribedByName: doctorName.isEmpty ? null : doctorName,
+          prescribedAt: DateTime.now(),
           isInsulin: _isInsulin,
           insulinType: _isInsulin ? _insulinType : null,
           adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
@@ -225,7 +236,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
               if (_isInsulin) ...[
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _insulinType,
+                  initialValue: _insulinType,
                   decoration: const InputDecoration(
                     labelText: 'Insulin type',
                     border: OutlineInputBorder(),
