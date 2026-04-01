@@ -79,7 +79,12 @@ class MedicineService {
 
   /// Saves one prescription group (one or more medicines from one save action).
   /// Returns the created [Prescription], or null if medicines was empty.
-  Future<Prescription?> addPrescriptionWithMedicines(String patientId, List<Medicine> medicines) async {
+  Future<Prescription?> addPrescriptionWithMedicines(
+    String patientId,
+    List<Medicine> medicines, {
+    String? issuedByUid,
+    String? issuedByName,
+  }) async {
     if (medicines.isEmpty) return null;
     final prescriptionId = '${patientId}_rx_${DateTime.now().millisecondsSinceEpoch}';
     final createdAt = DateTime.now();
@@ -87,6 +92,8 @@ class MedicineService {
       id: prescriptionId,
       patientId: patientId,
       createdAt: createdAt,
+      issuedByUid: issuedByUid,
+      issuedByName: issuedByName,
     );
     await _firestore
         .collection(_prescriptionsCollection)

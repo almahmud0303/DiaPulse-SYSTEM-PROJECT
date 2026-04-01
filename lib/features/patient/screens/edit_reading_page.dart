@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
 import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';

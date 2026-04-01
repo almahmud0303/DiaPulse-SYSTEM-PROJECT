@@ -94,6 +94,37 @@ class NotificationService {
     await ref.set(n.toMap());
   }
 
+  /// Create a prescription notification for the patient.
+  Future<void> createPrescriptionNotification({
+    required String patientId,
+    required String doctorId,
+    required String prescriptionId,
+    String? doctorName,
+    int? medicineCount,
+  }) async {
+    final ref = _firestore.collection(_collection).doc();
+    final now = DateTime.now();
+    final who = (doctorName != null && doctorName.trim().isNotEmpty)
+        ? doctorName.trim()
+        : 'Your doctor';
+    final countText = (medicineCount != null && medicineCount > 0)
+        ? ' ($medicineCount medicine${medicineCount == 1 ? '' : 's'})'
+        : '';
+    final n = AppNotification(
+      id: ref.id,
+      userId: patientId,
+      type: AppNotificationType.prescription,
+      title: 'New prescription',
+      body: '$who issued a prescription$countText.',
+      createdAt: now,
+      read: false,
+      actorId: doctorId,
+      otherUserId: doctorId,
+      prescriptionId: prescriptionId,
+    );
+    await ref.set(n.toMap());
+  }
+
   /// Get all notifications for a user, newest first (sorted in Dart).
   Future<List<AppNotification>> getForUser(String userId) async {
     final snapshot = await _firestore

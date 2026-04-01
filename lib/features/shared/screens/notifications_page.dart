@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dia_plus/models/app_notification.dart';
 import 'package:dia_plus/features/shared/screens/announcements_page.dart';
 import 'package:dia_plus/models/app_user.dart';
@@ -10,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'chat_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_appointments_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_appointments_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_prescriptions_page.dart';
 
 /// In-app notifications list (messages, appointments, etc.).
 class NotificationsPage extends StatefulWidget {
@@ -104,6 +107,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
           builder: (context) => currentUser.isDoctor
               ? const DoctorAppointmentsPage()
               : const PatientAppointmentsPage(),
+        ),
+      );
+    }
+
+    if (n.type == AppNotificationType.prescription) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => PatientPrescriptionsPage(openPrescriptionId: n.prescriptionId),
         ),
       );
     }

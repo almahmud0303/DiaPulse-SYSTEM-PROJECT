@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
@@ -8,6 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dia_plus/services/notification_service.dart';
 
 import 'doctor_prescription_detail_page.dart';
 
@@ -55,6 +59,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   final _dosageController = TextEditingController();
   final _adjustmentInstructionsController = TextEditingController();
   final MedicineService _medicineService = MedicineService();
+  final NotificationService _notificationService = NotificationService();
 
   /// 'specific' = use time picker; otherwise meal-relative key (after_lunch, etc.)
   String _whenToTake1 = 'specific';
@@ -540,8 +545,30 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             medicines: medicines,
           );
         } else {
-          final prescription = await _medicineService.addPrescriptionWithMedicines(patient.uid, medicines);
+          final me = FirebaseAuth.instance.currentUser;
+          final doctorId = me?.uid;
+          final doctorName = (me?.displayName != null && me!.displayName!.trim().isNotEmpty)
+              ? me.displayName!.trim()
+              : (me?.email ?? '').trim();
+          final prescription = await _medicineService.addPrescriptionWithMedicines(
+            patient.uid,
+            medicines,
+            issuedByUid: doctorId,
+            issuedByName: doctorName,
+          );
           if (mounted && prescription != null) {
+            // In-app notification for the patient.
+            if (doctorId != null && doctorId.isNotEmpty) {
+              try {
+                await _notificationService.createPrescriptionNotification(
+                  patientId: patient.uid,
+                  doctorId: doctorId,
+                  prescriptionId: prescription.id,
+                  doctorName: doctorName,
+                  medicineCount: medicines.length,
+                );
+              } catch (_) {}
+            }
             await _showAfterSaveDialog(prescription, savedCount: medicines.length);
             return;
           }

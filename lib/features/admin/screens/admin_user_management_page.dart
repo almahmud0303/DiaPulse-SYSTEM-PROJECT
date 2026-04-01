@@ -481,13 +481,20 @@ class _RolePickerDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final r in UserRole.values)
-            RadioListTile<UserRole>(
-              value: r,
-              groupValue: current,
-              onChanged: (v) => Navigator.of(context).pop(v),
-              title: Text(r.displayName),
+          RadioGroup<UserRole>(
+            groupValue: current,
+            onChanged: (v) => Navigator.of(context).pop(v),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final r in UserRole.values)
+                  RadioListTile<UserRole>(
+                    value: r,
+                    title: Text(r.displayName),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
       actions: [

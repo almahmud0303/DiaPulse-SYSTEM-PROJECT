@@ -5,6 +5,7 @@ import 'package:dia_plus/features/patient/screens/reminders_page.dart';
 import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_prescriptions_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/patient_step_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
@@ -716,6 +717,24 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 ),
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionButton(
+                'Prescriptions',
+                Icons.assignment_outlined,
+                Colors.teal,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PatientPrescriptionsPage()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: SizedBox()),
           ],
         ),
       ],

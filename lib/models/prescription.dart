@@ -4,17 +4,23 @@ class Prescription {
     required this.id,
     required this.patientId,
     required this.createdAt,
+    this.issuedByUid,
+    this.issuedByName,
   });
 
   final String id;
   final String patientId;
   final DateTime createdAt;
+  final String? issuedByUid;
+  final String? issuedByName;
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'patientId': patientId,
       'createdAt': createdAt.toIso8601String(),
+      if (issuedByUid != null && issuedByUid!.isNotEmpty) 'issuedByUid': issuedByUid,
+      if (issuedByName != null && issuedByName!.isNotEmpty) 'issuedByName': issuedByName,
     };
   }
 
@@ -23,6 +29,8 @@ class Prescription {
       id: map['id'] as String,
       patientId: map['patientId'] as String,
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      issuedByUid: map['issuedByUid'] as String?,
+      issuedByName: map['issuedByName'] as String?,
     );
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';

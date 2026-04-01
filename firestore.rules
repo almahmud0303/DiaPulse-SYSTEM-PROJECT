@@ -210,6 +210,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.conversationId == resource.data.conversationId
         && request.resource.data.otherUserId == resource.data.otherUserId
+        && request.resource.data.prescriptionId == resource.data.prescriptionId
         && request.resource.data.appointmentId == resource.data.appointmentId
         && request.resource.data.appointmentStatus == resource.data.appointmentStatus
         && request.resource.data.read is bool;
