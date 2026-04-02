@@ -1,4 +1,5 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
@@ -143,47 +144,96 @@ class _NavScaffoldState extends State<_NavScaffold> {
 
     return Scaffold(
       body: widget.pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.teal,
-        unselectedItemColor: Colors.grey,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Readings',
-          ),
-          const BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(
-            icon: StreamBuilder<int>(
-              stream: _notificationService.streamUnreadCount(uid),
-              builder: (context, notifSnap) {
-                return StreamBuilder<int>(
-                  stream: _announcementService.streamUnreadCount(uid: uid, role: role),
-                  builder: (context, annSnap) {
-                    final n1 = notifSnap.data ?? 0;
-                    final n2 = annSnap.data ?? 0;
-                    final total = n1 + n2;
-                    return _BadgeIcon(
-                      icon: Icons.notifications,
-                      count: total,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 12,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: AppTheme.cardTintLavender,
+            selectedItemColor: AppTheme.primaryMint,
+            unselectedItemColor: AppTheme.textSecondary,
+            selectedLabelStyle: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+            unselectedLabelStyle: Theme.of(context).textTheme.labelSmall,
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard_outlined),
+                activeIcon: Icon(Icons.dashboard_rounded),
+                label: 'Dashboard',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.analytics_outlined),
+                activeIcon: Icon(Icons.analytics_rounded),
+                label: 'Readings',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.history_outlined),
+                activeIcon: Icon(Icons.history),
+                label: 'History',
+              ),
+              BottomNavigationBarItem(
+                icon: StreamBuilder<int>(
+                  stream: _notificationService.streamUnreadCount(uid),
+                  builder: (context, notifSnap) {
+                    return StreamBuilder<int>(
+                      stream: _announcementService.streamUnreadCount(
+                        uid: uid,
+                        role: role,
+                      ),
+                      builder: (context, annSnap) {
+                        final n1 = notifSnap.data ?? 0;
+                        final n2 = annSnap.data ?? 0;
+                        final total = n1 + n2;
+                        return _BadgeIcon(
+                          icon: Icons.notifications_outlined,
+                          count: total,
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-            label: 'Updates',
+                ),
+                activeIcon: StreamBuilder<int>(
+                  stream: _notificationService.streamUnreadCount(uid),
+                  builder: (context, notifSnap) {
+                    return StreamBuilder<int>(
+                      stream: _announcementService.streamUnreadCount(
+                        uid: uid,
+                        role: role,
+                      ),
+                      builder: (context, annSnap) {
+                        final n1 = notifSnap.data ?? 0;
+                        final n2 = annSnap.data ?? 0;
+                        final total = n1 + n2;
+                        return _BadgeIcon(
+                          icon: Icons.notifications,
+                          count: total,
+                        );
+                      },
+                    );
+                  },
+                ),
+                label: 'Updates',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -208,7 +258,7 @@ class _BadgeIcon extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.redAccent,
+                color: AppTheme.softError,
                 borderRadius: BorderRadius.circular(10),
               ),
               constraints: const BoxConstraints(minWidth: 16),

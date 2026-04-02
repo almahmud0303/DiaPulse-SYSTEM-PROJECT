@@ -1,6 +1,7 @@
 import 'package:dia_plus/features/patient/history/models/glucose_trend_period.dart';
 import 'package:dia_plus/features/patient/history/models/glucose_trend_point.dart';
 import 'package:dia_plus/features/patient/history/presentation/widgets/history_period_selector.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -22,13 +23,13 @@ class GlucoseTrendChart extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Color(0x12000000),
             blurRadius: 14,
-            offset: const Offset(0, 6),
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -37,12 +38,12 @@ class GlucoseTrendChart extends StatelessWidget {
         children: [
           const Text(
             'Glucose Trends',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Text(
             'Daily, weekly, and monthly averages',
-            style: TextStyle(color: Colors.grey.shade600),
+            style: const TextStyle(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 16),
           HistoryPeriodSelector(
@@ -56,7 +57,7 @@ class GlucoseTrendChart extends StatelessWidget {
                 ? Center(
                     child: Text(
                       'No data available for this period',
-                      style: TextStyle(color: Colors.grey.shade600),
+                      style: const TextStyle(color: AppTheme.textSecondary),
                     ),
                   )
                 : LineChart(_buildChartData(context)),
@@ -102,7 +103,10 @@ class GlucoseTrendChart extends StatelessWidget {
         show: true,
         drawVerticalLine: false,
         getDrawingHorizontalLine: (value) {
-          return FlLine(color: Colors.grey.withValues(alpha:0.16), strokeWidth: 1);
+          return FlLine(
+            color: Colors.grey.withValues(alpha: 0.16),
+            strokeWidth: 1,
+          );
         },
       ),
       titlesData: FlTitlesData(
@@ -117,7 +121,10 @@ class GlucoseTrendChart extends StatelessWidget {
             getTitlesWidget: (value, meta) {
               return Text(
                 value.toInt().toString(),
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textSecondary,
+                ),
               );
             },
           ),
@@ -149,7 +156,10 @@ class GlucoseTrendChart extends StatelessWidget {
                 child: Text(
                   trendPoints[index].label,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               );
             },
@@ -161,13 +171,13 @@ class GlucoseTrendChart extends StatelessWidget {
         horizontalLines: [
           HorizontalLine(
             y: 70,
-            color: Colors.blue.withValues(alpha:0.5),
+            color: AppTheme.secondaryLavender.withValues(alpha: 0.65),
             dashArray: const [5, 4],
             strokeWidth: 1,
           ),
           HorizontalLine(
             y: 180,
-            color: Colors.orange.withValues(alpha:0.5),
+            color: AppTheme.accentPeach.withValues(alpha: 0.75),
             dashArray: const [5, 4],
             strokeWidth: 1,
           ),
@@ -184,17 +194,17 @@ class GlucoseTrendChart extends StatelessWidget {
               )
               .toList(),
           isCurved: true,
-          color: Colors.teal.shade600,
+          color: AppTheme.secondaryLavender,
           barWidth: 3,
           dotData: FlDotData(
             show: true,
             getDotPainter: (spot, percent, barData, index) {
               final value = trendPoints[index].averageGlucose;
               final color = value < 70
-                  ? Colors.blue
+                  ? AppTheme.secondaryLavender
                   : value <= 180
-                  ? Colors.green
-                  : Colors.orange;
+                  ? AppTheme.primaryMint
+                  : AppTheme.accentPeach;
               return FlDotCirclePainter(
                 radius: 4,
                 color: color,
@@ -207,8 +217,8 @@ class GlucoseTrendChart extends StatelessWidget {
             show: true,
             gradient: LinearGradient(
               colors: [
-                Colors.teal.withValues(alpha:0.20),
-                Colors.teal.withValues(alpha:0.02),
+                AppTheme.secondaryLavender.withValues(alpha: 0.24),
+                AppTheme.secondaryLavender.withValues(alpha: 0.03),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

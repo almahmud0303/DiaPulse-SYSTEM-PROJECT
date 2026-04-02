@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
@@ -65,80 +66,108 @@ class _SelectConversationPartnerPageState
 
   @override
   Widget build(BuildContext context) {
-    final title = _currentUser?.isDoctor == true ? 'Message a patient' : 'Message a doctor';
+    final title = _currentUser?.isDoctor == true
+        ? 'Message a patient'
+        : 'Message a doctor';
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: Text(title),
-        elevation: 0,
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: Text(title)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        FilledButton.icon(
-                          onPressed: _load,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _load,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : _partners.isEmpty
+          ? Center(
+              child: Text(
+                _currentUser?.isDoctor == true
+                    ? 'No patients yet'
+                    : 'No doctors available',
+                style: const TextStyle(color: AppTheme.textSecondary),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+              itemCount: _partners.length,
+              itemBuilder: (context, index) {
+                final partner = _partners[index];
+                final name = partner.displayName.isNotEmpty
+                    ? partner.displayName
+                    : partner.email;
+                return Card(
+                  color: AppTheme.cardTintMint,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(
+                      color: AppTheme.secondaryLavender.withValues(alpha: 0.25),
                     ),
                   ),
-                )
-              : _partners.isEmpty
-                  ? Center(
-                      child: Text(
-                        _currentUser?.isDoctor == true
-                            ? 'No patients yet'
-                            : 'No doctors available',
-                        style: TextStyle(color: Colors.grey.shade600),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.secondaryLavender.withValues(
+                        alpha: 0.35,
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _partners.length,
-                      itemBuilder: (context, index) {
-                        final partner = _partners[index];
-                        final name = partner.displayName.isNotEmpty
-                            ? partner.displayName
-                            : partner.email;
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.orange.shade100,
-                            child: Text(
-                              partner.initials,
-                              style: TextStyle(
-                                color: Colors.orange.shade800,
-                                fontWeight: FontWeight.w600,
-                              ),
+                      child: Text(
+                        partner.initials,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      partner.email,
+                      style: const TextStyle(color: AppTheme.textSecondary),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                    onTap: () {
+                      if (_currentUser != null) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute<void>(
+                            builder: (context) => ChatPage(
+                              currentUser: _currentUser!,
+                              otherUser: partner,
                             ),
                           ),
-                          title: Text(name),
-                          subtitle: Text(partner.email),
-                          onTap: () {
-                            if (_currentUser != null) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (context) => ChatPage(
-                                    currentUser: _currentUser!,
-                                    otherUser: partner,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
                         );
-                      },
-                    ),
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
     );
   }
 }

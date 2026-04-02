@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/presentation/widgets/glucose_reading_history_tile.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +18,7 @@ class GlucoseReadingsHistoryList extends StatelessWidget {
         children: [
           const Text(
             'Previous Readings',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           for (final entry in groupedReadings.entries) ...[
@@ -27,8 +28,8 @@ class GlucoseReadingsHistoryList extends StatelessWidget {
                 _sectionLabel(entry.key),
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
                 ),
               ),
             ),

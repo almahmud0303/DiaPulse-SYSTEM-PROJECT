@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -15,13 +16,13 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.04),
+            color: Color(0x12000000),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -31,7 +32,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -56,7 +57,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                       child: Text(
                         reading.mealTime,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
                       ),
@@ -67,7 +68,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha:0.12),
+                        color: color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -84,14 +85,14 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   DateFormat('h:mm a').format(reading.date),
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: const TextStyle(color: AppTheme.textSecondary),
                 ),
                 if (reading.notes.trim().isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
                     reading.notes,
                     style: TextStyle(
-                      color: Colors.grey.shade700,
+                      color: AppTheme.textSecondary,
                       fontStyle: FontStyle.italic,
                     ),
                     maxLines: 2,
@@ -102,7 +103,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text('mg/dL', style: TextStyle(color: Colors.grey.shade600)),
+          const Text('mg/dL', style: TextStyle(color: AppTheme.textSecondary)),
         ],
       ),
     );
@@ -110,11 +111,11 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
 
   Color _statusColor(double glucoseLevel) {
     if (glucoseLevel < 70) {
-      return Colors.blue;
+      return AppTheme.secondaryLavender;
     }
     if (glucoseLevel <= 180) {
-      return Colors.green;
+      return AppTheme.primaryMint;
     }
-    return Colors.orange;
+    return AppTheme.accentPeach;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/models/history_date_range.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,13 +23,13 @@ class HistoryDateFilterBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Color(0x12000000),
             blurRadius: 14,
-            offset: const Offset(0, 6),
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -37,7 +38,7 @@ class HistoryDateFilterBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.date_range, color: Colors.teal.shade600),
+              const Icon(Icons.date_range, color: AppTheme.textSecondary),
               const SizedBox(width: 10),
               const Text(
                 'Date Range',
@@ -65,11 +66,13 @@ class HistoryDateFilterBar extends StatelessWidget {
                     label: Text(option.label),
                     selected: isSelected,
                     onSelected: (_) => onRangeSelected(option),
-                    selectedColor: Colors.teal.shade100,
+                    selectedColor: AppTheme.secondaryLavender.withValues(
+                      alpha: 0.45,
+                    ),
                     labelStyle: TextStyle(
                       color: isSelected
-                          ? Colors.teal.shade800
-                          : Colors.grey.shade800,
+                          ? AppTheme.textPrimary
+                          : AppTheme.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -82,7 +85,7 @@ class HistoryDateFilterBar extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.teal.shade50,
+              color: AppTheme.cardTintLavender,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -92,14 +95,17 @@ class HistoryDateFilterBar extends StatelessWidget {
                   selectedRange.label,
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.teal.shade900,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${formatter.format(selectedRange.normalizedStart)} - ${formatter.format(selectedRange.normalizedEnd)}',
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
