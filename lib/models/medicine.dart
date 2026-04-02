@@ -80,7 +80,8 @@ class Medicine {
     };
   }
 
-  factory Medicine.fromMap(Map<String, dynamic> map) {
+  /// [documentId] is the Firestore document id when `id` is missing from stored fields.
+  factory Medicine.fromMap(Map<String, dynamic> map, {String? documentId}) {
     final dynamic rawTimes = map['times'];
     List<String>? times;
     if (rawTimes is List) {
@@ -88,9 +89,12 @@ class Medicine {
       if (times.isEmpty) times = null;
     }
     final time = map['time'] as String? ?? '09:00';
+    final rawId = map['id'];
+    final idStr = rawId == null ? '' : rawId.toString().trim();
+    final id = idStr.isNotEmpty ? idStr : (documentId ?? '');
     return Medicine(
-      id: map['id'] as String,
-      userId: map['userId'] as String,
+      id: id,
+      userId: map['userId'] == null ? '' : map['userId'].toString(),
       name: map['name'] as String? ?? '',
       dosage: map['dosage'] as String? ?? '',
       time: time,

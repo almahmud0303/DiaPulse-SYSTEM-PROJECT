@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/patient_prescription_detail_page.dart';
+import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
@@ -23,6 +24,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
   String? _error;
   String? _uid;
   List<Prescription> _prescriptions = [];
+  Map<String, List<Medicine>> _medicinesByRx = {};
 
   @override
   void initState() {
@@ -46,16 +48,19 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
         return;
       }
       final list = await _medicineService.getPrescriptions(user.uid);
+      final grouped = await _medicineService.getMedicinesGroupedByPrescription(user.uid);
       if (!mounted) return;
       setState(() {
         _uid = user.uid;
         _prescriptions = list;
+        _medicinesByRx = grouped;
         _loading = false;
       });
 
       final targetId = widget.openPrescriptionId;
       if (targetId != null && targetId.isNotEmpty) {
-        final rx = list.where((p) => p.id == targetId).cast<Prescription?>().firstWhere((e) => e != null, orElse: () => null);
+        final matches = list.where((p) => p.id == targetId);
+        final rx = matches.isEmpty ? null : matches.first;
         if (rx != null && mounted) {
           _open(rx);
         }
@@ -116,17 +121,74 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                         itemBuilder: (_, i) {
                           final rx = _prescriptions[i];
                           final issuedBy = (rx.issuedByName ?? '').trim().isNotEmpty ? rx.issuedByName!.trim() : 'Doctor';
+                          final meds = _medicinesByRx[rx.id] ?? const <Medicine>[];
+                          final count = meds.length;
+                          final previewNames = meds.map((m) => m.name).join(', ');
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.teal.withValues(alpha: 0.12),
-                                child: const Icon(Icons.assignment_outlined, color: Colors.teal),
-                              ),
-                              title: Text('Prescription · ${df.format(rx.createdAt)}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                              subtitle: Text('Issued by $issuedBy'),
-                              trailing: const Icon(Icons.chevron_right),
+                            child: InkWell(
                               onTap: () => _open(rx),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Colors.teal.withValues(alpha: 0.12),
+                                      child: const Icon(Icons.assignment_outlined, color: Colors.teal),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Prescription · ${df.format(rx.createdAt)}',
+                                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Issued by $issuedBy',
+                                            style: TextStyle(color: Colors.grey.shade800, fontSize: 13),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.medication_outlined, size: 18, color: Colors.teal.shade700),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                count == 0
+                                                    ? 'No medicines linked — tap to refresh details'
+                                                    : '$count medicine${count == 1 ? '' : 's'}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: count == 0 ? Colors.orange.shade800 : Colors.black87,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (previewNames.isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              previewNames,
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                height: 1.35,
+                                                color: Colors.grey.shade900,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                                  ],
+                                ),
+                              ),
                             ),
                           );
                         },

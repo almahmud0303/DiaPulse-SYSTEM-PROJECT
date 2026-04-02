@@ -24,13 +24,19 @@ class Prescription {
     };
   }
 
-  factory Prescription.fromMap(Map<String, dynamic> map) {
+  /// [documentId] is the Firestore document id when `id` is missing from stored fields.
+  factory Prescription.fromMap(Map<String, dynamic> map, {String? documentId}) {
+    final id = _str(map['id']);
+    final resolvedId =
+        id.isNotEmpty ? id : (documentId ?? '');
     return Prescription(
-      id: map['id'] as String,
-      patientId: map['patientId'] as String,
+      id: resolvedId,
+      patientId: _str(map['patientId']),
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
       issuedByUid: map['issuedByUid'] as String?,
       issuedByName: map['issuedByName'] as String?,
     );
   }
+
+  static String _str(dynamic v) => v == null ? '' : v.toString().trim();
 }

@@ -2,12 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/models/conversation.dart';
 import 'package:dia_plus/services/notification_service.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-/// Manages doctor–patient messaging. Firestore: `conversations`, `messages`.
+/// Doctor–patient messaging.
+/// Message bodies live in **Realtime Database** (`chat_messages/{conversationId}`).
+/// Conversation metadata (list, last preview) stays in Firestore (`conversations`).
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseDatabase _db = FirebaseDatabase.instance;
+
   static const String _conversationsCollection = 'conversations';
-  static const String _messagesCollection = 'messages';
+  static const String _chatMessagesRoot = 'chat_messages';
+
   final NotificationService _notificationService = NotificationService();
 
   /// conversationId = sorted [uid1, uid2] joined by '_'
@@ -16,7 +22,10 @@ class MessagingService {
     return list.join('_');
   }
 
-  /// Send a message and create/update the conversation doc.
+  DatabaseReference _messagesRef(String cid) =>
+      _db.ref('$_chatMessagesRoot/$cid');
+
+  /// Send a message (RTDB) and update Firestore conversation metadata + notification.
   Future<void> sendMessage({
     required String senderId,
     required String receiverId,
@@ -25,13 +34,13 @@ class MessagingService {
   }) async {
     final cid = conversationId(senderId, receiverId);
     final now = DateTime.now();
-    final ref = _firestore.collection(_messagesCollection).doc();
-    await ref.set({
+    final msgRef = _messagesRef(cid).push();
+    await msgRef.set({
       'conversationId': cid,
       'senderId': senderId,
       'receiverId': receiverId,
       'text': text,
-      'createdAt': Timestamp.fromDate(now),
+      'createdAt': ServerValue.timestamp,
       'read': false,
     });
 
@@ -42,7 +51,6 @@ class MessagingService {
       'lastMessageSenderId': senderId,
     }, SetOptions(merge: true));
 
-    // In-app notification for receiver.
     await _notificationService.createMessageNotification(
       receiverId: receiverId,
       senderId: senderId,
@@ -53,7 +61,6 @@ class MessagingService {
   }
 
   /// List conversations for the current user, sorted by last message descending.
-  /// Sorted in Dart to avoid Firestore composite index (participants + lastMessageAt).
   Future<List<Conversation>> getConversations(String userId) async {
     final snapshot = await _firestore
         .collection(_conversationsCollection)
@@ -78,58 +85,39 @@ class MessagingService {
     return list;
   }
 
-  /// Get messages for a conversation, newest first, limit 100.
-  /// Sorted in Dart to avoid Firestore composite index (conversationId + createdAt).
-  Future<List<ChatMessage>> getMessages(String cid, {int limit = 100}) async {
-    final snapshot = await _firestore
-        .collection(_messagesCollection)
-        .where('conversationId', isEqualTo: cid)
-        .get();
-
-    final list = snapshot.docs.map((doc) {
-      final data = doc.data();
-      final createdAt = data['createdAt'] is Timestamp
-          ? (data['createdAt'] as Timestamp).toDate()
-          : DateTime.tryParse(data['createdAt']?.toString() ?? '') ?? DateTime.now();
-      return ChatMessage(
-        id: doc.id,
-        conversationId: data['conversationId'] as String? ?? cid,
-        senderId: data['senderId'] as String? ?? '',
-        receiverId: data['receiverId'] as String? ?? '',
-        text: data['text'] as String? ?? '',
-        createdAt: createdAt,
-        read: data['read'] as bool? ?? false,
+  List<ChatMessage> _parseChatSnapshot(DataSnapshot snapshot, String cid) {
+    if (!snapshot.exists || snapshot.value == null) return [];
+    final raw = snapshot.value;
+    if (raw is! Map) return [];
+    final map = Map<Object?, Object?>.from(raw);
+    final out = <ChatMessage>[];
+    for (final e in map.entries) {
+      final key = e.key?.toString() ?? '';
+      final val = e.value;
+      if (val is! Map) continue;
+      final m = Map<String, dynamic>.from(
+        Map<Object?, Object?>.from(val).map(
+          (k, v) => MapEntry(k.toString(), v),
+        ),
       );
-    }).toList();
-    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return list.take(limit).toList();
+      out.add(ChatMessage.fromMap(key, m));
+    }
+    out.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return out;
   }
 
-  /// Stream of messages for real-time updates in chat.
-  /// Sorted in Dart to avoid Firestore composite index.
+  /// Last [limit] messages, **oldest first** (previous at top, newest at bottom).
+  Future<List<ChatMessage>> getMessages(String cid, {int limit = 100}) async {
+    final q =
+        _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
+    final snapshot = await q.get();
+    return _parseChatSnapshot(snapshot, cid);
+  }
+
+  /// Live stream — same order as [getMessages] (oldest → newest).
   Stream<List<ChatMessage>> streamMessages(String cid, {int limit = 100}) {
-    return _firestore
-        .collection(_messagesCollection)
-        .where('conversationId', isEqualTo: cid)
-        .snapshots()
-        .map((snapshot) {
-      final list = snapshot.docs.map((doc) {
-        final data = doc.data();
-        final createdAt = data['createdAt'] is Timestamp
-            ? (data['createdAt'] as Timestamp).toDate()
-            : DateTime.tryParse(data['createdAt']?.toString() ?? '') ?? DateTime.now();
-        return ChatMessage(
-          id: doc.id,
-          conversationId: data['conversationId'] as String? ?? cid,
-          senderId: data['senderId'] as String? ?? '',
-          receiverId: data['receiverId'] as String? ?? '',
-          text: data['text'] as String? ?? '',
-          createdAt: createdAt,
-          read: data['read'] as bool? ?? false,
-        );
-      }).toList();
-      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return list.take(limit).toList();
-    });
+    final q =
+        _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
+    return q.onValue.map((e) => _parseChatSnapshot(e.snapshot, cid));
   }
 }

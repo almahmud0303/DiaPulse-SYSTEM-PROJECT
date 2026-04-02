@@ -38,8 +38,27 @@ class ChatMessage {
       senderId: map['senderId'] as String? ?? '',
       receiverId: map['receiverId'] as String? ?? '',
       text: map['text'] as String? ?? '',
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt: _parseCreatedAt(map['createdAt']),
       read: map['read'] as bool? ?? false,
     );
   }
+
+  /// Firestore: ISO string. Realtime DB: server timestamp → millis [num].
+  static DateTime _parseCreatedAt(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is int) {
+      return DateTime.fromMillisecondsSinceEpoch(v);
+    }
+    if (v is double) {
+      return DateTime.fromMillisecondsSinceEpoch(v.round());
+    }
+    if (v is num) {
+      return DateTime.fromMillisecondsSinceEpoch(v.toInt());
+    }
+    if (v is String) {
+      return DateTime.tryParse(v) ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
 }
+
