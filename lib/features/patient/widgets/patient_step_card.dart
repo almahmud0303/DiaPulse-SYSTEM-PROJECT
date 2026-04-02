@@ -125,7 +125,9 @@ class _PatientStepCardState extends State<PatientStepCard>
             Text(
               'Uses your phone’s motion sensors. Carried in a pocket works best.',
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
                 color: AppTheme.textSecondary,
               ),
             ),

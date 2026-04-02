@@ -11,8 +11,9 @@ class AppTheme {
   static const Color background = Color(0xFFF8F9FA);
   static const Color cardTintMint = Color(0xFFEAF7F1);
   static const Color cardTintLavender = Color(0xFFF3EFFF);
-  static const Color textPrimary = Color(0xFF333333);
-  static const Color textSecondary = Color(0xFF777777);
+  static const Color textPrimary = Color(0xFF1E1E1E);
+  /// Muted labels on white/pastel cards (stronger contrast than pure gray-500).
+  static const Color textSecondary = Color(0xFF4A4A4A);
   static const Color softError = Color(0xFFFF8A80);
 
   static ThemeData get lightTheme {

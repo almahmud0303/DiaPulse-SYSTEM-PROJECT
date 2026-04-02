@@ -10,6 +10,19 @@ class MedicineService {
   static const String _entriesCollection = 'medicine_entries';
   static const String _prescriptionsCollection = 'prescriptions';
 
+  Map<String, dynamic> _docMap(DocumentSnapshot d) {
+    final data = d.data();
+    if (data is Map<String, dynamic>) return Map<String, dynamic>.from(data);
+    if (data is Map) {
+      return data.map((k, v) => MapEntry(k.toString(), v));
+    }
+    return {};
+  }
+
+  Medicine _medicineFromDoc(DocumentSnapshot d) {
+    return Medicine.fromMap(_docMap(d), documentId: d.id);
+  }
+
   Future<void> addMedicine(Medicine medicine) async {
     await _firestore
         .collection(_medicinesCollection)
@@ -119,18 +132,45 @@ class MedicineService {
     return prescription;
   }
 
-  /// Medicines belonging to a prescription group.
+  /// Medicines belonging to a prescription group (newest-added last).
+  ///
+  /// Must filter by [patientId] (`userId`) **and** [prescriptionId] so Firestore
+  /// security rules can prove every matching doc belongs to the signed-in patient.
   Future<List<Medicine>> getMedicinesForPrescription(String patientId, String prescriptionId) async {
+    if (prescriptionId.isEmpty || patientId.isEmpty) return [];
     final snap = await _firestore
         .collection(_medicinesCollection)
+        .where('userId', isEqualTo: patientId)
         .where('prescriptionId', isEqualTo: prescriptionId)
         .get();
-    final list = snap.docs
-        .map((d) => Medicine.fromMap(d.data()))
-        .where((m) => m.userId == patientId)
+    var list = snap.docs
+        .map(_medicineFromDoc)
+        .where((m) => m.userId == patientId && m.id.isNotEmpty)
         .toList();
-    list.sort((a, b) => a.name.compareTo(b.name));
+    // Fallback if query/index mismatch or legacy docs: scan patient's medicines.
+    if (list.isEmpty) {
+      final all = await getMedicines(patientId);
+      list = all
+          .where((m) => (m.prescriptionId ?? '') == prescriptionId)
+          .toList();
+    }
+    list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return list;
+  }
+
+  /// All medicines for [patientId] grouped by [Medicine.prescriptionId] (non-null ids only).
+  Future<Map<String, List<Medicine>>> getMedicinesGroupedByPrescription(String patientId) async {
+    final all = await getMedicines(patientId);
+    final map = <String, List<Medicine>>{};
+    for (final m in all) {
+      final pid = m.prescriptionId;
+      if (pid == null || pid.isEmpty) continue;
+      map.putIfAbsent(pid, () => []).add(m);
+    }
+    for (final entry in map.entries) {
+      entry.value.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    }
+    return map;
   }
 
   /// Prescriptions for a patient (newest first).
@@ -140,7 +180,8 @@ class MedicineService {
         .where('patientId', isEqualTo: patientId)
         .get();
     final list = snapshot.docs
-        .map((d) => Prescription.fromMap(d.data()))
+        .map((d) => Prescription.fromMap(_docMap(d), documentId: d.id))
+        .where((p) => p.id.isNotEmpty)
         .toList();
     list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return list;
@@ -151,7 +192,7 @@ class MedicineService {
         .collection(_medicinesCollection)
         .where('userId', isEqualTo: userId)
         .get();
-    final list = snapshot.docs.map((d) => Medicine.fromMap(d.data())).toList();
+    final list = snapshot.docs.map(_medicineFromDoc).where((m) => m.id.isNotEmpty).toList();
     int firstDoseMinutes(Medicine m) {
       final mins = m.effectiveTimes
           .map((t) {
@@ -173,7 +214,8 @@ class MedicineService {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-      final list = snapshot.docs.map((d) => Medicine.fromMap(d.data())).toList();
+      final list =
+          snapshot.docs.map(_medicineFromDoc).where((m) => m.id.isNotEmpty).toList();
       int firstDoseMinutes(Medicine m) {
         final mins = m.effectiveTimes
             .map((t) {

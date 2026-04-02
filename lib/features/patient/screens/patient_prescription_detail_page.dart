@@ -27,6 +27,7 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
   final MedicineService _medicineService = MedicineService();
   bool _loading = true;
   List<Medicine> _medicines = const [];
+  String? _loadError;
 
   @override
   void initState() {
@@ -35,7 +36,10 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     try {
       final meds = await _medicineService.getMedicinesForPrescription(
         widget.patientId,
@@ -46,10 +50,26 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
         _medicines = meds;
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _medicines = const [];
+        _loadError = _friendlyMedicineLoadError(e);
+        _loading = false;
+      });
     }
+  }
+
+  /// Avoid showing raw Firebase error codes to patients.
+  String _friendlyMedicineLoadError(Object e) {
+    final t = e.toString();
+    if (t.contains('failed-precondition') && t.toLowerCase().contains('index')) {
+      return 'Your medicine list is still being set up in the cloud. Wait a minute, then pull down to refresh.';
+    }
+    if (t.contains('permission-denied')) {
+      return 'We couldn’t load your medicines (access was blocked). Sign out and sign back in, or contact support if this keeps happening.';
+    }
+    return 'We couldn’t load your medicines. Check your connection, pull to refresh, and try again.';
   }
 
   Future<Uint8List> _buildPdfBytes() async {
@@ -201,23 +221,65 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_medicines.isEmpty)
+                  if (_loadError != null)
+                    Card(
+                      margin: EdgeInsets.zero,
+                      color: Colors.orange.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _loadError!,
+                                style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (_medicines.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('No medicines in this prescription.', style: TextStyle(color: Colors.grey.shade700)),
+                      child: Text(
+                        'No medicines are linked to this prescription yet. Pull to refresh, or ask your doctor to save the prescription again.',
+                        style: TextStyle(color: Colors.grey.shade800, height: 1.4),
+                      ),
                     )
-                  else
+                  else ...[
+                    Text(
+                      'Medicines (${_medicines.length})',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     ..._medicines.map((m) {
-                      final sub = '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
+                      final name = m.isInsulin
+                          ? '${m.name} (${Medicine.insulinTypeLabel(m.insulinType)})'
+                          : m.name;
+                      final sub =
+                          '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: const Icon(Icons.medication_outlined),
-                          title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(sub),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.teal.withValues(alpha: 0.12),
+                            child: const Icon(Icons.medication_outlined, color: Colors.teal),
+                          ),
+                          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          subtitle: Text(sub, style: TextStyle(color: Colors.grey.shade800, height: 1.35)),
+                          isThreeLine: sub.length > 48,
                         ),
                       );
                     }),
+                  ],
                 ],
               ),
             ),

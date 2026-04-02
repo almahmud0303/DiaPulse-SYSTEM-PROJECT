@@ -482,7 +482,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                   'Latest Glucose',
                   style: const TextStyle(
                     fontSize: 14,
-                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -499,7 +500,14 @@ class _PatientHomePageState extends State<PatientHomePage> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text('mg/dL', style: TextStyle(fontSize: 16, color: color)),
+                    Text(
+                      'mg/dL',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -597,7 +605,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
         children: [
           Text(
             "Today's Summary",
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -645,11 +657,20 @@ class _PatientHomePageState extends State<PatientHomePage> {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary,
+          ),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textSecondary,
+          ),
         ),
       ],
     );

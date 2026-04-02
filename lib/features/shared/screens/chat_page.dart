@@ -1,12 +1,12 @@
-import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/services/messaging_service.dart';
-import 'package:dia_plus/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Chat screen between current user and another user (doctor ↔ patient).
+/// Messages load from Firebase Realtime Database (oldest at top, newest at bottom).
 class ChatPage extends StatefulWidget {
   const ChatPage({
     super.key,
@@ -23,38 +23,30 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final MessagingService _messagingService = MessagingService();
-  final NotificationService _notificationService = NotificationService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   List<ChatMessage> _messages = [];
   bool _loading = true;
   bool _sending = false;
+  int _lastMessageCount = 0;
 
-  String get _conversationId => _messagingService.conversationId(
-    widget.currentUser.uid,
-    widget.otherUser.uid,
-  );
+  String get _conversationId =>
+      _messagingService.conversationId(widget.currentUser.uid, widget.otherUser.uid);
 
   @override
   void initState() {
     super.initState();
     _messagingService.streamMessages(_conversationId).listen((list) {
-      if (mounted) setState(() => _messages = list);
+      if (!mounted) return;
+      final grew = list.length > _lastMessageCount;
+      _lastMessageCount = list.length;
+      setState(() => _messages = list);
+      if (grew || (_loading && list.isNotEmpty)) {
+        _scrollToBottom();
+      }
     });
     _loadInitial();
-    _markNotificationsRead();
-  }
-
-  Future<void> _markNotificationsRead() async {
-    try {
-      await _notificationService.markConversationRead(
-        userId: widget.currentUser.uid,
-        conversationId: _conversationId,
-      );
-    } catch (_) {
-      // Non-blocking: chat should work even if marking read fails.
-    }
   }
 
   Future<void> _loadInitial() async {
@@ -63,9 +55,23 @@ class _ChatPageState extends State<ChatPage> {
     if (mounted) {
       setState(() {
         _messages = list;
+        _lastMessageCount = list.length;
         _loading = false;
       });
+      _scrollToBottom();
     }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final max = _scrollController.position.maxScrollExtent;
+      _scrollController.animateTo(
+        max,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   @override
@@ -87,7 +93,7 @@ class _ChatPageState extends State<ChatPage> {
         text: text,
         senderName: widget.currentUser.displayName.isNotEmpty
             ? widget.currentUser.displayName
-            : widget.currentUser.email,
+            : null,
       );
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -100,35 +106,46 @@ class _ChatPageState extends State<ChatPage> {
         ? widget.otherUser.displayName
         : widget.otherUser.email;
     return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(title: Text(otherName)),
+      backgroundColor: const Color(0xFFF0F2F5),
+      appBar: AppBar(
+        title: Text(
+          otherName,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        elevation: 0,
+        backgroundColor: AppTheme.primaryMint,
+        foregroundColor: AppTheme.textPrimary,
+      ),
       body: Column(
         children: [
           Expanded(
             child: _loading && _messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                ? Center(
-                    child: Text(
-                      'No messages yet. Say hello!',
-                      style: const TextStyle(color: AppTheme.textSecondary),
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = _messages[index];
-                      return _MessageBubble(
-                        message: msg,
-                        isMe: msg.senderId == widget.currentUser.uid,
-                      );
-                    },
-                  ),
+                    ? Center(
+                        child: Text(
+                          'No messages yet. Say hello!',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          return _MessageBubble(
+                            message: msg,
+                            isMe: msg.senderId == widget.currentUser.uid,
+                          );
+                        },
+                      ),
           ),
           _buildInput(),
         ],
@@ -137,55 +154,66 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildInput() {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 14,
-        right: 14,
-        top: 10,
-        bottom: 10 + MediaQuery.of(context).padding.bottom,
-      ),
-      color: AppTheme.cardTintMint,
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+    return Material(
+      elevation: 8,
+      shadowColor: Colors.black26,
+      color: Colors.white,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: 8,
+          bottom: 8 + MediaQuery.of(context).padding.bottom,
+        ),
+        child: SafeArea(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: 'Type a message…',
+                    hintStyle: TextStyle(color: AppTheme.textSecondary.withValues(alpha: 0.85)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFECEFF1),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textPrimary,
+                    height: 1.35,
                   ),
+                  textCapitalization: TextCapitalization.sentences,
+                  maxLines: 4,
+                  minLines: 1,
+                  onSubmitted: (_) => _send(),
                 ),
-                textCapitalization: TextCapitalization.sentences,
-                maxLines: 3,
-                minLines: 1,
-                onSubmitted: (_) => _send(),
               ),
-            ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: _sending ? null : _send,
-              icon: _sending
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
-              style: IconButton.styleFrom(
-                backgroundColor: AppTheme.primaryMint,
-                foregroundColor: Colors.white,
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: _sending ? null : _send,
+                icon: _sending
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.send_rounded),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D6B),
+                  foregroundColor: Colors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -201,6 +229,10 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = DateFormat('HH:mm').format(message.createdAt);
+    final bubbleBg = isMe ? const Color(0xFF2E7D6B) : Colors.white;
+    final textColor = isMe ? Colors.white : AppTheme.textPrimary;
+    final timeColor =
+        isMe ? Colors.white.withValues(alpha: 0.88) : AppTheme.textSecondary;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -210,17 +242,20 @@ class _MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: isMe ? AppTheme.secondaryLavender : AppTheme.cardTintMint,
+          color: bubbleBg,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
             bottomLeft: Radius.circular(isMe ? 16 : 4),
             bottomRight: Radius.circular(isMe ? 4 : 16),
           ),
+          border: isMe
+              ? null
+              : Border.all(color: const Color(0xFFE0E0E0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 4,
+              color: Colors.black.withValues(alpha: 0.07),
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
@@ -232,16 +267,18 @@ class _MessageBubble extends StatelessWidget {
             Text(
               message.text,
               style: TextStyle(
-                color: isMe ? Colors.white : AppTheme.textPrimary,
-                fontSize: 15,
+                color: textColor,
+                fontSize: 16,
+                height: 1.35,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               time,
               style: TextStyle(
-                color: isMe ? Colors.white70 : AppTheme.textSecondary,
-                fontSize: 11,
+                color: timeColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
