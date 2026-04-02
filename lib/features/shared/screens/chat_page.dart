@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/services/messaging_service.dart';
 import 'package:dia_plus/services/notification_service.dart';
@@ -30,15 +31,15 @@ class _ChatPageState extends State<ChatPage> {
   bool _loading = true;
   bool _sending = false;
 
-  String get _conversationId =>
-      _messagingService.conversationId(widget.currentUser.uid, widget.otherUser.uid);
+  String get _conversationId => _messagingService.conversationId(
+    widget.currentUser.uid,
+    widget.otherUser.uid,
+  );
 
   @override
   void initState() {
     super.initState();
-    _messagingService
-        .streamMessages(_conversationId)
-        .listen((list) {
+    _messagingService.streamMessages(_conversationId).listen((list) {
       if (mounted) setState(() => _messages = list);
     });
     _loadInitial();
@@ -61,9 +62,9 @@ class _ChatPageState extends State<ChatPage> {
     final list = await _messagingService.getMessages(_conversationId);
     if (mounted) {
       setState(() {
-      _messages = list;
-      _loading = false;
-    });
+        _messages = list;
+        _loading = false;
+      });
     }
   }
 
@@ -99,40 +100,35 @@ class _ChatPageState extends State<ChatPage> {
         ? widget.otherUser.displayName
         : widget.otherUser.email;
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: Text(otherName),
-        elevation: 0,
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: Text(otherName)),
       body: Column(
         children: [
           Expanded(
             child: _loading && _messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No messages yet. Say hello!',
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          return _MessageBubble(
-                            message: msg,
-                            isMe: msg.senderId == widget.currentUser.uid,
-                          );
-                        },
-                      ),
+                ? Center(
+                    child: Text(
+                      'No messages yet. Say hello!',
+                      style: const TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      return _MessageBubble(
+                        message: msg,
+                        isMe: msg.senderId == widget.currentUser.uid,
+                      );
+                    },
+                  ),
           ),
           _buildInput(),
         ],
@@ -143,12 +139,12 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildInput() {
     return Container(
       padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        top: 8,
-        bottom: 8 + MediaQuery.of(context).padding.bottom,
+        left: 14,
+        right: 14,
+        top: 10,
+        bottom: 10 + MediaQuery.of(context).padding.bottom,
       ),
-      color: Colors.white,
+      color: AppTheme.cardTintMint,
       child: SafeArea(
         child: Row(
           children: [
@@ -162,7 +158,7 @@ class _ChatPageState extends State<ChatPage> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade200,
+                  fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 10,
@@ -185,7 +181,7 @@ class _ChatPageState extends State<ChatPage> {
                     )
                   : const Icon(Icons.send),
               style: IconButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: AppTheme.primaryMint,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -208,13 +204,13 @@ class _MessageBubble extends StatelessWidget {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: isMe ? Colors.orange : Colors.white,
+          color: isMe ? AppTheme.secondaryLavender : AppTheme.cardTintMint,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -236,7 +232,7 @@ class _MessageBubble extends StatelessWidget {
             Text(
               message.text,
               style: TextStyle(
-                color: isMe ? Colors.white : Colors.grey.shade800,
+                color: isMe ? Colors.white : AppTheme.textPrimary,
                 fontSize: 15,
               ),
             ),
@@ -244,7 +240,7 @@ class _MessageBubble extends StatelessWidget {
             Text(
               time,
               style: TextStyle(
-                color: isMe ? Colors.white70 : Colors.grey.shade500,
+                color: isMe ? Colors.white70 : AppTheme.textSecondary,
                 fontSize: 11,
               ),
             ),

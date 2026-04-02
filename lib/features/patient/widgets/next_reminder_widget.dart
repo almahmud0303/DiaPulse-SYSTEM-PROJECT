@@ -1,6 +1,7 @@
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/models/reminder_repeat_mode.dart';
 import 'package:dia_plus/models/reminder_type.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -32,13 +33,13 @@ class NextReminderWidget extends StatelessWidget {
   Color _typeColor(ReminderType type) {
     switch (type) {
       case ReminderType.medicine:
-        return Colors.indigo;
+        return AppTheme.secondaryLavender;
       case ReminderType.glucoseTest:
-        return Colors.deepOrange;
+        return AppTheme.accentPeach;
       case ReminderType.exercise:
-        return Colors.green;
+        return AppTheme.primaryMint;
       case ReminderType.appointment:
-        return Colors.purple;
+        return const Color(0xFFB39BC8);
     }
   }
 
@@ -59,16 +60,23 @@ class NextReminderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final item = reminder;
     return Card(
-      elevation: 2,
+      color: AppTheme.cardTintLavender,
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: item == null
-            ? const Text('No upcoming reminders')
+            ? const Text(
+                'No upcoming reminders',
+                style: TextStyle(color: AppTheme.textSecondary),
+              )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -78,7 +86,7 @@ class NextReminderWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: _typeColor(
                             item.reminderType,
-                          ).withValues(alpha:0.12),
+                          ).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
@@ -94,11 +102,16 @@ class NextReminderWidget extends StatelessWidget {
                             Text(
                               item.title,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
                             ),
-                            Text(item.reminderType.label),
+                            Text(
+                              item.reminderType.label,
+                              style: const TextStyle(
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -114,7 +127,7 @@ class NextReminderWidget extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     _repeatText(item),
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
               ),

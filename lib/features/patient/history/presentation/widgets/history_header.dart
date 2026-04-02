@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 
 class HistoryHeader extends StatelessWidget {
   const HistoryHeader({super.key});
@@ -9,7 +10,7 @@ class HistoryHeader extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.teal.shade400, Colors.teal.shade700],
+          colors: [AppTheme.primaryMint, AppTheme.secondaryLavender],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -19,7 +20,7 @@ class HistoryHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.18),
+              color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(Icons.insights, color: Colors.white, size: 28),
@@ -33,7 +34,7 @@ class HistoryHeader extends StatelessWidget {
                   'History & Reports',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),

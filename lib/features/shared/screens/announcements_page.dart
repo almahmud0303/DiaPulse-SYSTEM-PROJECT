@@ -1,5 +1,6 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/announcement.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/announcement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +22,12 @@ class AnnouncementsPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snap.hasError) {
-          return Center(child: Text('Failed to load announcements: ${snap.error}'));
+          return Center(
+            child: Text(
+              'Failed to load announcements: ${snap.error}',
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
+          );
         }
         final list = snap.data ?? const <Announcement>[];
         if (list.isEmpty) {
@@ -31,11 +37,19 @@ class AnnouncementsPage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.campaign_outlined, size: 64, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.campaign_outlined,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'No announcements',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -52,10 +66,13 @@ class AnnouncementsPage extends StatelessWidget {
             final ts = a.publishedAt ?? a.createdAt;
             final time = ts == null ? '—' : fmt.format(ts.toLocal());
             return Card(
+              color: AppTheme.cardTintLavender,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: AppTheme.secondaryLavender.withValues(alpha: 0.35),
+                ),
               ),
               child: ListTile(
                 onTap: () async {
@@ -76,12 +93,28 @@ class AnnouncementsPage extends StatelessWidget {
                   );
                 },
                 leading: CircleAvatar(
-                  backgroundColor: Colors.pinkAccent.withValues(alpha: 0.12),
-                  child: const Icon(Icons.campaign, color: Colors.pinkAccent),
+                  backgroundColor: AppTheme.accentPeach.withValues(alpha: 0.4),
+                  child: const Icon(
+                    Icons.campaign_outlined,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
-                title: Text(a.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Text(a.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-                trailing: Text(time, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                title: Text(
+                  a.title,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  a.body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(
+                  time,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             );
           },
@@ -90,4 +123,3 @@ class AnnouncementsPage extends StatelessWidget {
     );
   }
 }
-

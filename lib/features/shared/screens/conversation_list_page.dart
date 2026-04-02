@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/conversation.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
@@ -80,12 +81,9 @@ class _ConversationListPageState extends State<ConversationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Messages'),
-        elevation: 0,
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
         actions: [
           if (_currentUser != null)
             StreamBuilder<int>(
@@ -115,9 +113,12 @@ class _ConversationListPageState extends State<ConversationListPage> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: AppTheme.softError,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white, width: 1.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
                             ),
                             child: Text(
                               count > 99 ? '99+' : '$count',
@@ -144,55 +145,58 @@ class _ConversationListPageState extends State<ConversationListPage> {
       floatingActionButton: _currentUser != null
           ? FloatingActionButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (context) => const SelectConversationPartnerPage(),
-                  ),
-                ).then((_) => _load());
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            const SelectConversationPartnerPage(),
+                      ),
+                    )
+                    .then((_) => _load());
               },
-              backgroundColor: Colors.orange,
+              backgroundColor: AppTheme.primaryMint,
               child: const Icon(Icons.add),
             )
           : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
-              : _conversations.isEmpty
-                  ? _buildEmpty()
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _conversations.length,
-                        itemBuilder: (context, index) {
-                          final c = _conversations[index];
-                          final otherId = _currentUser != null
-                              ? c.otherParticipantId(_currentUser!.uid)
-                              : '';
-                          final other = _otherUsers[otherId];
-                          final name = (other != null && other.displayName.isNotEmpty)
-                              ? other.displayName
-                              : (other?.email ?? 'Unknown');
-                          return _ConversationTile(
-                            conversation: c,
-                            otherName: name,
-                            onTap: () {
-                              if (_currentUser != null && other != null) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (context) => ChatPage(
-                                      currentUser: _currentUser!,
-                                      otherUser: other,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    ),
+          ? _buildError()
+          : _conversations.isEmpty
+          ? _buildEmpty()
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+                itemCount: _conversations.length,
+                itemBuilder: (context, index) {
+                  final c = _conversations[index];
+                  final otherId = _currentUser != null
+                      ? c.otherParticipantId(_currentUser!.uid)
+                      : '';
+                  final other = _otherUsers[otherId];
+                  final name = (other != null && other.displayName.isNotEmpty)
+                      ? other.displayName
+                      : (other?.email ?? 'Unknown');
+                  return _ConversationTile(
+                    conversation: c,
+                    otherName: name,
+                    onTap: () {
+                      if (_currentUser != null && other != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => ChatPage(
+                              currentUser: _currentUser!,
+                              otherUser: other,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
     );
   }
 
@@ -208,7 +212,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -227,14 +231,18 @@ class _ConversationListPageState extends State<ConversationListPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: Colors.grey.shade400,
+          ),
           const SizedBox(height: 16),
           Text(
             'No conversations yet',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -243,7 +251,10 @@ class _ConversationListPageState extends State<ConversationListPage> {
             child: Text(
               'When you or a patient sends a message, it will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -266,28 +277,42 @@ class _ConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = DateFormat('MMM d').format(conversation.lastMessageAt);
-    return ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: Colors.orange.shade100,
-        child: Text(
-          otherName.isNotEmpty ? otherName[0].toUpperCase() : '?',
-          style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w600),
+    return Card(
+      color: AppTheme.cardTintMint,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: AppTheme.secondaryLavender.withValues(alpha: 0.25),
         ),
       ),
-      title: Text(
-        otherName,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        conversation.lastMessageText,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-      ),
-      trailing: Text(
-        time,
-        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+      child: ListTile(
+        onTap: onTap,
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.secondaryLavender.withValues(alpha: 0.35),
+          child: Text(
+            otherName.isNotEmpty ? otherName[0].toUpperCase() : '?',
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        title: Text(
+          otherName,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          conversation.lastMessageText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        ),
+        trailing: Text(
+          time,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
       ),
     );
   }

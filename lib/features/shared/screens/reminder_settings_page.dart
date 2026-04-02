@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/reminder_settings.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/reminder_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -122,11 +123,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Reminder Settings'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           if (_saving)
             const Padding(
@@ -136,7 +135,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AppTheme.textSecondary,
                 ),
               ),
             ),
@@ -151,13 +150,13 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.notifications,
-                    color: Colors.teal,
+                    color: AppTheme.textSecondary,
                   ),
                   title: const Text('All Reminders'),
                   subtitle: const Text(
                     'Enable or disable all reminder notifications',
                   ),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.allRemindersEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(allRemindersEnabled: v)),
@@ -167,9 +166,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 // ── Per-category ──────────────────────────────────────
                 _SectionHeader(title: 'Reminder Categories'),
                 SwitchListTile(
-                  secondary: const Icon(Icons.medication, color: Colors.purple),
+                  secondary: const Icon(
+                    Icons.medication,
+                    color: AppTheme.secondaryLavender,
+                  ),
                   title: const Text('Medicine Reminders'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.medicineRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -180,10 +182,10 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.water_drop,
-                    color: Colors.lightBlue,
+                    color: AppTheme.secondaryLavender,
                   ),
                   title: const Text('Glucose Test Reminders'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.glucoseRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -194,10 +196,10 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.fitness_center,
-                    color: Colors.green,
+                    color: AppTheme.primaryMint,
                   ),
                   title: const Text('Exercise Reminders'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.exerciseRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -208,10 +210,10 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.calendar_today,
-                    color: Colors.orange,
+                    color: AppTheme.accentPeach,
                   ),
                   title: const Text('Appointment Reminders'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.appointmentRemindersEnabled,
                   onChanged: _settings.allRemindersEnabled
                       ? (v) => _update(
@@ -224,17 +226,23 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 // ── Notification style ────────────────────────────────
                 _SectionHeader(title: 'Notification Style'),
                 SwitchListTile(
-                  secondary: const Icon(Icons.volume_up, color: Colors.teal),
+                  secondary: const Icon(
+                    Icons.volume_up,
+                    color: AppTheme.textSecondary,
+                  ),
                   title: const Text('Sound'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.soundEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(soundEnabled: v)),
                 ),
                 SwitchListTile(
-                  secondary: const Icon(Icons.vibration, color: Colors.teal),
+                  secondary: const Icon(
+                    Icons.vibration,
+                    color: AppTheme.textSecondary,
+                  ),
                   title: const Text('Vibration'),
-                  activeThumbColor: Colors.teal,
+                  activeThumbColor: AppTheme.primaryMint,
                   value: _settings.vibrationEnabled,
                   onChanged: (v) =>
                       _update(_settings.copyWith(vibrationEnabled: v)),
@@ -250,7 +258,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                     icon: const Icon(Icons.notifications_active),
                     label: const Text('Send Test Notification'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: AppTheme.primaryMint,
                       minimumSize: const Size.fromHeight(48),
                     ),
                   ),
@@ -286,8 +294,8 @@ class _SectionHeader extends StatelessWidget {
         title.toUpperCase(),
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: Colors.grey[600],
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textSecondary,
           letterSpacing: 0.8,
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/edit_reading_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,7 +24,11 @@ class _ReadingsPageState extends State<ReadingsPage> {
   void initState() {
     super.initState();
     _userId = FirebaseAuth.instance.currentUser?.uid;
-    _searchController.addListener(() => setState(() => _searchQuery = _searchController.text.trim().toLowerCase()));
+    _searchController.addListener(
+      () => setState(
+        () => _searchQuery = _searchController.text.trim().toLowerCase(),
+      ),
+    );
   }
 
   @override
@@ -47,10 +52,10 @@ class _ReadingsPageState extends State<ReadingsPage> {
   }
 
   Color _getReadingColor(double level) {
-    if (level < 70) return Colors.blue;
-    if (level <= 140) return Colors.green;
-    if (level <= 200) return Colors.orange;
-    return Colors.red;
+    if (level < 70) return AppTheme.secondaryLavender;
+    if (level <= 140) return AppTheme.primaryMint;
+    if (level <= 200) return AppTheme.accentPeach;
+    return AppTheme.softError;
   }
 
   String _getReadingStatus(double level) {
@@ -108,7 +113,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -164,7 +169,11 @@ class _ReadingsPageState extends State<ReadingsPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                          Icon(
+                            Icons.search_off,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'No readings match "$_searchQuery"',
@@ -190,7 +199,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.teal.shade400, Colors.teal.shade600],
+          colors: [AppTheme.primaryMint, AppTheme.secondaryLavender],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -203,17 +212,21 @@ class _ReadingsPageState extends State<ReadingsPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha:0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.analytics, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.analytics,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'My Readings',
                       style: TextStyle(
                         fontSize: 24,
@@ -221,10 +234,13 @@ class _ReadingsPageState extends State<ReadingsPage> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       'Track your glucose levels',
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
                     ),
                   ],
                 ),
@@ -234,13 +250,16 @@ class _ReadingsPageState extends State<ReadingsPage> {
           const SizedBox(height: 16),
           TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: AppTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Search by value, type, notes, date...',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha:0.8)),
-              prefixIcon: Icon(Icons.search, color: Colors.white70),
+              hintStyle: const TextStyle(color: AppTheme.textSecondary),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppTheme.textSecondary,
+              ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha:0.2),
+              fillColor: Colors.white.withValues(alpha: 0.88),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -262,13 +281,13 @@ class _ReadingsPageState extends State<ReadingsPage> {
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.teal.shade50,
+                color: AppTheme.cardTintMint,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.add_chart,
                 size: 80,
-                color: Colors.teal.shade300,
+                color: AppTheme.primaryMint,
               ),
             ),
             const SizedBox(height: 24),
@@ -276,17 +295,17 @@ class _ReadingsPageState extends State<ReadingsPage> {
               'No Readings Yet',
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'Start tracking your glucose levels by adding your first reading',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color: AppTheme.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -348,8 +367,8 @@ class _ReadingsPageState extends State<ReadingsPage> {
             dateLabel,
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
             ),
           ),
         ),
@@ -366,11 +385,11 @@ class _ReadingsPageState extends State<ReadingsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: const Color(0x12000000),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -385,12 +404,18 @@ class _ReadingsPageState extends State<ReadingsPage> {
               height: 90,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color.withValues(alpha:0.2), color.withValues(alpha:0.1)],
+                  colors: [
+                    color.withValues(alpha: 0.2),
+                    color.withValues(alpha: 0.1),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withValues(alpha:0.3), width: 2),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 2,
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -420,7 +445,10 @@ class _ReadingsPageState extends State<ReadingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(12),
@@ -437,15 +465,19 @@ class _ReadingsPageState extends State<ReadingsPage> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(_getMealIcon(reading.mealTime), size: 18, color: Colors.grey[600]),
+                      Icon(
+                        _getMealIcon(reading.mealTime),
+                        size: 18,
+                        color: Colors.grey[600],
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           reading.mealTime,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                       ),
@@ -458,7 +490,10 @@ class _ReadingsPageState extends State<ReadingsPage> {
                       const SizedBox(width: 6),
                       Text(
                         DateFormat('h:mm a').format(reading.date),
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -466,7 +501,11 @@ class _ReadingsPageState extends State<ReadingsPage> {
                     const SizedBox(height: 6),
                     Text(
                       reading.notes,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -517,7 +556,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.softError),
             child: const Text('Delete'),
           ),
         ],
@@ -528,13 +567,19 @@ class _ReadingsPageState extends State<ReadingsPage> {
       await _readingService.deleteReading(reading.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reading deleted'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Reading deleted'),
+            backgroundColor: AppTheme.primaryMint,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Failed to delete: $e'),
+            backgroundColor: AppTheme.softError,
+          ),
         );
       }
     }

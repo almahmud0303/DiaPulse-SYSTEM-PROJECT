@@ -1,4 +1,5 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
 import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
@@ -56,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Settings saved successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.primaryMint,
           ),
         );
       }
@@ -80,13 +81,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final user = widget.user;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -97,7 +93,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 _buildSectionTitle('Account'),
                 const SizedBox(height: 8),
                 ListTile(
-                  leading: Icon(Icons.badge, color: Colors.teal.shade700),
+                  leading: const Icon(
+                    Icons.badge,
+                    color: AppTheme.textSecondary,
+                  ),
                   title: Text('Role: ${user.role.displayName}'),
                   subtitle: Text(user.email),
                 ),
@@ -107,7 +106,10 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 15),
               if (user?.isPatient ?? false)
                 ListTile(
-                  leading: Icon(Icons.person, color: Colors.teal.shade700),
+                  leading: const Icon(
+                    Icons.person,
+                    color: AppTheme.textSecondary,
+                  ),
                   title: const Text('Edit Profile'),
                   subtitle: const Text(
                     'Name, age, weight, height, diabetes type',
@@ -140,19 +142,11 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: FilledButton(
                   onPressed: _saveSettings,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   child: const Text(
                     'Save Changes',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -162,9 +156,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: OutlinedButton(
                   onPressed: _signOut,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    foregroundColor: AppTheme.softError,
+                    side: const BorderSide(color: AppTheme.softError),
                   ),
                   child: const Text('Sign Out'),
                 ),
@@ -181,8 +174,8 @@ class _SettingsPageState extends State<SettingsPage> {
       title,
       style: const TextStyle(
         fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.textPrimary,
       ),
     );
   }
@@ -191,11 +184,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppTheme.cardTintMint,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: const Color(0x14000000),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -209,7 +202,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.teal,
+                  backgroundColor: AppTheme.primaryMint,
                   child: Text(
                     _initialsController.text.isNotEmpty
                         ? _initialsController.text.toUpperCase()
@@ -227,7 +220,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
-                      color: Colors.teal,
+                      color: AppTheme.secondaryLavender,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -245,11 +238,7 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: InputDecoration(
                 labelText: 'Full Name',
                 prefixIcon: const Icon(Icons.person),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: Colors.white,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -265,11 +254,7 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: InputDecoration(
                 labelText: 'Short Name / Initials',
                 prefixIcon: const Icon(Icons.badge),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: Colors.white,
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
@@ -291,11 +276,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppTheme.cardTintLavender,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: const Color(0x14000000),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -307,7 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Notifications'),
             subtitle: const Text('Receive health reminders'),
             value: _notificationsEnabled,
-            activeThumbColor: Colors.teal,
+            activeThumbColor: AppTheme.primaryMint,
             onChanged: (value) => setState(() => _notificationsEnabled = value),
             secondary: const Icon(Icons.notifications),
           ),
@@ -316,13 +301,13 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Dark Mode'),
             subtitle: const Text('Coming soon'),
             value: _darkModeEnabled,
-            activeThumbColor: Colors.teal,
+            activeThumbColor: AppTheme.primaryMint,
             onChanged: (value) => setState(() => _darkModeEnabled = value),
             secondary: const Icon(Icons.dark_mode),
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.alarm, color: Colors.teal),
+            leading: const Icon(Icons.alarm, color: AppTheme.textSecondary),
             title: const Text('Reminder Settings'),
             subtitle: const Text('Manage smart reminders & notifications'),
             trailing: const Icon(
@@ -337,9 +322,11 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.emergency, color: Colors.red),
+            leading: const Icon(Icons.emergency, color: AppTheme.softError),
             title: const Text('Emergency Settings'),
-            subtitle: const Text('Configure critical low/high emergency alerts'),
+            subtitle: const Text(
+              'Configure critical low/high emergency alerts',
+            ),
             trailing: const Icon(
               Icons.arrow_forward_ios,
               size: 16,
@@ -359,11 +346,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppTheme.cardTintMint,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: const Color(0x14000000),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

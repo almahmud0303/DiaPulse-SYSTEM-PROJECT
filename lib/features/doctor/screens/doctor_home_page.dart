@@ -1,8 +1,10 @@
 import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/features/shared/screens/conversation_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dia_plus/ui/responsive.dart';
+import 'package:dia_plus/ui/widgets/wellness_card.dart';
 
 import 'doctor_alerts_page.dart';
 import 'doctor_appointments_page.dart';
@@ -61,7 +63,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   Widget build(BuildContext context) {
     final pad = Responsive.pagePadding(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: ResponsiveCenter(
           child: LayoutBuilder(
@@ -71,80 +73,91 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   ? (constraints.maxWidth - 16) / 2
                   : constraints.maxWidth;
 
-              Widget tile(Widget child) => SizedBox(width: tileWidth, child: child);
+              Widget tile(Widget child) =>
+                  SizedBox(width: tileWidth, child: child);
 
               final actions = [
-                tile(_buildCard(
-                  context,
-                  icon: Icons.people,
-                  title: 'My Patients',
-                  subtitle: 'View and manage patient consultations',
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const DoctorPatientsPage(),
-                      ),
-                    );
-                  },
-                )),
-                tile(_buildCard(
-                  context,
-                  icon: Icons.monitor_heart,
-                  title: 'Monitoring Dashboard',
-                  subtitle: 'High-risk and poor-control patients',
-                  color: Colors.teal,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) =>
-                            const DoctorMonitoringDashboardPage(),
-                      ),
-                    );
-                  },
-                )),
-                tile(_buildCard(
-                  context,
-                  icon: Icons.notifications_active,
-                  title: 'Alerts',
-                  subtitle: 'Very high sugar, missed medicines',
-                  color: Colors.deepOrange,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const DoctorAlertsPage(),
-                      ),
-                    );
-                  },
-                )),
-                tile(_buildCard(
-                  context,
-                  icon: Icons.schedule,
-                  title: 'Appointments',
-                  subtitle: 'Upcoming and past appointments',
-                  color: Colors.green,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const DoctorAppointmentsPage(),
-                      ),
-                    );
-                  },
-                )),
-                tile(_buildCard(
-                  context,
-                  icon: Icons.chat,
-                  title: 'Messages',
-                  subtitle: 'Patient messages and inquiries',
-                  color: Colors.orange,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const ConversationListPage(),
-                      ),
-                    );
-                  },
-                )),
+                tile(
+                  _buildCard(
+                    context,
+                    icon: Icons.people,
+                    title: 'My Patients',
+                    subtitle: 'View and manage patient consultations',
+                    color: Colors.blue,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const DoctorPatientsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                tile(
+                  _buildCard(
+                    context,
+                    icon: Icons.monitor_heart,
+                    title: 'Monitoring Dashboard',
+                    subtitle: 'High-risk and poor-control patients',
+                    color: Colors.teal,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) =>
+                              const DoctorMonitoringDashboardPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                tile(
+                  _buildCard(
+                    context,
+                    icon: Icons.notifications_active,
+                    title: 'Alerts',
+                    subtitle: 'Very high sugar, missed medicines',
+                    color: Colors.deepOrange,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const DoctorAlertsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                tile(
+                  _buildCard(
+                    context,
+                    icon: Icons.schedule,
+                    title: 'Appointments',
+                    subtitle: 'Upcoming and past appointments',
+                    color: Colors.green,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const DoctorAppointmentsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                tile(
+                  _buildCard(
+                    context,
+                    icon: Icons.chat,
+                    title: 'Messages',
+                    subtitle: 'Patient messages and inquiries',
+                    color: Colors.orange,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const ConversationListPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ];
 
               return SingleChildScrollView(
@@ -156,7 +169,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: Colors.blue,
+                          backgroundColor: AppTheme.primaryMint,
                           child: const Icon(
                             Icons.medical_services,
                             color: Colors.white,
@@ -170,17 +183,15 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                             children: [
                               Text(
                                 'Doctor Dashboard',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Manage your consultations',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey.shade600,
+                                  color: AppTheme.textSecondary,
                                 ),
                               ),
                             ],
@@ -192,18 +203,16 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     _buildMonitoringSummaryCard(context),
                     const SizedBox(height: 24),
                     if (isWide)
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        children: actions,
-                      )
+                      Wrap(spacing: 16, runSpacing: 16, children: actions)
                     else
                       Column(
                         children: actions
-                            .map((w) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: w,
-                                ))
+                            .map(
+                              (w) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: w,
+                              ),
+                            )
                             .toList(),
                       ),
                   ],
@@ -227,25 +236,15 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: WellnessCard(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha:0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+        tint: AppTheme.cardTintMint,
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -259,7 +258,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     title,
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -267,13 +266,17 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.textSecondary,
+              size: 18,
+            ),
           ],
         ),
       ),
@@ -293,12 +296,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.teal.shade50,
+          color: AppTheme.cardTintLavender,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.teal.shade200),
+          border: Border.all(
+            color: AppTheme.secondaryLavender.withValues(alpha: 0.6),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.08),
+              color: const Color(0x12000000),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -309,10 +314,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.teal.withValues(alpha: 0.15),
+                color: AppTheme.primaryMint.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.monitor_heart, color: Colors.teal.shade700, size: 28),
+              child: const Icon(
+                Icons.monitor_heart,
+                color: AppTheme.textPrimary,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -323,25 +332,35 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     'Last 7 days summary',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal.shade900,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   if (_summaryLoading)
                     Text(
                       'Loading…',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
                     )
                   else
                     Text(
                       '$_highRiskCount high risk · $_poorControlCount poor control',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.teal.shade700),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppTheme.textSecondary,
+            ),
           ],
         ),
       ),

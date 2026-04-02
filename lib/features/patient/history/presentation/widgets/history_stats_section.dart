@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/models/history_statistics.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class HistoryStatsSection extends StatelessWidget {
@@ -20,7 +21,7 @@ class HistoryStatsSection extends StatelessWidget {
                 ? '${statistics.averageGlucose.round()} mg/dL'
                 : '--',
             icon: Icons.analytics_outlined,
-            color: Colors.blue,
+            color: AppTheme.secondaryLavender,
           ),
           _HistoryStatCard(
             title: 'Highest',
@@ -28,7 +29,7 @@ class HistoryStatsSection extends StatelessWidget {
                 ? '${statistics.highestGlucose.round()} mg/dL'
                 : '--',
             icon: Icons.arrow_upward_rounded,
-            color: Colors.red,
+            color: AppTheme.softError,
           ),
           _HistoryStatCard(
             title: 'Lowest',
@@ -36,13 +37,13 @@ class HistoryStatsSection extends StatelessWidget {
                 ? '${statistics.lowestGlucose.round()} mg/dL'
                 : '--',
             icon: Icons.arrow_downward_rounded,
-            color: Colors.green,
+            color: AppTheme.primaryMint,
           ),
           _HistoryStatCard(
             title: 'Readings',
             value: statistics.totalReadings.toString(),
             icon: Icons.receipt_long_outlined,
-            color: Colors.teal,
+            color: AppTheme.accentPeach,
           ),
         ],
       ),
@@ -72,13 +73,13 @@ class _HistoryStatCard extends StatelessWidget {
       width: cardWidth,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Color(0x12000000),
             blurRadius: 14,
-            offset: const Offset(0, 6),
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -88,7 +89,7 @@ class _HistoryStatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color),
@@ -96,10 +97,10 @@ class _HistoryStatCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
-          Text(title, style: TextStyle(color: Colors.grey.shade600)),
+          Text(title, style: const TextStyle(color: AppTheme.textSecondary)),
         ],
       ),
     );

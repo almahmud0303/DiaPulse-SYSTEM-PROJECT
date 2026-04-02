@@ -4,6 +4,7 @@ import 'package:dia_plus/models/app_notification.dart';
 import 'package:dia_plus/features/shared/screens/announcements_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/notification_service.dart';
 import 'package:flutter/material.dart';
@@ -90,10 +91,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (other == null) return;
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (context) => ChatPage(
-            currentUser: currentUser,
-            otherUser: other,
-          ),
+          builder: (context) =>
+              ChatPage(currentUser: currentUser, otherUser: other),
         ),
       );
     }
@@ -114,7 +113,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (n.type == AppNotificationType.prescription) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => PatientPrescriptionsPage(openPrescriptionId: n.prescriptionId),
+          builder: (_) =>
+              PatientPrescriptionsPage(openPrescriptionId: n.prescriptionId),
         ),
       );
     }
@@ -124,12 +124,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('MMM d • HH:mm');
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Notifications'),
-        elevation: 0,
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -141,55 +138,55 @@ class _NotificationsPageState extends State<NotificationsPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
-              : DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      Material(
-                        color: Colors.indigo,
-                        child: const TabBar(
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.white70,
-                          indicatorColor: Colors.white,
-                          tabs: [
-                            Tab(text: 'Notifications'),
-                            Tab(text: 'Announcements'),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _notifications.isEmpty
-                                ? _buildEmpty()
-                                : RefreshIndicator(
-                                    onRefresh: _load,
-                                    child: ListView.builder(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                      itemCount: _notifications.length,
-                                      itemBuilder: (context, index) {
-                                        final n = _notifications[index];
-                                        return _NotificationTile(
-                                          notification: n,
-                                          dateFmt: dateFmt,
-                                          onTap: () => _openNotification(n),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                            _me == null
-                                ? const Center(child: Text('Not signed in'))
-                                : AnnouncementsPage(user: _me!),
-                          ],
-                        ),
-                      ),
-                    ],
+          ? _buildError()
+          : DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  Material(
+                    color: AppTheme.cardTintLavender,
+                    child: const TabBar(
+                      labelColor: AppTheme.textPrimary,
+                      unselectedLabelColor: AppTheme.textSecondary,
+                      indicatorColor: AppTheme.primaryMint,
+                      tabs: [
+                        Tab(text: 'Notifications'),
+                        Tab(text: 'Announcements'),
+                      ],
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _notifications.isEmpty
+                            ? _buildEmpty()
+                            : RefreshIndicator(
+                                onRefresh: _load,
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  itemCount: _notifications.length,
+                                  itemBuilder: (context, index) {
+                                    final n = _notifications[index];
+                                    return _NotificationTile(
+                                      notification: n,
+                                      dateFmt: dateFmt,
+                                      onTap: () => _openNotification(n),
+                                    );
+                                  },
+                                ),
+                              ),
+                        _me == null
+                            ? const Center(child: Text('Not signed in'))
+                            : AnnouncementsPage(user: _me!),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -202,7 +199,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
           children: [
             Icon(Icons.error_outline, size: 48, color: Colors.grey.shade600),
             const SizedBox(height: 16),
-            Text(_error!, textAlign: TextAlign.center),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _load,
@@ -222,22 +223,25 @@ class _NotificationsPageState extends State<NotificationsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none,
-                size: 64, color: Colors.grey.shade400),
+            Icon(
+              Icons.notifications_none,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
             Text(
               'No notifications yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'New message alerts will show up here.',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: const TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -265,21 +269,24 @@ class _NotificationTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
+      color: AppTheme.cardTintMint,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(
+          color: AppTheme.secondaryLavender.withValues(alpha: 0.35),
+        ),
       ),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: isUnread
-              ? Colors.indigo.withValues(alpha: 0.15)
+              ? AppTheme.secondaryLavender.withValues(alpha: 0.25)
               : Colors.grey.withValues(alpha: 0.12),
           child: Icon(
             n.type == AppNotificationType.message
                 ? Icons.chat_bubble_outline
                 : Icons.notifications,
-            color: isUnread ? Colors.indigo : Colors.grey.shade700,
+            color: isUnread ? AppTheme.textPrimary : AppTheme.textSecondary,
           ),
         ),
         title: Text(
@@ -288,17 +295,12 @@ class _NotificationTile extends StatelessWidget {
             fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
-        subtitle: Text(
-          n.body,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
+        subtitle: Text(n.body, maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: Text(
           dateFmt.format(n.createdAt),
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
         ),
       ),
     );
   }
 }
-

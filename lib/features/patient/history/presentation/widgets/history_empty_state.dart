@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 
 class HistoryEmptyState extends StatelessWidget {
   const HistoryEmptyState({super.key});
@@ -14,25 +15,25 @@ class HistoryEmptyState extends StatelessWidget {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: Colors.teal.withValues(alpha:0.08),
+              color: AppTheme.cardTintLavender,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.query_stats,
-              color: Colors.teal.shade600,
+              color: AppTheme.secondaryLavender,
               size: 42,
             ),
           ),
           const SizedBox(height: 18),
           const Text(
             'No readings found',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             'Try a different date range to review your glucose history.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade600),
+            style: const TextStyle(color: AppTheme.textSecondary),
           ),
         ],
       ),

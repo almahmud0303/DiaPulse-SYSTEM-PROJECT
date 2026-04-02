@@ -9,6 +9,7 @@ import 'package:dia_plus/features/patient/history/presentation/widgets/history_h
 import 'package:dia_plus/features/patient/history/presentation/widgets/history_loading_state.dart';
 import 'package:dia_plus/features/patient/history/presentation/widgets/history_stats_section.dart';
 import 'package:dia_plus/features/patient/screens/pattern_insights_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -53,13 +54,13 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ExportReportPage()),
         ),
-        backgroundColor: Colors.teal,
+        backgroundColor: AppTheme.primaryMint,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.picture_as_pdf_outlined),
         label: const Text('Export'),
@@ -135,7 +136,10 @@ class _HistoryPageState extends State<HistoryPage> {
             const SizedBox(height: 16),
             Text(
               'Please log in to view history reports.',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -155,7 +159,10 @@ class _HistoryPageState extends State<HistoryPage> {
             Text(
               _viewModel.errorMessage ?? 'Something went wrong.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: 16),
             FilledButton(
@@ -172,7 +179,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Material(
-        color: Colors.white,
+        color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -184,12 +191,14 @@ class _HistoryPageState extends State<HistoryPage> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.teal.shade100),
-              boxShadow: [
+              border: Border.all(
+                color: AppTheme.secondaryLavender.withValues(alpha: 0.5),
+              ),
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.teal.withValues(alpha: 0.08),
+                  color: Color(0x12000000),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -199,12 +208,12 @@ class _HistoryPageState extends State<HistoryPage> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
+                    color: AppTheme.cardTintLavender,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.insights_outlined,
-                    color: Colors.teal.shade700,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -216,7 +225,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         'Smart Insights',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -224,7 +233,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         'Detect glucose patterns and trends from your recent logs.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade700,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -233,7 +242,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: Colors.grey.shade500,
+                  color: AppTheme.textSecondary,
                 ),
               ],
             ),

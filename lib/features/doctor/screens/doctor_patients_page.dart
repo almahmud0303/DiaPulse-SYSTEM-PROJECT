@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
@@ -49,7 +50,9 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       }
 
       final list = await _service.getMyPatientsForDoctor(me.uid);
-      final risks = await Future.wait(list.map((p) => _service.getPatientRisk(p.uid)));
+      final risks = await Future.wait(
+        list.map((p) => _service.getPatientRisk(p.uid)),
+      );
       if (!mounted) return;
       setState(() {
         _patients = list;
@@ -65,7 +68,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
             if (!mounted) return;
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (context) => DoctorPatientProfilePage(patient: patient),
+                builder: (context) =>
+                    DoctorPatientProfilePage(patient: patient),
               ),
             );
           });
@@ -76,7 +80,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
               if (!mounted) return;
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (context) => DoctorPatientProfilePage(patient: fetched),
+                  builder: (context) =>
+                      DoctorPatientProfilePage(patient: fetched),
                 ),
               );
             });
@@ -95,80 +100,86 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text('My Patients'),
-        elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text('My Patients')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error_outline, size: 48, color: Colors.grey.shade600),
-                        const SizedBox(height: 16),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey.shade700),
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton.icon(
-                          onPressed: _loadPatients,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _loadPatients,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : _patients.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.people_outline,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No patients yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                )
-              : _patients.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No patients yet',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Patients who register will appear here.',
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadPatients,
-                      child: ResponsiveCenter(
-                        child: ListView.builder(
-                          padding: Responsive.pagePadding(context),
-                          itemCount: _patients.length,
-                          itemBuilder: (context, index) {
-                            final patient = _patients[index];
-                            final risk = index < _risks.length ? _risks[index] : null;
-                            return _PatientTile(
-                              patient: patient,
-                              risk: risk,
-                              onTap: () => _openProfile(patient),
-                            );
-                          },
-                        ),
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Patients who register will appear here.',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
                     ),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadPatients,
+              child: ResponsiveCenter(
+                child: ListView.builder(
+                  padding: Responsive.pagePadding(context),
+                  itemCount: _patients.length,
+                  itemBuilder: (context, index) {
+                    final patient = _patients[index];
+                    final risk = index < _risks.length ? _risks[index] : null;
+                    return _PatientTile(
+                      patient: patient,
+                      risk: risk,
+                      onTap: () => _openProfile(patient),
+                    );
+                  },
+                ),
+              ),
+            ),
     );
   }
 
@@ -191,13 +202,13 @@ class _PatientTile extends StatelessWidget {
   static Color _riskColor(RiskLevel level) {
     switch (level) {
       case RiskLevel.low:
-        return Colors.green;
+        return AppTheme.primaryMint;
       case RiskLevel.moderate:
-        return Colors.blue;
+        return AppTheme.secondaryLavender;
       case RiskLevel.elevated:
-        return Colors.orange;
+        return AppTheme.accentPeach;
       case RiskLevel.high:
-        return Colors.red;
+        return AppTheme.softError;
     }
   }
 
@@ -205,13 +216,17 @@ class _PatientTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
+      color: AppTheme.cardTintMint,
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: Colors.blue.shade100,
+          backgroundColor: AppTheme.secondaryLavender.withValues(alpha: 0.35),
           child: Text(
             patient.initials,
-            style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         title: Text(
@@ -224,7 +239,10 @@ class _PatientTile extends StatelessWidget {
           children: [
             Text(
               patient.email,
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
             ),
             if (risk != null) ...[
               const SizedBox(height: 4),
@@ -246,7 +264,11 @@ class _PatientTile extends StatelessWidget {
             ],
           ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: AppTheme.textSecondary,
+        ),
       ),
     );
   }

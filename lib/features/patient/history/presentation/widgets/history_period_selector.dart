@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/models/glucose_trend_period.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class HistoryPeriodSelector extends StatelessWidget {
@@ -23,7 +24,7 @@ class HistoryPeriodSelector extends StatelessWidget {
           return AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.teal.shade600 : Colors.grey.shade100,
+              color: isSelected ? AppTheme.secondaryLavender : Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
             child: InkWell(
@@ -37,8 +38,8 @@ class HistoryPeriodSelector extends StatelessWidget {
                 child: Text(
                   period.label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey.shade800,
-                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

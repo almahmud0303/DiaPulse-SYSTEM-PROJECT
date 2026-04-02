@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
@@ -107,12 +108,9 @@ class _DoctorMonitoringDashboardPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Monitoring Dashboard'),
-        elevation: 0,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -124,37 +122,36 @@ class _DoctorMonitoringDashboardPageState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    children: [
-                      _buildSection(
-                        title: 'High risk',
-                        subtitle: 'Elevated or high risk – review soon',
-                        list: _highRisk,
-                        icon: Icons.warning_amber_rounded,
-                        color: Colors.red,
-                        emptyMessage:
-                            'No high-risk patients in the last 7 days.',
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSection(
-                        title: 'Poor control',
-                        subtitle: 'Moderate risk – above target range',
-                        list: _poorControl,
-                        icon: Icons.trending_up,
-                        color: Colors.orange,
-                        emptyMessage:
-                            'No patients in poor-control range right now.',
-                      ),
-                    ],
-                  ),
+          ? _buildError()
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
+                children: [
+                  _buildSection(
+                    title: 'High risk',
+                    subtitle: 'Elevated or high risk – review soon',
+                    list: _highRisk,
+                    icon: Icons.warning_amber_rounded,
+                    color: AppTheme.softError,
+                    emptyMessage: 'No high-risk patients in the last 7 days.',
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSection(
+                    title: 'Poor control',
+                    subtitle: 'Moderate risk – above target range',
+                    list: _poorControl,
+                    icon: Icons.trending_up,
+                    color: AppTheme.accentPeach,
+                    emptyMessage:
+                        'No patients in poor-control range right now.',
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -170,7 +167,7 @@ class _DoctorMonitoringDashboardPageState
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -214,7 +211,7 @@ class _DoctorMonitoringDashboardPageState
                     title,
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -222,7 +219,7 @@ class _DoctorMonitoringDashboardPageState
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -251,27 +248,30 @@ class _DoctorMonitoringDashboardPageState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.cardTintMint,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.08),
+                  color: Color(0x12000000),
                   blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_outline,
-                    size: 40, color: Colors.grey.shade400),
+                Icon(
+                  Icons.check_circle_outline,
+                  size: 40,
+                  color: Colors.grey.shade400,
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     emptyMessage,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ),
@@ -322,13 +322,13 @@ class _MonitoringTile extends StatelessWidget {
   static Color _riskColor(RiskLevel level) {
     switch (level) {
       case RiskLevel.low:
-        return Colors.green;
+        return AppTheme.primaryMint;
       case RiskLevel.moderate:
-        return Colors.orange;
+        return AppTheme.accentPeach;
       case RiskLevel.elevated:
-        return Colors.deepOrange;
+        return AppTheme.softError.withValues(alpha: 0.85);
       case RiskLevel.high:
-        return Colors.red;
+        return AppTheme.softError;
     }
   }
 
@@ -338,9 +338,12 @@ class _MonitoringTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
+      color: AppTheme.cardTintLavender,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(
+          color: AppTheme.secondaryLavender.withValues(alpha: 0.4),
+        ),
       ),
       child: InkWell(
         onTap: onTap,
@@ -398,7 +401,7 @@ class _MonitoringTile extends StatelessWidget {
                         'Avg ${risk.averageGlucose!.toStringAsFixed(0)} mg/dL · ${risk.readingCount} readings',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -408,7 +411,7 @@ class _MonitoringTile extends StatelessWidget {
                         'Latest: ${latestReadings.map((r) => r.glucoseLevel.toStringAsFixed(0)).join(', ')} mg/dL',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade700,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -417,7 +420,7 @@ class _MonitoringTile extends StatelessWidget {
                       risk.summary,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade700,
+                        color: AppTheme.textSecondary,
                         fontStyle: FontStyle.italic,
                       ),
                       maxLines: 2,
@@ -426,7 +429,11 @@ class _MonitoringTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppTheme.textSecondary,
+              ),
             ],
           ),
         ),

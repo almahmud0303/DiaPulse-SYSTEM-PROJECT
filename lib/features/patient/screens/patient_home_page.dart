@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/add_reading_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
 import 'package:dia_plus/features/patient/screens/health_score_details_page.dart';
 import 'package:dia_plus/features/patient/screens/reminders_page.dart';
@@ -33,6 +34,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dia_plus/ui/responsive.dart';
+import 'package:dia_plus/ui/widgets/wellness_card.dart';
 
 /// Patient main dashboard - greeting, latest glucose, today summary,
 /// quick actions, mini weekly graph, reminders, health score.
@@ -119,7 +121,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
         );
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
-        if (next != null) nextMed = '${Medicine.medicineTimesLabel(next)} (${next.name})';
+        if (next != null)
+          nextMed = '${Medicine.medicineTimesLabel(next)} (${next.name})';
         // Schedule local notifications at each medicine time (daily).
         ReminderNotificationService().scheduleMedicineReminders(medicines);
       } catch (_) {}
@@ -211,13 +214,13 @@ class _PatientHomePageState extends State<PatientHomePage> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Low':
-        return Colors.blue;
+        return AppTheme.secondaryLavender;
       case 'Normal':
-        return Colors.green;
+        return AppTheme.primaryMint;
       case 'High':
-        return Colors.orange;
+        return AppTheme.accentPeach;
       default:
-        return Colors.red;
+        return AppTheme.softError;
     }
   }
 
@@ -225,14 +228,14 @@ class _PatientHomePageState extends State<PatientHomePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        backgroundColor: Colors.grey,
+        backgroundColor: AppTheme.background,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     final pad = Responsive.pagePadding(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
@@ -282,12 +285,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundColor: Colors.teal,
+          backgroundColor: AppTheme.primaryMint,
           child: Text(
             _userInitials,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
@@ -301,12 +304,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 _userName,
                 style: const TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 'Dia Plus',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
               ),
             ],
           ),
@@ -325,7 +331,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   Widget _buildGreeting() {
     return Text(
       '${_getGreeting()}, $_userName',
-      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
     );
   }
 
@@ -454,20 +460,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
     }
     final status = reading.getStatus();
     final color = _getStatusColor(status);
-    return Container(
+    return WellnessCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
-      ),
+      tint: AppTheme.cardTintMint,
       child: Row(
         children: [
           Container(
@@ -485,7 +480,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
               children: [
                 Text(
                   'Latest Glucose',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -511,7 +509,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: color,
+                    color: color.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -528,7 +526,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
           ),
           Text(
             reading.mealTime,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -591,25 +589,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
         ? 0.0
         : _todayReadings.map((r) => r.glucoseLevel).reduce((a, b) => a + b) /
               _todayReadings.length;
-    return Container(
+    return WellnessCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      tint: AppTheme.cardTintLavender,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             "Today's Summary",
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
           Row(
@@ -657,9 +645,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
       ],
     );
   }
@@ -729,7 +720,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 Colors.teal,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PatientPrescriptionsPage()),
+                  MaterialPageRoute(
+                    builder: (_) => const PatientPrescriptionsPage(),
+                  ),
                 ),
               ),
             ),
@@ -748,10 +741,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
     VoidCallback onTap,
   ) {
     return Material(
-      color: Colors.white,
+      color: AppTheme.cardTintMint,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
-      shadowColor: Colors.grey.withValues(alpha: 0.2),
+      shadowColor: const Color(0x14000000),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -765,7 +758,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 label,
                 style: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
@@ -779,29 +772,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildMiniWeeklyGraph() {
-    return Container(
+    return WellnessCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      tint: AppTheme.cardTintMint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.show_chart, color: Colors.teal.shade600),
+              const Icon(Icons.show_chart, color: AppTheme.textSecondary),
               const SizedBox(width: 8),
               const Text(
                 'Last 7 Days',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -812,7 +795,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 ? Center(
                     child: Text(
                       'No readings yet',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: const TextStyle(color: AppTheme.textSecondary),
                     ),
                   )
                 : _buildWeekChart(),
@@ -919,19 +902,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildUpcomingReminder() {
-    return Container(
+    return WellnessCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      tint: AppTheme.cardTintLavender,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -941,7 +914,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               const SizedBox(width: 8),
               const Text(
                 'Upcoming',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const Spacer(),
               TextButton(
@@ -1003,7 +976,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
               _nextAppointment == null)
             Text(
               'No upcoming reminders',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+              ),
             ),
         ],
       ),
@@ -1098,11 +1074,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardTintMint,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: const Color(0x12000000),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1129,17 +1105,24 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 children: [
                   Text(
                     'Consult with a Doctor',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 5),
                   Text(
                     'Get expert advice from specialized doctors',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 20),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.textSecondary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -1155,11 +1138,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardTintLavender,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: const Color(0x12000000),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1182,17 +1165,24 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 children: [
                   Text(
                     'Messages',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 5),
                   Text(
                     'Chat with your doctor',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 20),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.textSecondary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -1200,19 +1190,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildDiabetesEssentialsSection() {
-    return Container(
+    return WellnessCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      tint: AppTheme.cardTintMint,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1222,7 +1202,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               SizedBox(width: 10),
               Text(
                 'Diabetes Essentials',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -1264,7 +1244,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -1288,6 +1268,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
               ),
             ),
             const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.textSecondary,
+              size: 16,
+            ),
           ],
         ),
       ),
