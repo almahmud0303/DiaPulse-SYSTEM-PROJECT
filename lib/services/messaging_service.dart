@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:dia_plus/models/chat_message.dart';
 import 'package:dia_plus/models/conversation.dart';
 import 'package:dia_plus/services/notification_service.dart';
@@ -9,12 +10,23 @@ import 'package:firebase_database/firebase_database.dart';
 /// Conversation metadata (list, last preview) stays in Firestore (`conversations`).
 class MessagingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseDatabase _db = FirebaseDatabase.instance;
+  // web/debug builds sometimes don't have a valid databaseURL configured.
+  // For safety, force it here so chat works for both doctor and patient.
+  static const String _databaseUrl =
+      'https://dia-plus-7c78c-default-rtdb.firebaseio.com';
+
+  final FirebaseDatabase _db;
 
   static const String _conversationsCollection = 'conversations';
   static const String _chatMessagesRoot = 'chat_messages';
 
   final NotificationService _notificationService = NotificationService();
+
+  MessagingService({FirebaseApp? app})
+      : _db = FirebaseDatabase.instanceFor(
+          app: app ?? Firebase.app(),
+          databaseURL: _databaseUrl,
+        );
 
   /// conversationId = sorted [uid1, uid2] joined by '_'
   String conversationId(String uid1, String uid2) {
