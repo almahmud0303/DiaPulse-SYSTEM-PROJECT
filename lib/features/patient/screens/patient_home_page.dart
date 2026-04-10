@@ -1260,7 +1260,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const DiabetesEssentialsPage()),
+        MaterialPageRoute(builder: (context) => DiabetesEssentialsPage()),
       ),
       child: Container(
         padding: const EdgeInsets.all(15),

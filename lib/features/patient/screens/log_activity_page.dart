@@ -1,5 +1,7 @@
 import 'package:dia_plus/models/activity.dart';
+import 'package:dia_plus/models/app_config_item.dart';
 import 'package:dia_plus/services/activity_service.dart';
+import 'package:dia_plus/services/config_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,19 +19,11 @@ class _LogActivityPageState extends State<LogActivityPage> {
   final _caloriesController = TextEditingController();
   final _notesController = TextEditingController();
   final _activityService = ActivityService();
+  final _configService = ConfigService();
 
   DateTime _date = DateTime.now();
-  String _type = 'walking';
+  String _type = '';
   bool _saving = false;
-
-  static const List<Map<String, String>> types = [
-    {'value': 'walking', 'label': 'Walking'},
-    {'value': 'running', 'label': 'Running'},
-    {'value': 'cycling', 'label': 'Cycling'},
-    {'value': 'swimming', 'label': 'Swimming'},
-    {'value': 'gym', 'label': 'Gym'},
-    {'value': 'other', 'label': 'Other'},
-  ];
 
   @override
   void dispose() {
@@ -53,6 +47,15 @@ class _LogActivityPageState extends State<LogActivityPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_type.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No activity types available. Ask admin to add one.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -113,18 +116,66 @@ class _LogActivityPageState extends State<LogActivityPage> {
               onTap: _pickDate,
             ),
             const SizedBox(height: 16),
-            const Text('Exercise type', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Exercise type',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: types.map((t) {
-                final selected = _type == t['value'];
-                return ChoiceChip(
-                  label: Text(t['label']!),
-                  selected: selected,
-                  onSelected: (_) => setState(() => _type = t['value']!),
+            StreamBuilder<List<AppConfigItem>>(
+              stream: _configService.getActivityTypes(),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+                if (snap.hasError) {
+                  return const Text(
+                    'Could not load activity types from admin configuration.',
+                    style: TextStyle(color: Colors.red),
+                  );
+                }
+
+                final items = snap.data ?? const <AppConfigItem>[];
+                if (items.isEmpty) {
+                  if (_type.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _type = '');
+                    });
+                  }
+                  return Text(
+                    'No activity types available. Please contact admin.',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  );
+                }
+
+                final values = items.map((t) => t.name.toLowerCase()).toSet();
+                if (_type.isEmpty || !values.contains(_type)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    final first = items.first.name.toLowerCase();
+                    if (_type != first) setState(() => _type = first);
+                  });
+                }
+
+                return Wrap(
+                  spacing: 8,
+                  children: items.map((t) {
+                    final value = t.name.toLowerCase();
+                    final selected = _type == value;
+                    return ChoiceChip(
+                      label: Text(t.name),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _type = value),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 24),
             TextFormField(

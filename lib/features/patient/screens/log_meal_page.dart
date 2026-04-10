@@ -1,4 +1,6 @@
+import 'package:dia_plus/models/app_config_item.dart';
 import 'package:dia_plus/models/meal.dart';
+import 'package:dia_plus/services/config_service.dart';
 import 'package:dia_plus/services/meal_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,17 +18,11 @@ class _LogMealPageState extends State<LogMealPage> {
   final _carbsController = TextEditingController();
   final _notesController = TextEditingController();
   final _mealService = MealService();
+  final _configService = ConfigService();
 
   DateTime _date = DateTime.now();
-  String _category = 'breakfast';
+  String _category = '';
   bool _saving = false;
-
-  static const List<Map<String, String>> categories = [
-    {'value': 'breakfast', 'label': 'Breakfast'},
-    {'value': 'lunch', 'label': 'Lunch'},
-    {'value': 'dinner', 'label': 'Dinner'},
-    {'value': 'snack', 'label': 'Snack'},
-  ];
 
   @override
   void dispose() {
@@ -49,6 +45,15 @@ class _LogMealPageState extends State<LogMealPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_category.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No meal categories available. Ask admin to add one.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -107,18 +112,66 @@ class _LogMealPageState extends State<LogMealPage> {
               onTap: _pickDate,
             ),
             const SizedBox(height: 16),
-            const Text('Category', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Category',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: categories.map((c) {
-                final selected = _category == c['value'];
-                return ChoiceChip(
-                  label: Text(c['label']!),
-                  selected: selected,
-                  onSelected: (_) => setState(() => _category = c['value']!),
+            StreamBuilder<List<AppConfigItem>>(
+              stream: _configService.getMealCategories(),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+                if (snap.hasError) {
+                  return const Text(
+                    'Could not load meal categories from admin configuration.',
+                    style: TextStyle(color: Colors.red),
+                  );
+                }
+
+                final items = snap.data ?? const <AppConfigItem>[];
+                if (items.isEmpty) {
+                  if (_category.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _category = '');
+                    });
+                  }
+                  return Text(
+                    'No meal categories available. Please contact admin.',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  );
+                }
+
+                final values = items.map((c) => c.name.toLowerCase()).toSet();
+                if (_category.isEmpty || !values.contains(_category)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    final first = items.first.name.toLowerCase();
+                    if (_category != first) setState(() => _category = first);
+                  });
+                }
+
+                return Wrap(
+                  spacing: 8,
+                  children: items.map((c) {
+                    final value = c.name.toLowerCase();
+                    final selected = _category == value;
+                    return ChoiceChip(
+                      label: Text(c.name),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _category = value),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 24),
             TextFormField(

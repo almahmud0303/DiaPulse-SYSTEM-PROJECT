@@ -1,9 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
+import 'package:dia_plus/models/app_config_item.dart';
 import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
+import 'package:dia_plus/services/config_service.dart';
 import 'package:dia_plus/services/emergency_alert_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,7 @@ class EditReadingPage extends StatefulWidget {
 class _EditReadingPageState extends State<EditReadingPage> {
   final _readingService = GlucoseReadingService();
   final _emergencyAlertService = EmergencyAlertService();
+  final _configService = ConfigService();
   final _notesController = TextEditingController();
 
   late DateTime _selectedDate;
@@ -29,45 +32,11 @@ class _EditReadingPageState extends State<EditReadingPage> {
   late String _selectedMealTime;
   bool _isSaving = false;
 
-  final List<Map<String, dynamic>> _mealTimes = [
-    {
-      'label': 'Fasting',
-      'icon': Icons.wb_sunny_outlined,
-      'color': Colors.orange,
-    },
-    {
-      'label': 'Before meal',
-      'icon': Icons.restaurant_outlined,
-      'color': Colors.amber,
-    },
-    {'label': 'After meal', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {
-      'label': 'Bedtime',
-      'icon': Icons.nightlight_round,
-      'color': Colors.indigo,
-    },
-    {
-      'label': 'Post Breakfast',
-      'icon': Icons.free_breakfast,
-      'color': Colors.amber,
-    },
-    {
-      'label': 'Pre Lunch',
-      'icon': Icons.lunch_dining_outlined,
-      'color': Colors.green,
-    },
-    {'label': 'Post Lunch', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {
-      'label': 'Pre Dinner',
-      'icon': Icons.dinner_dining_outlined,
-      'color': Colors.indigo,
-    },
-    {
-      'label': 'Post Dinner',
-      'icon': Icons.restaurant_menu,
-      'color': Colors.purple,
-    },
-    {'label': 'Random', 'icon': Icons.shuffle, 'color': Colors.grey},
+  /// Hardcoded fallback used only when Firestore has no meal-time data yet.
+  static const List<String> _fallbackMealTimeLabels = [
+    'Fasting', 'Before meal', 'After meal', 'Bedtime',
+    'Post Breakfast', 'Pre Lunch', 'Post Lunch',
+    'Pre Dinner', 'Post Dinner', 'Random',
   ];
 
   @override
@@ -322,18 +291,27 @@ class _EditReadingPageState extends State<EditReadingPage> {
   }
 
   Widget _buildMealTimeChips() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _mealTimes.map((m) {
-        final label = m['label'] as String;
-        final isSelected = _selectedMealTime == label;
-        return FilterChip(
-          label: Text(label),
-          selected: isSelected,
-          onSelected: (_) => setState(() => _selectedMealTime = label),
+    return StreamBuilder<List<AppConfigItem>>(
+      stream: _configService.getMealTimes(),
+      builder: (context, snap) {
+        final items = snap.data;
+        final labels = (items != null && items.isNotEmpty)
+            ? items.map((e) => e.name).toList()
+            : _fallbackMealTimeLabels;
+
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: labels.map((label) {
+            final isSelected = _selectedMealTime == label;
+            return FilterChip(
+              label: Text(label),
+              selected: isSelected,
+              onSelected: (_) => setState(() => _selectedMealTime = label),
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 }
