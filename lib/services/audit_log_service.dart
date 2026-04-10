@@ -60,11 +60,9 @@ class AuditLogPageResult {
 
 /// Append-only audit log in Firestore. [actorId] is always the signed-in user.
 class AuditLogService {
-  AuditLogService({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  AuditLogService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -80,8 +78,7 @@ class AuditLogService {
   /// Builds a query ordered by [createdAt] descending. Requires composite indexes
   /// for combinations of filters; deploy [firestore.indexes.json] or use the link in the error.
   Query<Map<String, dynamic>> buildAuditLogsQuery(AuditLogQueryParams params) {
-    Query<Map<String, dynamic>> q =
-        _firestore.collection(collectionName);
+    Query<Map<String, dynamic>> q = _firestore.collection(collectionName);
 
     final a = params.action?.trim();
     final c = params.category?.trim();
@@ -132,7 +129,11 @@ class AuditLogService {
     final hasMore = docs.length > pageSize;
     final n = hasMore ? pageSize : docs.length;
     if (n == 0) {
-      return AuditLogPageResult(entries: const [], hasMore: false, lastDocument: null);
+      return AuditLogPageResult(
+        entries: const [],
+        hasMore: false,
+        lastDocument: null,
+      );
     }
     final entries = <AuditLogEntry>[];
     for (var i = 0; i < n; i++) {
@@ -155,14 +156,18 @@ class AuditLogService {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    await _firestore.collection(collectionName).add({
+    final payload = <String, dynamic>{
       'actorId': uid,
       'action': action,
       'category': category,
-      'targetUserId': targetUserId,
       'metadata': metadata ?? const <String, dynamic>{},
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (targetUserId != null && targetUserId.isNotEmpty) {
+      payload['targetUserId'] = targetUserId;
+    }
+
+    await _firestore.collection(collectionName).add(payload);
   }
 
   /// Successful primary auth; optional context for routing (second password, etc.).
@@ -176,7 +181,8 @@ class AuditLogService {
       category: AuditLogCategories.auth,
       metadata: {
         'emailVerified': emailVerified,
-        if (requiresSecondPassword != null) 'requiresSecondPassword': requiresSecondPassword,
+        if (requiresSecondPassword != null)
+          'requiresSecondPassword': requiresSecondPassword,
         if (flow != null) 'flow': flow,
       },
     );
@@ -224,6 +230,23 @@ class AuditLogService {
       category: AuditLogCategories.admin,
       targetUserId: targetUserId,
       metadata: {'deletedDocumentCount': deletedDocumentCount},
+    );
+  }
+
+  Future<void> logAdminConfigChange({
+    required String action,
+    required String collection,
+    required String itemId,
+    String? itemName,
+  }) {
+    return _append(
+      action: action,
+      category: AuditLogCategories.admin,
+      metadata: {
+        'collection': collection,
+        'itemId': itemId,
+        if (itemName != null) 'itemName': itemName,
+      },
     );
   }
 }
