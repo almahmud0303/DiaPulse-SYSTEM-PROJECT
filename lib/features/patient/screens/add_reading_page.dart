@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:dia_plus/models/app_config_item.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
+import 'package:dia_plus/services/config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,48 +28,31 @@ class _AddReadingPageState extends State<AddReadingPage> {
   final ScrollController _scrollController = ScrollController();
   final GlucoseReadingService _readingService = GlucoseReadingService();
   final EmergencyAlertService _emergencyAlertService = EmergencyAlertService();
+  final ConfigService _configService = ConfigService();
   bool _isSaving = false;
 
-  final List<Map<String, dynamic>> _mealTimes = [
-    {
-      'label': 'Fasting',
-      'icon': Icons.wb_sunny_outlined,
-      'color': Colors.orange,
-    },
-    {
-      'label': 'Before meal',
-      'icon': Icons.restaurant_outlined,
-      'color': Colors.amber,
-    },
+  /// Hardcoded fallback used only when Firestore has no meal-time data yet.
+  static final List<Map<String, dynamic>> _fallbackMealTimes = [
+    {'label': 'Fasting', 'icon': Icons.wb_sunny_outlined, 'color': Colors.orange},
+    {'label': 'Before meal', 'icon': Icons.restaurant_outlined, 'color': Colors.amber},
     {'label': 'After meal', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {
-      'label': 'Bedtime',
-      'icon': Icons.nightlight_round,
-      'color': Colors.indigo,
-    },
-    {
-      'label': 'Post Breakfast',
-      'icon': Icons.free_breakfast,
-      'color': Colors.amber,
-    },
-    {
-      'label': 'Pre Lunch',
-      'icon': Icons.lunch_dining_outlined,
-      'color': Colors.green,
-    },
+    {'label': 'Bedtime', 'icon': Icons.nightlight_round, 'color': Colors.indigo},
+    {'label': 'Post Breakfast', 'icon': Icons.free_breakfast, 'color': Colors.amber},
+    {'label': 'Pre Lunch', 'icon': Icons.lunch_dining_outlined, 'color': Colors.green},
     {'label': 'Post Lunch', 'icon': Icons.restaurant, 'color': Colors.teal},
-    {
-      'label': 'Pre Dinner',
-      'icon': Icons.dinner_dining_outlined,
-      'color': Colors.indigo,
-    },
-    {
-      'label': 'Post Dinner',
-      'icon': Icons.restaurant_menu,
-      'color': Colors.purple,
-    },
+    {'label': 'Pre Dinner', 'icon': Icons.dinner_dining_outlined, 'color': Colors.indigo},
+    {'label': 'Post Dinner', 'icon': Icons.restaurant_menu, 'color': Colors.purple},
     {'label': 'Random', 'icon': Icons.shuffle, 'color': Colors.grey},
   ];
+
+  /// Converts a hex color string (e.g. "#FF5722") to a Color, with fallback.
+  static Color _parseColor(String? hex, Color fallback) {
+    if (hex == null || hex.isEmpty) return fallback;
+    final cleaned = hex.replaceFirst('#', '');
+    final value = int.tryParse(cleaned, radix: 16);
+    if (value == null) return fallback;
+    return Color(cleaned.length == 6 ? (0xFF000000 | value) : value);
+  }
 
   final _notesController = TextEditingController();
 
@@ -707,89 +692,106 @@ class _AddReadingPageState extends State<AddReadingPage> {
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: _mealTimes.map((mealTime) {
-              final isSelected = _selectedMealTime == mealTime['label'];
-              return InkWell(
-                onTap: () {
-                  setState(() {
-                    _selectedMealTime = mealTime['label'] as String;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: isSelected
-                        ? LinearGradient(
-                            colors: [
-                              (mealTime['color'] as Color).withValues(
-                                alpha: 0.8,
-                              ),
-                              mealTime['color'] as Color,
-                            ],
-                          )
-                        : null,
-                    color: isSelected ? null : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: isSelected
-                          ? mealTime['color'] as Color
-                          : Colors.grey.shade300,
-                      width: 2,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: (mealTime['color'] as Color).withValues(
-                                alpha: 0.3,
-                              ),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        mealTime['icon'] as IconData,
-                        color: isSelected
-                            ? Colors.white
-                            : mealTime['color'] as Color,
-                        size: 20,
+          StreamBuilder<List<AppConfigItem>>(
+            stream: _configService.getMealTimes(),
+            builder: (context, snap) {
+              final items = snap.data;
+              final mealTimes = (items != null && items.isNotEmpty)
+                  ? items
+                      .map((item) => {
+                            'label': item.name,
+                            'icon': Icons.access_time,
+                            'color': _parseColor(item.color, Colors.teal),
+                          })
+                      .toList()
+                  : _fallbackMealTimes;
+
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: mealTimes.map((mealTime) {
+                  final isSelected = _selectedMealTime == mealTime['label'];
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        _selectedMealTime = mealTime['label'] as String;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        mealTime['label'] as String,
-                        style: TextStyle(
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? LinearGradient(
+                                colors: [
+                                  (mealTime['color'] as Color).withValues(
+                                    alpha: 0.8,
+                                  ),
+                                  mealTime['color'] as Color,
+                                ],
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.grey.shade800,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w500,
-                          fontSize: 14,
+                              ? mealTime['color'] as Color
+                              : Colors.grey.shade300,
+                          width: 2,
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color:
+                                      (mealTime['color'] as Color).withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
                       ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            mealTime['icon'] as IconData,
+                            color: isSelected
+                                ? Colors.white
+                                : mealTime['color'] as Color,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            mealTime['label'] as String,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey.shade800,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
         ],
       ),

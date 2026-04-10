@@ -44,6 +44,10 @@ abstract class AuditLogActions {
   static const adminSetRole = 'admin_set_role';
   static const adminSetBlocked = 'admin_set_blocked';
   static const adminDeleteUser = 'admin_delete_user';
+
+  static const adminConfigCreate = 'admin_config_create';
+  static const adminConfigUpdate = 'admin_config_update';
+  static const adminConfigDelete = 'admin_config_delete';
 }
 
 /// Values for [AuditLogEntry.category].

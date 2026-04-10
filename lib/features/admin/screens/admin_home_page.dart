@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/admin/screens/admin_config_management_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_invite_access_requests_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_announcement_management_page.dart';
@@ -5,6 +6,7 @@ import 'package:dia_plus/features/admin/screens/admin_backup_export_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_backup_restore_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
+import 'package:dia_plus/services/config_service.dart';
 import 'package:dia_plus/models/invite_access_request.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/invite_access_request_service.dart';
@@ -43,9 +45,8 @@ class AdminHomePage extends StatelessWidget {
                       children: [
                         Text(
                           'Admin Dashboard',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -66,8 +67,7 @@ class AdminHomePage extends StatelessWidget {
               const _AdminDailyReadingsStats(),
               const SizedBox(height: 16),
               StreamBuilder<List<InviteAccessRequest>>(
-                stream:
-                    InviteAccessRequestService().streamPendingForAdmin(),
+                stream: InviteAccessRequestService().streamPendingForAdmin(),
                 builder: (context, snap) {
                   final n = snap.data?.length ?? 0;
                   return _buildCard(
@@ -181,7 +181,109 @@ class AdminHomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AdminAnnouncementManagementPage(),
+                      builder: (context) =>
+                          const AdminAnnouncementManagementPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'App Configuration',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Manage dynamic values shown to users',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.restaurant_menu,
+                title: 'Meal Categories',
+                subtitle: 'Manage meal types used in Log Meal',
+                color: Colors.orange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminConfigManagementPage(
+                        collection: ConfigService.mealCategories,
+                        title: 'Meal Categories',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.access_time,
+                title: 'Meal Times',
+                subtitle: 'Manage glucose reading meal-time options',
+                color: Colors.purple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminConfigManagementPage(
+                        collection: ConfigService.mealTimes,
+                        title: 'Meal Times',
+                        showColorField: true,
+                        showIconField: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.fitness_center,
+                title: 'Activity Types',
+                subtitle: 'Manage exercise types used in Log Activity',
+                color: Colors.cyan,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminConfigManagementPage(
+                        collection: ConfigService.activityTypes,
+                        title: 'Activity Types',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                context,
+                icon: Icons.local_hospital,
+                title: 'Diabetes Essentials',
+                subtitle: 'Manage educational content on user dashboard',
+                color: Colors.indigo,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminConfigManagementPage(
+                        collection: ConfigService.diabetesEssentials,
+                        title: 'Diabetes Essentials',
+                        showDescription: true,
+                        showColorField: true,
+                        showIconField: true,
+                        showSectionField: true,
+                        sectionLabel: 'Content section',
+                        sectionOptions: [
+                          'Understanding Diabetes',
+                          'Diet and Nutrition',
+                          'Exercise Tips',
+                          'Medication Guide',
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -211,7 +313,7 @@ class AdminHomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha:0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -222,7 +324,7 @@ class AdminHomePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(alpha:0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -242,10 +344,7 @@ class AdminHomePage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -280,9 +379,7 @@ class _AdminActiveUsersStats extends StatelessWidget {
           return _StatsCard(
             title: 'Active users',
             subtitle: 'Failed to load',
-            rows: [
-              _StatsRow(label: 'Error', value: snap.error.toString()),
-            ],
+            rows: [_StatsRow(label: 'Error', value: snap.error.toString())],
             icon: Icons.people_outline,
             iconColor: Colors.teal,
           );
@@ -302,7 +399,8 @@ class _AdminActiveUsersStats extends StatelessWidget {
             continue;
           }
           total += 1;
-          final role = UserRole.fromString(data['role'] as String?) ?? UserRole.patient;
+          final role =
+              UserRole.fromString(data['role'] as String?) ?? UserRole.patient;
           switch (role) {
             case UserRole.patient:
               patients += 1;
@@ -361,9 +459,7 @@ class _AdminDailyReadingsStats extends StatelessWidget {
           return _StatsCard(
             title: 'Glucose readings',
             subtitle: 'Failed to load',
-            rows: [
-              _StatsRow(label: 'Error', value: snap.error.toString()),
-            ],
+            rows: [_StatsRow(label: 'Error', value: snap.error.toString())],
             icon: Icons.monitor_heart_outlined,
             iconColor: Colors.deepOrange,
           );
@@ -453,12 +549,18 @@ class _StatsCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
