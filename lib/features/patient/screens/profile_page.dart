@@ -1,8 +1,10 @@
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/profile_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key, this.user});
@@ -16,11 +18,11 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _authService = AuthService();
   final _profileService = ProfileService();
+  DateTime? _dateOfBirth;
 
   String _diabetesType = 'type2';
   bool _loading = true;
@@ -44,7 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = await _authService.getAppUser();
     if (user != null && mounted) {
       _nameController.text = user.displayName;
-      _ageController.text = user.extra['age']?.toString() ?? '';
+      _dateOfBirth = _parseDateOfBirth(user.extra['dateOfBirth']);
       _weightController.text = user.extra['weight']?.toString() ?? '';
       _heightController.text = user.extra['height']?.toString() ?? '';
       final dt = user.extra['diabetesType'];
@@ -58,10 +60,30 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
     _weightController.dispose();
     _heightController.dispose();
     super.dispose();
+  }
+
+  DateTime? _parseDateOfBirth(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
+    final initial = _dateOfBirth ?? DateTime(now.year - 30, 1, 1);
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (selected == null) return;
+    setState(() => _dateOfBirth = selected);
   }
 
   Future<void> _save() async {
@@ -71,12 +93,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
     setState(() => _saving = true);
     try {
-      final age = int.tryParse(_ageController.text.trim());
+      final birthYear = _dateOfBirth?.year;
+      int? age;
+      if (birthYear != null) {
+        final computedAge = DateTime.now().year - birthYear;
+        if (computedAge > 0 && computedAge < 130) {
+          age = computedAge;
+        }
+      }
       final weight = double.tryParse(_weightController.text.trim());
       final height = double.tryParse(_heightController.text.trim());
 
       await _profileService.updatePatientProfile(user.uid,
         displayName: _nameController.text.trim(),
+        dateOfBirth: _dateOfBirth,
+        birthYear: birthYear,
         age: age,
         weight: weight,
         height: height,
@@ -128,14 +159,26 @@ class _ProfilePageState extends State<ProfilePage> {
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter name' : null,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _ageController,
+            InkWell(
+              onTap: _pickDateOfBirth,
+              borderRadius: BorderRadius.circular(8),
+              child: InputDecorator(
               decoration: const InputDecoration(
-                labelText: 'Age (years)',
-                hintText: 'e.g. 35',
+                labelText: 'Date of Birth',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.number,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _dateOfBirth == null
+                          ? 'Select date'
+                          : DateFormat('MMMM d, yyyy').format(_dateOfBirth!),
+                    ),
+                    const Icon(Icons.calendar_month_outlined),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(

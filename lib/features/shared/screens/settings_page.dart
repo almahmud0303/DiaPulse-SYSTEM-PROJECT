@@ -1,6 +1,5 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
-import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
 import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
@@ -18,10 +17,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _initialsController = TextEditingController();
   final _authService = AuthService();
+  AppUser? _currentUser;
 
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
@@ -34,33 +31,27 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    final user = widget.user;
+    final latestUser = await _authService.getAppUser();
+    final user = latestUser ?? widget.user;
     setState(() {
-      _nameController.text =
-          user?.displayName ?? prefs.getString('userName') ?? '';
-      _initialsController.text =
-          prefs.getString('userInitials') ?? user?.initials ?? '';
+      _currentUser = user;
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
       _darkModeEnabled = prefs.getBool('darkModeEnabled') ?? false;
     });
   }
 
   Future<void> _saveSettings() async {
-    if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userName', _nameController.text);
-      await prefs.setString('userInitials', _initialsController.text);
-      await prefs.setBool('notificationsEnabled', _notificationsEnabled);
-      await prefs.setBool('darkModeEnabled', _darkModeEnabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', _notificationsEnabled);
+    await prefs.setBool('darkModeEnabled', _darkModeEnabled);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Settings saved successfully!'),
-            backgroundColor: AppTheme.primaryMint,
-          ),
-        );
-      }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully!'),
+          backgroundColor: AppTheme.primaryMint,
+        ),
+      );
     }
   }
 
@@ -72,14 +63,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _initialsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.user;
+    final user = _currentUser ?? widget.user;
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(title: const Text('Settings')),
@@ -102,36 +91,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 20),
               ],
-              _buildSectionTitle('Profile Information'),
-              const SizedBox(height: 15),
-              if (user?.isPatient ?? false)
-                ListTile(
-                  leading: const Icon(
-                    Icons.person,
-                    color: AppTheme.textSecondary,
-                  ),
-                  title: const Text('Edit Profile'),
-                  subtitle: const Text(
-                    'Name, age, weight, height, diabetes type',
-                  ),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProfilePage(user: user),
-                      ),
-                    );
-                    _loadSettings();
-                  },
-                ),
-              if (user?.isPatient ?? false) const SizedBox(height: 12),
-              _buildProfileCard(),
-              const SizedBox(height: 30),
               _buildSectionTitle('App Preferences'),
               const SizedBox(height: 15),
               _buildPreferencesCard(),
@@ -176,98 +135,6 @@ class _SettingsPageState extends State<SettingsPage> {
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: AppTheme.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x14000000),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppTheme.primaryMint,
-                  child: Text(
-                    _initialsController.text.isNotEmpty
-                        ? _initialsController.text.toUpperCase()
-                        : 'U',
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.secondaryLavender,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 25),
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: const Icon(Icons.person),
-                fillColor: Colors.white,
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 15),
-            TextFormField(
-              controller: _initialsController,
-              maxLength: 3,
-              decoration: InputDecoration(
-                labelText: 'Short Name / Initials',
-                prefixIcon: const Icon(Icons.badge),
-                fillColor: Colors.white,
-                helperText: 'Max 3 characters (e.g., JD for John Doe)',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your initials';
-                }
-                if (value.length > 3) return 'Maximum 3 characters allowed';
-                return null;
-              },
-              onChanged: (_) => setState(() {}),
-            ),
-          ],
-        ),
       ),
     );
   }

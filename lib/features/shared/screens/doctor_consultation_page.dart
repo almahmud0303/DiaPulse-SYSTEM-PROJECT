@@ -5,6 +5,7 @@ import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'chat_page.dart';
 
@@ -290,6 +291,16 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
             ],
           ),
           const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _openDoctorProfile(doctor),
+              icon: const Icon(Icons.person_outline),
+              label: const Text('View profile'),
+              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -324,6 +335,14 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _openDoctorProfile(AppUser doctor) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => _DoctorProfilePage(doctor: doctor),
       ),
     );
   }
@@ -420,4 +439,173 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
       ),
     );
   }
+}
+
+class _DoctorProfilePage extends StatelessWidget {
+  const _DoctorProfilePage({required this.doctor});
+
+  final AppUser doctor;
+
+  String _displayValue(dynamic value, {String fallback = 'Not provided'}) {
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    return text.isEmpty ? fallback : text;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = doctor.displayName.isNotEmpty ? doctor.displayName : doctor.email;
+    final speciality = _displayValue(doctor.extra['speciality'] ?? doctor.extra['specialty']);
+    final clinic = _displayValue(doctor.extra['clinic'] ?? doctor.extra['department']);
+    final joinedAt = doctor.createdAt == null
+        ? 'Not available'
+        : DateFormat('MMMM d, yyyy').format(doctor.createdAt!);
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Doctor Profile'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.blue.withValues(alpha: 0.12),
+                    child: Text(
+                      doctor.initials,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Doctor',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Verified professional',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            _infoCard(
+              title: 'Contact',
+              rows: [
+                _InfoRow(label: 'Email', value: doctor.email),
+                _InfoRow(label: 'Phone', value: _displayValue(doctor.phone)),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _infoCard(
+              title: 'Professional details',
+              rows: [
+                _InfoRow(label: 'Speciality', value: speciality),
+                _InfoRow(label: 'Clinic/Department', value: clinic),
+                _InfoRow(label: 'Joined', value: joinedAt),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoCard({required String title, required List<_InfoRow> rows}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          for (final row in rows)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 130,
+                    child: Text(
+                      row.label,
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      row.value,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow {
+  const _InfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
 }
