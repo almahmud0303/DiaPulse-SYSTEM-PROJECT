@@ -419,18 +419,21 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: Text(
-          widget.isInitialSetup ? 'Complete Your Profile' : 'Edit Profile',
+    return WillPopScope(
+      onWillPop: () async => !widget.isInitialSetup,
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.isInitialSetup,
+          title: Text(
+            widget.isInitialSetup ? 'Complete Your Profile' : 'Edit Profile',
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Form(
-        key: _formKey,
-        child: Stepper(
+        body: Form(
+          key: _formKey,
+          child: Stepper(
           currentStep: _currentStep,
           onStepContinue: () {
             if (_currentStep < 6) {
@@ -471,15 +474,16 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
               ),
             );
           },
-          steps: [
-            _buildBasicInfoStep(),
-            _buildProfessionalStep(),
-            _buildLocationStep(),
-            _buildContactStep(),
-            _buildConsultationStep(),
-            _buildAboutServicesStep(),
-            _buildDocumentsStep(),
-          ],
+            steps: [
+              _buildBasicInfoStep(),
+              _buildProfessionalStep(),
+              _buildLocationStep(),
+              _buildContactStep(),
+              _buildConsultationStep(),
+              _buildAboutServicesStep(),
+              _buildDocumentsStep(),
+            ],
+          ),
         ),
       ),
     );
