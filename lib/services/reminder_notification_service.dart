@@ -1,3 +1,4 @@
+import 'package:dia_plus/models/meal_routine.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/reminder.dart';
 import 'package:dia_plus/models/reminder_repeat_mode.dart';
@@ -252,7 +253,10 @@ class ReminderNotificationService {
 
   /// Schedules a daily notification at each medicine's time. Call when medicine list loads or changes.
   /// Cancels previously scheduled medicine notifications first.
-  Future<void> scheduleMedicineReminders(List<Medicine> medicines) async {
+  Future<void> scheduleMedicineReminders(
+    List<Medicine> medicines, {
+    MealRoutine? mealRoutine,
+  }) async {
     await initialize();
     final prefs = await SharedPreferences.getInstance();
     final previousIds = prefs.getStringList(_scheduledMedicineIdsKey);
@@ -283,7 +287,11 @@ class ReminderNotificationService {
     for (final m in medicines) {
       final times = m.effectiveTimes;
       for (var i = 0; i < times.length; i++) {
-        final (hour, minute) = Medicine.reminderTimeFrom(times[i]);
+        final (hour, minute) = Medicine.reminderClockForDose(
+          times[i],
+          mealRoutine,
+          m.mealOffsetMinutes,
+        );
 
         final todayAt = DateTime(now.year, now.month, now.day, hour, minute);
         final next = todayAt.isAfter(now)

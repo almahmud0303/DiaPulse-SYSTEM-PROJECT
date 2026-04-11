@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/patient/screens/meal_routine_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/profile_service.dart';
@@ -213,6 +214,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   onSelected: (_) => setState(() => _diabetesType = t['value']!),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 28),
+            const Text('Meal routine', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(
+              'Usual breakfast, lunch, and dinner times for medicines taken before or after meals.',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.35),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MealRoutinePage()),
+                );
+                if (mounted) setState(() {});
+              },
+              icon: const Icon(Icons.restaurant_menu, size: 20),
+              label: const Text('Edit meal times'),
             ),
             const SizedBox(height: 32),
             FilledButton(

@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dia_plus/models/meal_routine.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/medicine_entry.dart';
 import 'package:dia_plus/models/prescription.dart';
+import 'package:dia_plus/services/meal_routine_service.dart';
 
 class MedicineService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final MealRoutineService _mealRoutineService = MealRoutineService();
 
   static const String _medicinesCollection = 'medicines';
   static const String _entriesCollection = 'medicine_entries';
@@ -62,6 +67,7 @@ class MedicineService {
         isInsulin: m.isInsulin,
         insulinType: m.insulinType,
         adjustmentInstructions: m.adjustmentInstructions,
+        mealOffsetMinutes: m.mealOffsetMinutes,
       );
       await addMedicine(medWithGroup);
     }
@@ -126,6 +132,7 @@ class MedicineService {
         isInsulin: m.isInsulin,
         insulinType: m.insulinType,
         adjustmentInstructions: m.adjustmentInstructions,
+        mealOffsetMinutes: m.mealOffsetMinutes,
       );
       await addMedicine(medWithGroup);
     }
@@ -187,23 +194,22 @@ class MedicineService {
     return list;
   }
 
+  void _sortMedicinesByFirstDose(List<Medicine> list, MealRoutine? routine) {
+    list.sort(
+      (a, b) => Medicine.firstDoseMinutesOf(a, routine).compareTo(
+            Medicine.firstDoseMinutesOf(b, routine),
+          ),
+    );
+  }
+
   Future<List<Medicine>> getMedicines(String userId) async {
+    final routine = await _mealRoutineService.getRoutine(userId);
     final snapshot = await _firestore
         .collection(_medicinesCollection)
         .where('userId', isEqualTo: userId)
         .get();
     final list = snapshot.docs.map(_medicineFromDoc).where((m) => m.id.isNotEmpty).toList();
-    int firstDoseMinutes(Medicine m) {
-      final mins = m.effectiveTimes
-          .map((t) {
-            final (h, mm) = Medicine.reminderTimeFrom(t);
-            return h * 60 + mm;
-          })
-          .toList()
-        ..sort();
-      return mins.isNotEmpty ? mins.first : 0;
-    }
-    list.sort((a, b) => firstDoseMinutes(a).compareTo(firstDoseMinutes(b)));
+    _sortMedicinesByFirstDose(list, routine);
     return list;
   }
 
@@ -213,27 +219,24 @@ class MedicineService {
         .collection(_medicinesCollection)
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .asyncMap((snapshot) async {
+      final routine = await _mealRoutineService.getRoutine(userId);
       final list =
           snapshot.docs.map(_medicineFromDoc).where((m) => m.id.isNotEmpty).toList();
-      int firstDoseMinutes(Medicine m) {
-        final mins = m.effectiveTimes
-            .map((t) {
-              final (h, mm) = Medicine.reminderTimeFrom(t);
-              return h * 60 + mm;
-            })
-            .toList()
-          ..sort();
-        return mins.isNotEmpty ? mins.first : 0;
-      }
-      list.sort((a, b) => firstDoseMinutes(a).compareTo(firstDoseMinutes(b)));
+      _sortMedicinesByFirstDose(list, routine);
       return list;
     });
   }
 
   /// Next medicine by time today (for reminder).
   Future<Medicine?> getNextMedicineToday(String userId) async {
-    final list = await getMedicines(userId);
+    final routine = await _mealRoutineService.getRoutine(userId);
+    final snapshot = await _firestore
+        .collection(_medicinesCollection)
+        .where('userId', isEqualTo: userId)
+        .get();
+    final list = snapshot.docs.map(_medicineFromDoc).where((m) => m.id.isNotEmpty).toList();
+    _sortMedicinesByFirstDose(list, routine);
     if (list.isEmpty) return null;
     final now = DateTime.now();
     final currentMins = now.hour * 60 + now.minute;
@@ -243,8 +246,7 @@ class MedicineService {
     for (final m in list) {
       final doseMinutes = m.effectiveTimes
           .map((t) {
-            final (h, mm) = Medicine.reminderTimeFrom(t);
-            return h * 60 + mm;
+            return Medicine.reminderTotalMinutes(t, routine, m.mealOffsetMinutes);
           })
           .toList();
       if (doseMinutes.isEmpty) continue;

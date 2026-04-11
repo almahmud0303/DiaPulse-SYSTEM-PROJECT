@@ -25,6 +25,8 @@ import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:dia_plus/services/emergency_alert_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/health_score_service.dart';
+import 'package:dia_plus/models/meal_routine.dart';
+import 'package:dia_plus/services/meal_routine_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:dia_plus/services/reminder_notification_service.dart';
 import 'package:dia_plus/services/reminder_service.dart';
@@ -121,10 +123,17 @@ class _PatientHomePageState extends State<PatientHomePage> {
         );
         medTaken = entries.where((e) => e.taken).length;
         final next = await _medicineService.getNextMedicineToday(user.uid);
-        if (next != null)
+        if (next != null) {
           nextMed = '${Medicine.medicineTimesLabel(next)} (${next.name})';
-        // Schedule local notifications at each medicine time (daily).
-        ReminderNotificationService().scheduleMedicineReminders(medicines);
+        }
+        MealRoutine? mealRoutine;
+        try {
+          mealRoutine = await MealRoutineService().getRoutine(user.uid);
+        } catch (_) {}
+        await ReminderNotificationService().scheduleMedicineReminders(
+          medicines,
+          mealRoutine: mealRoutine,
+        );
       } catch (_) {}
 
       Reminder? smartNextReminder;

@@ -42,6 +42,7 @@ class _PrescriptionDraftItem {
     required this.isInsulin,
     this.insulinType,
     this.adjustmentInstructions,
+    this.mealOffsetMinutes = 30,
   });
 
   final String name;
@@ -51,6 +52,9 @@ class _PrescriptionDraftItem {
   final bool isInsulin;
   final String? insulinType;
   final String? adjustmentInstructions;
+  final int mealOffsetMinutes;
+
+  bool get hasMealRelative => times.any(Medicine.isMealRelativeTime);
 }
 
 class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptionPage> {
@@ -67,6 +71,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   String _whenToTake2 = 'specific';
   TimeOfDay _time2 = const TimeOfDay(hour: 19, minute: 0);
   String _frequency = 'daily';
+  int _mealOffsetMinutes = 30;
   bool _isInsulin = false;
   String _insulinType = 'rapid_acting';
   bool _saving = false;
@@ -102,6 +107,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
       _isInsulin = m.isInsulin;
       _insulinType = m.insulinType ?? 'rapid_acting';
       _adjustmentInstructionsController.text = m.adjustmentInstructions ?? '';
+      _mealOffsetMinutes = m.mealOffsetMinutes;
     }
   }
 
@@ -161,6 +167,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     return [_savedTime1];
   }
 
+  bool get _anyMealRelative =>
+      Medicine.isMealRelativeTime(_savedTime1) ||
+      (_frequency == 'twice_daily' && Medicine.isMealRelativeTime(_savedTime2));
+
   void _resetForNext() {
     _nameController.clear();
     _dosageController.clear();
@@ -172,6 +182,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     _time2 = const TimeOfDay(hour: 19, minute: 0);
     _isInsulin = false;
     _insulinType = 'rapid_acting';
+    _mealOffsetMinutes = 30;
   }
 
   bool get _hasAnyInput =>
@@ -191,6 +202,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
       adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
           ? _adjustmentInstructionsController.text.trim()
           : null,
+      mealOffsetMinutes: _mealOffsetMinutes,
     );
   }
 
@@ -287,7 +299,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     pw.Widget medicinesTable() {
       final headers = ['Medicine', 'Dosage', 'When to take', 'Frequency'];
       final data = items.map((item) {
-        final when = item.times.map(Medicine.timeDisplayLabel).join(' / ');
+        var when = item.times.map(Medicine.timeDisplayLabel).join(' / ');
+        if (item.hasMealRelative) {
+          when = '$when · ${item.mealOffsetMinutes} min before/after meal';
+        }
         final freq = item.frequency.replaceAll('_', ' ');
         final name = item.isInsulin
             ? '${item.name} (${Medicine.insulinTypeLabel(item.insulinType)})'
@@ -506,6 +521,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           adjustmentInstructions: _isInsulin && _adjustmentInstructionsController.text.trim().isNotEmpty
               ? _adjustmentInstructionsController.text.trim()
               : null,
+          mealOffsetMinutes: _mealOffsetMinutes,
         );
         await _medicineService.updateMedicine(updated);
       } else {
@@ -536,8 +552,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             isInsulin: item.isInsulin,
             insulinType: item.insulinType,
             adjustmentInstructions: item.adjustmentInstructions,
+            mealOffsetMinutes: item.mealOffsetMinutes,
           ));
         }
+
         if (appendToId != null && appendToId.isNotEmpty) {
           await _medicineService.addMedicinesToPrescription(
             patientId: patient.uid,
@@ -701,12 +719,15 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                   final idx = entry.key;
                   final item = entry.value;
                   final timesLabel = item.times.map(Medicine.timeDisplayLabel).join(' / ');
+                  final offsetNote = item.hasMealRelative ? ' · ${item.mealOffsetMinutes} min vs meal' : '';
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: const Icon(Icons.medication_outlined),
                       title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('${item.dosage} · $timesLabel · ${item.frequency.replaceAll('_', ' ')}'),
+                      subtitle: Text(
+                        '${item.dosage} · $timesLabel$offsetNote · ${item.frequency.replaceAll('_', ' ')}',
+                      ),
                       trailing: IconButton(
                         tooltip: 'Remove',
                         icon: const Icon(Icons.close),
@@ -758,6 +779,35 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                   onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
                   timeText: _timeString(_time2),
                   onPickTime: _pickTime2,
+                ),
+              ],
+              if (_anyMealRelative) ...[
+                const SizedBox(height: 20),
+                const Text(
+                  'Minutes before / after meal',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Patient reminders use their meal routine ± this value.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _mealOffsetMinutes,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.timer_outlined),
+                  ),
+                  items: const [15, 30, 45, 60]
+                      .map(
+                        (v) => DropdownMenuItem<int>(
+                          value: v,
+                          child: Text('$v minutes'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) => setState(() => _mealOffsetMinutes = v ?? 30),
                 ),
               ],
               const SizedBox(height: 16),

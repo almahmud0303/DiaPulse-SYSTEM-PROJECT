@@ -1,3 +1,4 @@
+import 'package:dia_plus/features/patient/screens/meal_routine_page.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,6 +24,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   String _whenToTake2 = 'specific';
   TimeOfDay _time2 = const TimeOfDay(hour: 19, minute: 0);
   String _frequency = 'daily';
+  int _mealOffsetMinutes = 30;
   bool _saving = false;
 
   static const List<Map<String, String>> frequencies = [
@@ -44,6 +46,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       if (times.length > 1) {
         _applyTimeToState(isSecond: true, value: times[1]);
       }
+      _mealOffsetMinutes = m.mealOffsetMinutes;
     }
   }
 
@@ -106,6 +109,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     return [_savedTime1];
   }
 
+  bool get _anyMealRelative =>
+      Medicine.isMealRelativeTime(_savedTime1) ||
+      (_frequency == 'twice_daily' && Medicine.isMealRelativeTime(_savedTime2));
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final user = FirebaseAuth.instance.currentUser;
@@ -124,6 +131,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           times: times.length > 1 ? times : null,
           frequency: _frequency,
           createdAt: widget.medicine!.createdAt,
+          mealOffsetMinutes: _mealOffsetMinutes,
         );
         await _medicineService.updateMedicine(updated);
       } else {
@@ -137,6 +145,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           times: times.length > 1 ? times : null,
           frequency: _frequency,
           createdAt: DateTime.now(),
+          mealOffsetMinutes: _mealOffsetMinutes,
         );
         await _medicineService.addMedicine(medicine);
       }
@@ -213,6 +222,50 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
                   timeText: _timeString(_time2),
                   onPickTime: _pickTime2,
+                ),
+              ],
+              if (_anyMealRelative) ...[
+                const SizedBox(height: 20),
+                const Text(
+                  'Minutes before / after meal',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Match what your doctor wrote on the prescription (e.g. 30 min before breakfast).',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _mealOffsetMinutes,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.timer_outlined),
+                  ),
+                  items: const [15, 30, 45, 60]
+                      .map(
+                        (v) => DropdownMenuItem<int>(
+                          value: v,
+                          child: Text('$v minutes'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) => setState(() => _mealOffsetMinutes = v ?? 30),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MealRoutinePage()),
+                      );
+                      if (mounted) setState(() {});
+                    },
+                    icon: const Icon(Icons.restaurant_menu, size: 20),
+                    label: const Text('Edit meal times'),
+                  ),
                 ),
               ],
               const SizedBox(height: 16),
