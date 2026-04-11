@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/admin/screens/admin_config_management_page.dart';
+import 'package:dia_plus/features/admin/screens/admin_doctor_verification_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_invite_access_requests_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_audit_logs_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_announcement_management_page.dart';
@@ -6,9 +7,11 @@ import 'package:dia_plus/features/admin/screens/admin_backup_export_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_backup_restore_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_system_monitoring_page.dart';
 import 'package:dia_plus/features/admin/screens/admin_user_management_page.dart';
+import 'package:dia_plus/models/doctor_profile.dart';
 import 'package:dia_plus/services/config_service.dart';
 import 'package:dia_plus/models/invite_access_request.dart';
 import 'package:dia_plus/models/user_role.dart';
+import 'package:dia_plus/services/doctor_profile_service.dart';
 import 'package:dia_plus/services/invite_access_request_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +87,32 @@ class AdminHomePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) =>
                               const AdminInviteAccessRequestsPage(),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              StreamBuilder<List<DoctorProfile>>(
+                stream: DoctorProfileService()
+                    .watchByVerificationStatus(VerificationStatus.pending),
+                builder: (context, snap) {
+                  final n = snap.data?.length ?? 0;
+                  return _buildCard(
+                    context,
+                    icon: Icons.verified_user,
+                    title: 'Doctor Verification',
+                    subtitle: n == 0
+                        ? 'Review and verify doctor profiles'
+                        : '$n pending verification — review now',
+                    color: Colors.indigo,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const AdminDoctorVerificationPage(),
                         ),
                       );
                     },

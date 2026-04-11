@@ -64,6 +64,9 @@ dependencies:
   flutter_timezone: ^4.1.1
   path_provider: ^2.1.5
 
+  # Image picker for profile photos and document uploads
+  image_picker: ^1.1.2
+
   # Step count (patient dashboard) — Android / iOS sensors
   pedometer: ^4.1.1
   permission_handler: ^11.3.1

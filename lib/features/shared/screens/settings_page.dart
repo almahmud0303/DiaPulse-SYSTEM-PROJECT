@@ -1,5 +1,6 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/features/doctor/screens/doctor_profile_setup_page.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
 import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
@@ -130,6 +131,32 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
               if (user?.isPatient ?? false) const SizedBox(height: 12),
+              if (user?.isDoctor ?? false)
+                ListTile(
+                  leading: const Icon(
+                    Icons.medical_information,
+                    color: AppTheme.textSecondary,
+                  ),
+                  title: const Text('Edit Doctor Profile'),
+                  subtitle: const Text(
+                    'Specialization, clinic, availability, fees',
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DoctorProfileSetupPage(),
+                      ),
+                    );
+                    _loadSettings();
+                  },
+                ),
+              if (user?.isDoctor ?? false) const SizedBox(height: 12),
               _buildProfileCard(),
               const SizedBox(height: 30),
               _buildSectionTitle('App Preferences'),
