@@ -48,6 +48,9 @@ abstract class AuditLogActions {
   static const adminConfigCreate = 'admin_config_create';
   static const adminConfigUpdate = 'admin_config_update';
   static const adminConfigDelete = 'admin_config_delete';
+
+  static const doctorProfileVerified = 'doctor_profile_verified';
+  static const doctorProfileRejected = 'doctor_profile_rejected';
 }
 
 /// Values for [AuditLogEntry.category].

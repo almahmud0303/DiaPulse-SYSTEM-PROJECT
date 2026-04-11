@@ -11,7 +11,9 @@ import 'package:dia_plus/features/shared/screens/settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/announcement_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
+import 'package:dia_plus/services/doctor_profile_service.dart';
 import 'package:dia_plus/services/notification_service.dart';
+import 'package:dia_plus/features/doctor/screens/doctor_profile_setup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +27,7 @@ class MainNavigationPage extends StatefulWidget {
 
 class _MainNavigationPageState extends State<MainNavigationPage> {
   final _authService = AuthService();
+  final _doctorProfileService = DoctorProfileService();
   AppUser? _user;
   bool _loading = true;
 
@@ -49,6 +52,21 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         await prefs.setString('userName', user.displayName);
         if (user.initials.isNotEmpty) {
           await prefs.setString('userInitials', user.initials);
+        }
+      }
+
+      // Doctors must complete their profile before using the app.
+      if (user.isDoctor) {
+        final profile = await _doctorProfileService.getProfile(user.uid);
+        if (profile == null || !profile.isProfileComplete) {
+          if (mounted) {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    const DoctorProfileSetupPage(isInitialSetup: true),
+              ),
+            );
+          }
         }
       }
     }

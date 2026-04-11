@@ -249,4 +249,24 @@ class AuditLogService {
       },
     );
   }
+
+  Future<void> logDoctorProfileVerified({required String targetUserId}) {
+    return _append(
+      action: AuditLogActions.doctorProfileVerified,
+      category: AuditLogCategories.admin,
+      targetUserId: targetUserId,
+    );
+  }
+
+  Future<void> logDoctorProfileRejected({
+    required String targetUserId,
+    String? reason,
+  }) {
+    return _append(
+      action: AuditLogActions.doctorProfileRejected,
+      category: AuditLogCategories.admin,
+      targetUserId: targetUserId,
+      metadata: {if (reason != null) 'reason': reason},
+    );
+  }
 }
