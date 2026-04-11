@@ -232,7 +232,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Match what your doctor wrote on the prescription (e.g. 30 min before breakfast).',
+                  'Match what your doctor wrote on the prescription (e.g. 30 min before breakfast). '
+                  'Usual meal times are on the Profile tab.',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                 ),
                 const SizedBox(height: 8),

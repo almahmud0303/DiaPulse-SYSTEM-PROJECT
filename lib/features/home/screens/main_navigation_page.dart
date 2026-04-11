@@ -4,7 +4,7 @@ import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_profile_section_page.dart';
-import 'package:dia_plus/features/patient/history/presentation/screens/history_page.dart';
+import 'package:dia_plus/features/patient/screens/history_page.dart';
 import 'package:dia_plus/features/patient/screens/readings_page.dart';
 import 'package:dia_plus/features/shared/screens/notifications_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
@@ -115,7 +115,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ? const HistoryPage()
           : const Center(child: Text('History - Coming Soon')),
       const NotificationsPage(),
-        user.isPatient
+      user.isPatient
           ? PatientProfileSectionPage(user: user)
           : SettingsPage(user: user),
     ];

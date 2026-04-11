@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/features/patient/screens/meal_routine_page.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
+import 'package:dia_plus/models/meal_routine.dart';
+import 'package:dia_plus/services/meal_routine_service.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +21,9 @@ class PatientProfileSectionPage extends StatefulWidget {
 
 class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
   final _authService = AuthService();
+  final _mealRoutineService = MealRoutineService();
   AppUser? _user;
+  MealRoutine? _mealRoutine;
   bool _loading = true;
 
   @override
@@ -29,11 +34,33 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
 
   Future<void> _loadUser() async {
     final latest = await _authService.getAppUser();
+    MealRoutine? routine;
+    final effective = latest ?? widget.user;
+    if (effective != null) {
+      try {
+        routine = await _mealRoutineService.getRoutine(effective.uid);
+      } catch (_) {}
+    }
     if (!mounted) return;
     setState(() {
       _user = latest ?? widget.user;
+      _mealRoutine = routine;
       _loading = false;
     });
+  }
+
+  String _hmOrDefault(String? stored, String fallbackHm) {
+    final t = stored?.trim();
+    if (t == null || t.isEmpty) return '$fallbackHm (default)';
+    return t;
+  }
+
+  Future<void> _openMealRoutine() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const MealRoutinePage()),
+    );
+    await _loadUser();
   }
 
   Future<void> _openEditor() async {
@@ -173,6 +200,65 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
                   _infoRow('Height', height == null ? 'N/A' : '${height.toStringAsFixed(1)} cm'),
                   _infoRow('Diabetes type', diabetesType),
                   _infoRow('Phone', _stringOrNA(user.phone)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Meal routine',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Used for medicines scheduled before or after meals.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 12),
+                  _infoRow(
+                    'Breakfast',
+                    _hmOrDefault(_mealRoutine?.breakfast, '08:00'),
+                  ),
+                  _infoRow(
+                    'Lunch',
+                    _hmOrDefault(_mealRoutine?.lunch, '12:30'),
+                  ),
+                  _infoRow(
+                    'Dinner',
+                    _hmOrDefault(_mealRoutine?.dinner, '19:00'),
+                  ),
+                  _infoRow(
+                    'Snack',
+                    _hmOrDefault(_mealRoutine?.snack, '15:30'),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _openMealRoutine,
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      label: const Text('Edit meal times'),
+                    ),
+                  ),
                 ],
               ),
             ),
