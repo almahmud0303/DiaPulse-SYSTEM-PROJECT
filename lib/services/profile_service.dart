@@ -9,6 +9,8 @@ class ProfileService {
   /// Update patient profile. Only provided fields are updated.
   Future<void> updatePatientProfile(String uid, {
     String? displayName,
+    DateTime? dateOfBirth,
+    int? birthYear,
     int? age,
     double? weight,
     double? height,
@@ -18,6 +20,8 @@ class ProfileService {
       'updatedAt': FieldValue.serverTimestamp(),
     };
     if (displayName != null) data['displayName'] = displayName;
+    if (dateOfBirth != null) data['dateOfBirth'] = dateOfBirth;
+    if (birthYear != null) data['birthYear'] = birthYear;
     if (age != null) data['age'] = age;
     if (weight != null) data['weight'] = weight;
     if (height != null) data['height'] = height;

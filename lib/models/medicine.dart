@@ -1,3 +1,5 @@
+import 'package:dia_plus/models/meal_routine.dart';
+
 /// Known meal-relative timing keys stored in [Medicine.time].
 /// Otherwise [time] is a clock time "HH:mm".
 const List<Map<String, String>> medicineTimeOptions = [
@@ -38,6 +40,10 @@ class Medicine {
   /// Doctor's instructions for dose adjustment (e.g. based on glucose).
   final String? adjustmentInstructions;
 
+  /// Minutes before (before_*) or after (after_*) the anchored meal for meal-relative doses.
+  /// Ignored for fixed clock times ("HH:mm"). Typical prescription: 30.
+  final int mealOffsetMinutes;
+
   Medicine({
     required this.id,
     required this.userId,
@@ -51,6 +57,7 @@ class Medicine {
     this.isInsulin = false,
     this.insulinType,
     this.adjustmentInstructions,
+    this.mealOffsetMinutes = 30,
   });
 
   /// All dose times for this medicine (falls back to single [time]).
@@ -59,6 +66,8 @@ class Medicine {
     if (t != null && t.isNotEmpty) return t;
     return [time];
   }
+
+  bool get hasMealRelativeDose => effectiveTimes.any(isMealRelativeTime);
 
   Map<String, dynamic> toMap() {
     final effective = effectiveTimes;
@@ -77,6 +86,7 @@ class Medicine {
       if (insulinType != null) 'insulinType': insulinType,
       if (adjustmentInstructions != null && adjustmentInstructions!.isNotEmpty)
         'adjustmentInstructions': adjustmentInstructions,
+      'mealOffsetMinutes': mealOffsetMinutes,
     };
   }
 
@@ -108,7 +118,19 @@ class Medicine {
       isInsulin: map['isInsulin'] as bool? ?? false,
       insulinType: map['insulinType'] as String?,
       adjustmentInstructions: map['adjustmentInstructions'] as String?,
+      mealOffsetMinutes: _parseMealOffsetMinutes(map['mealOffsetMinutes']),
     );
+  }
+
+  static int _parseMealOffsetMinutes(dynamic raw) {
+    if (raw is int) return raw.clamp(0, 180);
+    if (raw is num) return raw.toInt().clamp(0, 180);
+    final s = raw?.toString();
+    if (s != null && s.isNotEmpty) {
+      final v = int.tryParse(s);
+      if (v != null) return v.clamp(0, 180);
+    }
+    return 30;
   }
 
   /// Human-readable label for [insulinType].
@@ -165,30 +187,52 @@ class Medicine {
     return time; // "09:00" etc.
   }
 
-  /// Hour and minute to use for reminder scheduling. For meal-relative times uses defaults.
-  static (int hour, int minute) reminderTimeFrom(String time) {
-    if (!isMealRelativeTime(time)) {
-      final parts = time.split(':');
+  static int _normMinutesOfDay(int minutes) {
+    var m = minutes % (24 * 60);
+    if (m < 0) m += 24 * 60;
+    return m;
+  }
+
+  /// Minute-of-day (0–1439) for a single dose key, using [routine] meal anchors when set.
+  static int reminderTotalMinutes(
+    String doseKey,
+    MealRoutine? routine,
+    int mealOffsetMinutes,
+  ) {
+    if (!isMealRelativeTime(doseKey)) {
+      final parts = doseKey.split(':');
       final h = parts.isNotEmpty ? (int.tryParse(parts[0].trim()) ?? 9) : 9;
-      final m = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 0) : 0;
-      return (h, m);
+      final mm = parts.length > 1 ? (int.tryParse(parts[1].trim()) ?? 0) : 0;
+      return _normMinutesOfDay(h * 60 + mm);
     }
-    switch (time) {
-      case 'before_breakfast':
-        return (7, 0);
-      case 'after_breakfast':
-        return (8, 30);
-      case 'before_lunch':
-        return (12, 0);
-      case 'after_lunch':
-        return (13, 30);
-      case 'before_dinner':
-        return (18, 0);
-      case 'after_dinner':
-        return (19, 30);
-      default:
-        return (9, 0);
-    }
+    final anchor = (routine ?? const MealRoutine()).anchorMinutesForDoseKey(doseKey);
+    final before = doseKey.startsWith('before_');
+    final delta = before ? -mealOffsetMinutes : mealOffsetMinutes;
+    return _normMinutesOfDay(anchor + delta);
+  }
+
+  /// Local clock for notifications and sorting.
+  static (int hour, int minute) reminderClockForDose(
+    String doseKey,
+    MealRoutine? routine,
+    int mealOffsetMinutes,
+  ) {
+    final t = reminderTotalMinutes(doseKey, routine, mealOffsetMinutes);
+    return (t ~/ 60, t % 60);
+  }
+
+  /// First dose of the day in minutes-from-midnight (for sorting / next dose).
+  static int firstDoseMinutesOf(Medicine m, MealRoutine? routine) {
+    final mins = m.effectiveTimes
+        .map((d) => reminderTotalMinutes(d, routine, m.mealOffsetMinutes))
+        .toList()
+      ..sort();
+    return mins.isNotEmpty ? mins.first : 0;
+  }
+
+  /// Hour and minute for reminder scheduling (uses default meal anchors when [routine] is null).
+  static (int hour, int minute) reminderTimeFrom(String time) {
+    return reminderClockForDose(time, null, 30);
   }
 
   /// Display label for a whole medicine (single or multi-dose).

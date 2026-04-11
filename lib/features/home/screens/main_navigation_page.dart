@@ -3,7 +3,8 @@ import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
-import 'package:dia_plus/features/patient/history/presentation/screens/history_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_profile_section_page.dart';
+import 'package:dia_plus/features/patient/screens/history_page.dart';
 import 'package:dia_plus/features/patient/screens/readings_page.dart';
 import 'package:dia_plus/features/shared/screens/notifications_page.dart';
 import 'package:dia_plus/features/shared/screens/settings_page.dart';
@@ -132,7 +133,9 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ? const HistoryPage()
           : const Center(child: Text('History - Coming Soon')),
       const NotificationsPage(),
-      SettingsPage(user: user),
+      user.isPatient
+          ? PatientProfileSectionPage(user: user)
+          : SettingsPage(user: user),
     ];
 
     return _NavScaffold(user: user, pages: pages);
@@ -245,9 +248,9 @@ class _NavScaffoldState extends State<_NavScaffold> {
                 label: 'Updates',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined),
-                activeIcon: Icon(Icons.settings),
-                label: 'Settings',
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
               ),
             ],
           ),

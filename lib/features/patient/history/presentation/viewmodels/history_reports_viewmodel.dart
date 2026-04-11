@@ -21,6 +21,8 @@ class HistoryReportsViewModel extends ChangeNotifier {
   List<GlucoseReading> _readings = const [];
   List<GlucoseTrendPoint> _trendPoints = const [];
   HistoryStatistics _statistics = HistoryStatistics.empty();
+  bool _disposed = false;
+  int _refreshGeneration = 0;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -36,6 +38,17 @@ class HistoryReportsViewModel extends ChangeNotifier {
     return _repository.groupReadingsByDay(_readings);
   }
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
   Future<void> initialize(String? userId) async {
     _userId = userId;
     if (_userId == null) {
@@ -44,7 +57,7 @@ class HistoryReportsViewModel extends ChangeNotifier {
       _readings = const [];
       _trendPoints = const [];
       _statistics = HistoryStatistics.empty();
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
 
@@ -53,16 +66,18 @@ class HistoryReportsViewModel extends ChangeNotifier {
 
   Future<void> refresh() async {
     if (_userId == null) return;
+    final callGeneration = ++_refreshGeneration;
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final readings = await _repository.fetchReadings(
         _userId!,
         _selectedDateRange,
       );
+      if (_disposed || callGeneration != _refreshGeneration) return;
       _readings = readings;
       _statistics = _repository.buildStatistics(readings);
       _trendPoints = _repository.buildTrendPoints(
@@ -70,13 +85,16 @@ class HistoryReportsViewModel extends ChangeNotifier {
         _selectedTrendPeriod,
       );
     } catch (error) {
+      if (_disposed || callGeneration != _refreshGeneration) return;
       _errorMessage = 'Failed to load history data.';
       _readings = const [];
       _trendPoints = const [];
       _statistics = HistoryStatistics.empty();
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_disposed && callGeneration == _refreshGeneration) {
+        _isLoading = false;
+        _safeNotifyListeners();
+      }
     }
   }
 
@@ -99,6 +117,6 @@ class HistoryReportsViewModel extends ChangeNotifier {
       _readings,
       _selectedTrendPeriod,
     );
-    notifyListeners();
+    _safeNotifyListeners();
   }
 }

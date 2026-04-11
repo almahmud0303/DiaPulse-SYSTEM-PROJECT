@@ -3,6 +3,8 @@ import 'package:dia_plus/features/patient/screens/medicine_history_page.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/medicine_entry.dart';
 import 'package:dia_plus/models/prescription.dart';
+import 'package:dia_plus/models/meal_routine.dart';
+import 'package:dia_plus/services/meal_routine_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:dia_plus/services/reminder_notification_service.dart';
 import 'package:dia_plus/ui/responsive.dart';
@@ -50,8 +52,14 @@ class _MedicineListPageState extends State<MedicineListPage> {
     _medSub?.cancel();
     _medSub = _service.getMedicinesStream(_userId!).listen((medicines) async {
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      // Schedule local notifications at each medicine time when list changes.
-      ReminderNotificationService().scheduleMedicineReminders(medicines);
+      MealRoutine? mealRoutine;
+      try {
+        mealRoutine = await MealRoutineService().getRoutine(_userId!);
+      } catch (_) {}
+      await ReminderNotificationService().scheduleMedicineReminders(
+        medicines,
+        mealRoutine: mealRoutine,
+      );
       try {
         final prescriptions = await _service.getPrescriptions(_userId!);
         final entries =

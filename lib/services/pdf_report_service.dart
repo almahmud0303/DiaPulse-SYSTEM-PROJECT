@@ -28,6 +28,13 @@ class PdfReportService {
   static const _grey600 = PdfColors.grey600;
   static const _grey900 = PdfColors.grey900;
 
+  String _pdfSafeText(String value) {
+    return value
+        .replaceAll('–', '-')
+        .replaceAll('—', '-')
+        .replaceAll('…', '...');
+  }
+
   Future<Uint8List> generateReportPdf(GlucoseReportData data) async {
     final doc = pw.Document(title: _reportTitle, author: _appName);
 
@@ -184,13 +191,14 @@ class PdfReportService {
 
   pw.Widget _buildPatientInfo(GlucoseReportData data, pw.Font boldFont) {
     final items = <_KV>[
-      _KV('Name', data.patientName ?? '—'),
+      _KV('Name', _pdfSafeText(data.patientName ?? '-')),
       if (data.patientAge != null) _KV('Age', '${data.patientAge} yrs'),
       if (data.patientWeight != null)
         _KV('Weight', '${data.patientWeight!.toStringAsFixed(1)} kg'),
       if (data.patientHeight != null)
         _KV('Height', '${data.patientHeight!.toStringAsFixed(0)} cm'),
-      if (data.diabetesType != null) _KV('Diabetes Type', data.diabetesType!),
+      if (data.diabetesType != null)
+        _KV('Diabetes Type', _pdfSafeText(data.diabetesType!)),
     ];
 
     final rows = <pw.Widget>[];
@@ -256,7 +264,7 @@ class PdfReportService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
         children: [
-          _periodCell('Period', data.rangeLabel, boldFont),
+          _periodCell('Period', _pdfSafeText(data.rangeLabel), boldFont),
           _periodCell('From', dateFmt.format(data.rangeStart), boldFont),
           _periodCell('To', dateFmt.format(data.rangeEnd), boldFont),
           _periodCell('Readings', '${data.stats.totalReadings}', boldFont),
@@ -403,7 +411,7 @@ class PdfReportService {
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
       ),
       child: pw.Text(
-        summary,
+        _pdfSafeText(summary),
         style: const pw.TextStyle(fontSize: 10, lineSpacing: 4),
       ),
     );
@@ -427,15 +435,18 @@ class PdfReportService {
     ];
 
     final rows = readings.map((r) {
-      final notes = r.notes.isEmpty
-          ? '–'
-          : (r.notes.length > 42 ? '${r.notes.substring(0, 40)}…' : r.notes);
+      final notesRaw = r.notes.isEmpty
+          ? '-'
+          : (r.notes.length > 42
+              ? '${r.notes.substring(0, 40)}...'
+              : r.notes);
+      final notes = _pdfSafeText(notesRaw);
       return [
         dateFmt.format(r.date),
         timeFmt.format(r.date),
-        r.mealTime.isEmpty ? '–' : r.mealTime,
+        _pdfSafeText(r.mealTime.isEmpty ? '-' : r.mealTime),
         r.glucoseLevel.toStringAsFixed(0),
-        r.getStatus(),
+        _pdfSafeText(r.getStatus()),
         notes,
       ];
     }).toList();
@@ -499,7 +510,7 @@ class PdfReportService {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            '$_appName – Confidential Patient Report',
+            '$_appName - Confidential Patient Report',
             style: const pw.TextStyle(fontSize: 7, color: _grey600),
           ),
           pw.Text(

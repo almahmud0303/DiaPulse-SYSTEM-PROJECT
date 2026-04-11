@@ -23,6 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _nameController = TextEditingController();
   final _initialsController = TextEditingController();
   final _authService = AuthService();
+  AppUser? _currentUser;
 
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
@@ -35,8 +36,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    final user = widget.user;
+    final latestUser = await _authService.getAppUser();
+    final user = latestUser ?? widget.user;
     setState(() {
+      _currentUser = user;
       _nameController.text =
           user?.displayName ?? prefs.getString('userName') ?? '';
       _initialsController.text =
@@ -47,21 +50,20 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _saveSettings() async {
-    if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userName', _nameController.text);
-      await prefs.setString('userInitials', _initialsController.text);
-      await prefs.setBool('notificationsEnabled', _notificationsEnabled);
-      await prefs.setBool('darkModeEnabled', _darkModeEnabled);
+    if (!_formKey.currentState!.validate()) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', _nameController.text);
+    await prefs.setString('userInitials', _initialsController.text);
+    await prefs.setBool('notificationsEnabled', _notificationsEnabled);
+    await prefs.setBool('darkModeEnabled', _darkModeEnabled);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Settings saved successfully!'),
-            backgroundColor: AppTheme.primaryMint,
-          ),
-        );
-      }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully!'),
+          backgroundColor: AppTheme.primaryMint,
+        ),
+      );
     }
   }
 
@@ -80,7 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.user;
+    final user = _currentUser ?? widget.user;
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(title: const Text('Settings')),
@@ -121,13 +123,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: Colors.grey,
                   ),
                   onTap: () async {
+                    final u = user;
+                    if (u == null) return;
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ProfilePage(user: user),
+                        builder: (_) => ProfilePage(user: u),
                       ),
                     );
-                    _loadSettings();
+                    await _loadSettings();
                   },
                 ),
               if (user?.isPatient ?? false) const SizedBox(height: 12),
@@ -153,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         builder: (_) => const DoctorProfileSetupPage(),
                       ),
                     );
-                    _loadSettings();
+                    await _loadSettings();
                   },
                 ),
               if (user?.isDoctor ?? false) const SizedBox(height: 12),
@@ -213,11 +217,11 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: BoxDecoration(
         color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x14000000),
+            color: Color(0x14000000),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -262,9 +266,9 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 25),
             TextFormField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Full Name',
-                prefixIcon: const Icon(Icons.person),
+                prefixIcon: Icon(Icons.person),
                 fillColor: Colors.white,
               ),
               validator: (value) {
@@ -278,9 +282,9 @@ class _SettingsPageState extends State<SettingsPage> {
             TextFormField(
               controller: _initialsController,
               maxLength: 3,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Short Name / Initials',
-                prefixIcon: const Icon(Icons.badge),
+                prefixIcon: Icon(Icons.badge),
                 fillColor: Colors.white,
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
@@ -305,11 +309,11 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: BoxDecoration(
         color: AppTheme.cardTintLavender,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x14000000),
+            color: Color(0x14000000),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -375,11 +379,11 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: BoxDecoration(
         color: AppTheme.cardTintMint,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x14000000),
+            color: Color(0x14000000),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: Offset(0, 5),
           ),
         ],
       ),
