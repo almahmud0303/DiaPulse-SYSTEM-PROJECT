@@ -88,8 +88,8 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     {'value': 'once_daily', 'label': 'Once daily'},
     {'value': 'twice_daily', 'label': 'Twice daily'},
     {'value': 'thrice_daily', 'label': 'Thrice daily'},
-    {'value': 'once_weekly', 'label': '1 weekly'},
-    {'value': 'twice_weekly', 'label': '2 weekly (twice a week)'},
+    {'value': 'once_weekly', 'label': 'Once a week'},
+    {'value': 'once_biweekly', 'label': 'Once every 2 weeks'},
   ];
 
   static const List<String> dosageUnits = [
@@ -115,7 +115,9 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
       case 'daily':
         return 'once_daily';
       case 'weekly':
-        return 'twice_weekly';
+        return 'once_weekly';
+      case 'twice_weekly':
+        return 'once_weekly'; // Legacy fallback for removed option
       default:
         return frequencies.any((f) => f['value'] == raw)
             ? raw
