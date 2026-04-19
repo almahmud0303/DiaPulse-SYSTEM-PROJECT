@@ -226,6 +226,17 @@ class _PatientAppointmentTile extends StatelessWidget {
                           color: Colors.grey.shade600,
                         ),
                       ),
+                      if (a.preferredConsultationAt != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Preferred consult: ${dateFmt.format(a.preferredConsultationAt!)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blueGrey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

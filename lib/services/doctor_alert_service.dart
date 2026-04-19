@@ -1,7 +1,9 @@
 import 'package:dia_plus/models/doctor_alert.dart';
+import 'package:dia_plus/services/emergency_notification_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:dia_plus/services/glucose_reading_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Threshold (mg/dL) above which a reading is considered "very high" for alerts.
 const int kVeryHighGlucoseThreshold = 200;
@@ -18,17 +20,21 @@ class DoctorAlertService {
   final DoctorPatientService _patientService = DoctorPatientService();
   final GlucoseReadingService _glucoseService = GlucoseReadingService();
   final MedicineService _medicineService = MedicineService();
+  final EmergencyNotificationService _notificationService =
+      EmergencyNotificationService();
+  static const String _notifiedKey = 'doctor_alert_notified_v1';
+  static const int _maxStoredAlertKeys = 300;
 
   /// Returns all alerts (critical/very high glucose in last [kAlertLookbackDays] days,
   /// and missed medicine entries in the same period), sorted by timestamp descending.
-  Future<List<DoctorAlert>> getAlerts() async {
+  Future<List<DoctorAlert>> getAlerts({required String doctorId}) async {
     final alerts = <DoctorAlert>[];
     final now = DateTime.now();
     final start = now.subtract(Duration(days: kAlertLookbackDays));
     final fromDate = _formatDate(start);
     final toDate = _formatDate(now);
 
-    final patients = await _patientService.getPatients();
+    final patients = await _patientService.getMyPatientsForDoctor(doctorId);
     for (final patient in patients) {
       // Glucose alerts in lookback period.
       final readings = await _glucoseService.getReadingsByDateRange(
@@ -102,6 +108,41 @@ class DoctorAlertService {
 
     alerts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return alerts;
+  }
+
+  Future<void> notifyNewHighGlucoseAlerts(List<DoctorAlert> alerts) async {
+    if (alerts.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList(_notifiedKey) ?? <String>[];
+    final seen = stored.toSet();
+    final next = List<String>.from(stored);
+
+    for (final alert in alerts) {
+      if (alert.type != DoctorAlertType.veryHighSugar) {
+        continue;
+      }
+      final key = _alertKey(alert);
+      if (seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
+      next.add(key);
+      await _notificationService.showDoctorAlertNotification(
+        title: '${alert.patientName}: ${alert.title}',
+        message: alert.message,
+        uniqueId: key,
+      );
+    }
+
+    if (next.length > _maxStoredAlertKeys) {
+      next.removeRange(0, next.length - _maxStoredAlertKeys);
+    }
+    await prefs.setStringList(_notifiedKey, next);
+  }
+
+  String _alertKey(DoctorAlert alert) {
+    final glucosePart = alert.glucoseValue?.toStringAsFixed(0) ?? 'na';
+    return '${alert.patientId}:${alert.type.name}:${alert.timestamp.millisecondsSinceEpoch}:$glucosePart';
   }
 
   static String _formatDate(DateTime d) {

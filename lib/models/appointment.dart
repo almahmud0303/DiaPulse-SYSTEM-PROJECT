@@ -40,6 +40,7 @@ class Appointment {
     required this.doctorId,
     required this.status,
     required this.requestedAt,
+    this.preferredConsultationAt,
     this.patientName,
     this.doctorName,
     this.message,
@@ -51,6 +52,7 @@ class Appointment {
   final String doctorId;
   final AppointmentStatus status;
   final DateTime requestedAt;
+  final DateTime? preferredConsultationAt;
   final String? patientName;
   final String? doctorName;
   final String? message;
@@ -63,11 +65,28 @@ class Appointment {
       'doctorId': doctorId,
       'status': status.value,
       'requestedAt': requestedAt.toIso8601String(),
+      if (preferredConsultationAt != null)
+        'preferredConsultationAt': preferredConsultationAt!.toIso8601String(),
       if (patientName != null) 'patientName': patientName,
       if (doctorName != null) 'doctorName': doctorName,
       if (message != null && message!.isNotEmpty) 'message': message,
       if (respondedAt != null) 'respondedAt': respondedAt!.toIso8601String(),
     };
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    try {
+      final dynamic ts = (value as dynamic).toDate?.call();
+      if (ts is DateTime) return ts;
+    } catch (_) {
+      // Fall through to null.
+    }
+    return null;
   }
 
   factory Appointment.fromMap(Map<String, dynamic> map) {
@@ -77,14 +96,13 @@ class Appointment {
       doctorId: map['doctorId'] as String,
       status: AppointmentStatus.fromString(map['status'] as String?) ??
           AppointmentStatus.requested,
-      requestedAt: DateTime.tryParse(map['requestedAt'] as String? ?? '') ??
+        requestedAt: _parseDateTime(map['requestedAt']) ??
           DateTime.now(),
+        preferredConsultationAt: _parseDateTime(map['preferredConsultationAt']),
       patientName: map['patientName'] as String?,
       doctorName: map['doctorName'] as String?,
       message: map['message'] as String?,
-      respondedAt: map['respondedAt'] != null
-          ? DateTime.tryParse(map['respondedAt'] as String)
-          : null,
+        respondedAt: _parseDateTime(map['respondedAt']),
     );
   }
 }

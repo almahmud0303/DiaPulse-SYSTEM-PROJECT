@@ -2,6 +2,7 @@ import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
 import 'package:dia_plus/models/patient_risk.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,7 @@ class DoctorMonitoringDashboardPage extends StatefulWidget {
 
 class _DoctorMonitoringDashboardPageState
     extends State<DoctorMonitoringDashboardPage> {
+  final AuthService _authService = AuthService();
   final DoctorPatientService _service = DoctorPatientService();
   List<AppUser> _patients = [];
   List<PatientRisk?> _risks = [];
@@ -39,16 +41,21 @@ class _DoctorMonitoringDashboardPageState
       _latestReadings = {};
     });
     try {
-      final list = await _service.getPatients();
+      final me = await _authService.getAppUser();
+      if (me == null || !me.isDoctor) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Doctor account required';
+          _loading = false;
+        });
+        return;
+      }
+
+      final list = await _service.getMyPatientsForDoctor(me.uid);
       final risks = await Future.wait(
         list.map((p) => _service.getPatientRisk(p.uid)),
       );
-      if (!mounted) return;
-      setState(() {
-        _patients = list;
-        _risks = risks;
-      });
-      // Load latest readings for patients that appear in high-risk or poor-control
+      // Load latest readings for patients that appear in high-risk or poor-control.
       final highRiskIds = <String>{};
       for (var i = 0; i < list.length; i++) {
         final r = i < risks.length ? risks[i] : null;
@@ -69,6 +76,8 @@ class _DoctorMonitoringDashboardPageState
       if (!mounted) return;
       setState(() {
         _latestReadings = latestMap;
+        _patients = list;
+        _risks = risks;
         _loading = false;
       });
     } catch (e) {

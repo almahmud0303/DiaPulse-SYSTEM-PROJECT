@@ -189,8 +189,9 @@ class _DiabetesEssentialsPageState extends State<DiabetesEssentialsPage> {
   IconData _iconForSection(String section) {
     final s = section.toLowerCase().trim();
     if (s.contains('understanding')) return Icons.school_outlined;
-    if (s.contains('diet') || s.contains('nutrition'))
+    if (s.contains('diet') || s.contains('nutrition')) {
       return Icons.restaurant_menu;
+    }
     if (s.contains('exercise')) return Icons.fitness_center;
     if (s.contains('medication')) return Icons.medication_outlined;
     return Icons.info_outline;
@@ -200,8 +201,9 @@ class _DiabetesEssentialsPageState extends State<DiabetesEssentialsPage> {
     final value = (rawSection ?? '').trim().toLowerCase();
     if (value.isEmpty) return 'Other';
     if (value.contains('understanding')) return 'Understanding Diabetes';
-    if (value.contains('diet') || value.contains('nutrition'))
+    if (value.contains('diet') || value.contains('nutrition')) {
       return 'Diet and Nutrition';
+    }
     if (value.contains('exercise')) return 'Exercise Tips';
     if (value.contains('medication')) return 'Medication Guide';
     return 'Other';

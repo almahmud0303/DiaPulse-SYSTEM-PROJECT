@@ -3,6 +3,7 @@ import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/audit_log_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,6 +23,10 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
+
+  bool get _allowDevEmailBypass =>
+      kDebugMode &&
+      const bool.fromEnvironment('BYPASS_EMAIL_VERIFICATION', defaultValue: false);
 
   @override
   void dispose() {
@@ -43,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (!mounted) return;
       final user = _authService.currentUser;
-      if (user != null && !user.emailVerified) {
+      if (user != null && !user.emailVerified && !_allowDevEmailBypass) {
         try {
           await _auditLog.logLoginSuccess(
             emailVerified: false,
@@ -247,8 +252,9 @@ class _LoginPageState extends State<LoginPage> {
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty)
+                            if (v == null || v.trim().isEmpty) {
                               return 'Enter email';
+                            }
                             if (!v.contains('@')) return 'Enter a valid email';
                             return null;
                           },

@@ -149,11 +149,18 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
       );
       return;
     }
-    final bytes = await _buildPdfBytes();
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
-    );
+    try {
+      final bytes = await _buildPdfBytes();
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _addMedicineToThisPrescription() async {

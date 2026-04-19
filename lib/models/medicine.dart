@@ -21,6 +21,8 @@ class Medicine {
   final String userId;
   final String name;
   final String dosage;
+  final int? dosageValue;
+  final String? dosageUnit;
   final String time; // "09:00" or "after_lunch", "before_dinner", etc.
   /// Optional list of dose times/keys (e.g. ["after_breakfast","after_dinner"]).
   /// If present and non-empty, this is the source of truth for scheduling/display.
@@ -49,6 +51,8 @@ class Medicine {
     required this.userId,
     required this.name,
     required this.dosage,
+    this.dosageValue,
+    this.dosageUnit,
     required this.time,
     this.times,
     required this.frequency,
@@ -76,6 +80,8 @@ class Medicine {
       'userId': userId,
       'name': name,
       'dosage': dosage,
+      if (dosageValue != null) 'dosageValue': dosageValue,
+      if (dosageUnit != null && dosageUnit!.isNotEmpty) 'dosageUnit': dosageUnit,
       // Keep legacy single 'time' field for backward compatibility and simple queries.
       'time': effective.first,
       if (effective.length > 1) 'times': effective,
@@ -102,11 +108,20 @@ class Medicine {
     final rawId = map['id'];
     final idStr = rawId == null ? '' : rawId.toString().trim();
     final id = idStr.isNotEmpty ? idStr : (documentId ?? '');
+    final parsedDosage = parseDosage(map['dosage'] as String? ?? '');
+    final parsedDosageValue = _parseDosageValue(map['dosageValue']) ?? parsedDosage.$1;
+    final parsedDosageUnit = _parseDosageUnit(map['dosageUnit']) ?? parsedDosage.$2;
     return Medicine(
       id: id,
       userId: map['userId'] == null ? '' : map['userId'].toString(),
       name: map['name'] as String? ?? '',
-      dosage: map['dosage'] as String? ?? '',
+      dosage: normalizeDosage(
+        rawDosage: map['dosage'] as String? ?? '',
+        dosageValue: parsedDosageValue,
+        dosageUnit: parsedDosageUnit,
+      ),
+      dosageValue: parsedDosageValue,
+      dosageUnit: parsedDosageUnit,
       time: time,
       // If 'times' exists but legacy 'time' isn't included, prepend it so older docs still behave.
       times: times != null
@@ -120,6 +135,53 @@ class Medicine {
       adjustmentInstructions: map['adjustmentInstructions'] as String?,
       mealOffsetMinutes: _parseMealOffsetMinutes(map['mealOffsetMinutes']),
     );
+  }
+
+  static int? _parseDosageValue(dynamic raw) {
+    if (raw is int) return raw > 0 ? raw : null;
+    if (raw is num) {
+      final v = raw.toInt();
+      return v > 0 ? v : null;
+    }
+    final s = raw?.toString().trim();
+    if (s == null || s.isEmpty) return null;
+    final v = int.tryParse(s);
+    return (v != null && v > 0) ? v : null;
+  }
+
+  static String? _parseDosageUnit(dynamic raw) {
+    final s = raw?.toString().trim();
+    if (s == null || s.isEmpty) return null;
+    return s;
+  }
+
+  /// Parses a legacy dosage string into (amount, unit) when possible.
+  static (int?, String?) parseDosage(String rawDosage) {
+    final text = rawDosage.trim();
+    if (text.isEmpty) return (null, null);
+    final match = RegExp(r'^(\d+)\s*(.*)$').firstMatch(text);
+    if (match == null) return (null, text);
+    final value = int.tryParse(match.group(1)!);
+    if (value == null || value <= 0) return (null, text);
+    final unit = (match.group(2) ?? '').trim();
+    return (value, unit.isEmpty ? null : unit);
+  }
+
+  static String buildDosageText(int value, String unit) {
+    final trimmedUnit = unit.trim();
+    if (trimmedUnit.isEmpty) return '$value';
+    return '$value $trimmedUnit';
+  }
+
+  static String normalizeDosage({
+    required String rawDosage,
+    int? dosageValue,
+    String? dosageUnit,
+  }) {
+    if (dosageValue != null && dosageValue > 0 && dosageUnit != null && dosageUnit.trim().isNotEmpty) {
+      return buildDosageText(dosageValue, dosageUnit);
+    }
+    return rawDosage.trim();
   }
 
   static int _parseMealOffsetMinutes(dynamic raw) {

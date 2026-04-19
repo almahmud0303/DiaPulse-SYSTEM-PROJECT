@@ -43,12 +43,12 @@ class PdfPreviewPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share_outlined),
             tooltip: 'Share PDF',
-            onPressed: () => _sharePdf(),
+            onPressed: () => _sharePdf(context),
           ),
           IconButton(
             icon: const Icon(Icons.print_outlined),
             tooltip: 'Print PDF',
-            onPressed: () => _printPdf(),
+            onPressed: () => _printPdf(context),
           ),
         ],
       ),
@@ -91,11 +91,31 @@ class PdfPreviewPage extends StatelessWidget {
     );
   }
 
-  Future<void> _sharePdf() async {
-    await Printing.sharePdf(bytes: pdfBytes, filename: _fileName);
+  Future<void> _sharePdf(BuildContext context) async {
+    try {
+      await Printing.sharePdf(bytes: pdfBytes, filename: _fileName);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to share PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  Future<void> _printPdf() async {
-    await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: _fileName);
+  Future<void> _printPdf(BuildContext context) async {
+    try {
+      await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: _fileName);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to print PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

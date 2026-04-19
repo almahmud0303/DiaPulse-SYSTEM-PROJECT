@@ -92,7 +92,7 @@ class DoctorPatientService {
     for (final v in levels) {
       if (v < 70) {
         lowCount++;
-      } else if (v > 200) {
+      } else if (v >= 200) {
         veryHighCount++;
       } else if (v > 140) {
         highCount++;
