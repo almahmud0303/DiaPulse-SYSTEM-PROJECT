@@ -88,6 +88,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     {'value': 'once_daily', 'label': 'Once daily'},
     {'value': 'twice_daily', 'label': 'Twice daily'},
     {'value': 'thrice_daily', 'label': 'Thrice daily'},
+    {'value': 'once_weekly', 'label': '1 weekly'},
     {'value': 'twice_weekly', 'label': '2 weekly (twice a week)'},
   ];
 
