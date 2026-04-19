@@ -363,79 +363,140 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
     final name = doctor.displayName.isNotEmpty
         ? doctor.displayName
         : doctor.email;
+    final noteController = TextEditingController();
+    var selectedDateTime = DateTime.now().add(const Duration(hours: 1));
+    String? validationError;
+
+    Future<void> pickDateTime(StateSetter setDialogState) async {
+      final now = DateTime.now();
+      final initialDate = selectedDateTime.isBefore(now) ? now : selectedDateTime;
+      final pickedDate = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: now,
+        lastDate: now.add(const Duration(days: 120)),
+      );
+      if (pickedDate == null) return;
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+      );
+      if (pickedTime == null) return;
+      setDialogState(() {
+        selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        validationError = null;
+      });
+    }
+
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Book appointment with $name'),
-        content: const SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Request an appointment. The doctor will accept or reject.'),
-              SizedBox(height: 16),
-              ListTile(
-                leading: Icon(Icons.video_call, color: Colors.purple),
-                title: Text('Video call'),
-                subtitle: Text('30 min session'),
-              ),
-              ListTile(
-                leading: Icon(Icons.chat, color: Colors.teal),
-                title: Text('Chat'),
-                subtitle: Text('Text-based consultation'),
-              ),
-              ListTile(
-                leading: Icon(Icons.phone, color: Colors.green),
-                title: Text('Phone call'),
-                subtitle: Text('Schedule a call back'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogContext);
-              if (_currentUser == null) return;
-              try {
-                await _appointmentService.createRequest(
-                  patientId: _currentUser!.uid,
-                  doctorId: doctor.uid,
-                  patientName: _currentUser!.displayName.isNotEmpty
-                      ? _currentUser!.displayName
-                      : _currentUser!.email,
-                  doctorName: name,
-                );
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Appointment request sent to $name. You will be notified when they respond.',
-                    ),
-                    backgroundColor: Colors.green,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Book appointment with $name'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Choose your preferred consultation date and time. The doctor will accept or reject.',
+                ),
+                const SizedBox(height: 14),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.event, color: Colors.blue),
+                  title: const Text('Preferred consultation'),
+                  subtitle: Text(
+                    DateFormat('EEE, MMM d, y • HH:mm').format(selectedDateTime),
                   ),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to send request: $e'),
-                    backgroundColor: Colors.red,
+                  trailing: const Icon(Icons.edit_calendar),
+                  onTap: () => pickDateTime(setDialogState),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: noteController,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Note (optional)',
+                    hintText: 'Reason for consultation or preferred mode',
+                    border: OutlineInputBorder(),
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+                ),
+                if (validationError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    validationError!,
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                  ),
+                ],
+              ],
             ),
-            child: const Text('Send request'),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () {
+                noteController.dispose();
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (selectedDateTime.isBefore(DateTime.now())) {
+                  setDialogState(() {
+                    validationError = 'Please choose a future date and time.';
+                  });
+                  return;
+                }
+                if (_currentUser == null) return;
+                try {
+                  await _appointmentService.createRequest(
+                    patientId: _currentUser!.uid,
+                    doctorId: doctor.uid,
+                    preferredConsultationAt: selectedDateTime,
+                    patientName: _currentUser!.displayName.isNotEmpty
+                        ? _currentUser!.displayName
+                        : _currentUser!.email,
+                    doctorName: name,
+                    message: noteController.text.trim().isEmpty
+                        ? null
+                        : noteController.text.trim(),
+                  );
+                  noteController.dispose();
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Appointment request sent to $name for ${DateFormat('MMM d, y • HH:mm').format(selectedDateTime)}.',
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to send request: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Send request'),
+            ),
+          ],
+        ),
       ),
     );
   }

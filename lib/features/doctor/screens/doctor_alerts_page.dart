@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/doctor_alert.dart';
+import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_alert_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class DoctorAlertsPage extends StatefulWidget {
 }
 
 class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
+  final AuthService _authService = AuthService();
   final DoctorAlertService _alertService = DoctorAlertService();
   final DoctorPatientService _patientService = DoctorPatientService();
   List<DoctorAlert> _alerts = [];
@@ -34,7 +36,18 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
       _error = null;
     });
     try {
-      final list = await _alertService.getAlerts();
+      final me = await _authService.getAppUser();
+      if (me == null || !me.isDoctor) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Doctor account required';
+          _loading = false;
+        });
+        return;
+      }
+
+      final list = await _alertService.getAlerts(doctorId: me.uid);
+      await _alertService.notifyNewHighGlucoseAlerts(list);
       if (!mounted) return;
       setState(() {
         _alerts = list;

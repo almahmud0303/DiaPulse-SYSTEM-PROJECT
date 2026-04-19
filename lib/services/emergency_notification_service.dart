@@ -121,6 +121,38 @@ class EmergencyNotificationService {
     );
   }
 
+  Future<void> showDoctorAlertNotification({
+    required String title,
+    required String message,
+    required String uniqueId,
+  }) async {
+    await initialize();
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _simulationChannel.id,
+        _simulationChannel.name,
+        channelDescription: _simulationChannel.description,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+      ),
+    );
+
+    await _plugin.show(
+      _buildNotificationId(uniqueId),
+      title,
+      message,
+      details,
+      payload: uniqueId,
+    );
+  }
+
   Future<void> showTestEmergency(EmergencyAlertType type) async {
     await initialize();
 

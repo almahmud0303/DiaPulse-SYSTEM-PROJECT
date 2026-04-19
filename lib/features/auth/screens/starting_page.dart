@@ -1,5 +1,6 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/services/auth_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// First screen when user opens the app. Offers Login and Registration.
@@ -15,6 +16,10 @@ class _StartingPageState extends State<StartingPage> {
   final _authService = AuthService();
   bool _checkingAuth = true;
 
+  bool get _allowDevEmailBypass =>
+      kDebugMode &&
+      const bool.fromEnvironment('BYPASS_EMAIL_VERIFICATION', defaultValue: false);
+
   @override
   void initState() {
     super.initState();
@@ -27,7 +32,7 @@ class _StartingPageState extends State<StartingPage> {
       if (mounted) setState(() => _checkingAuth = false);
       return;
     }
-    if (!user.emailVerified) {
+    if (!user.emailVerified && !_allowDevEmailBypass) {
       if (mounted) setState(() => _checkingAuth = false);
       return;
     }

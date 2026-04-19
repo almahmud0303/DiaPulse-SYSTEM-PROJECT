@@ -12,6 +12,7 @@ class AppointmentService {
   Future<void> createRequest({
     required String patientId,
     required String doctorId,
+    required DateTime preferredConsultationAt,
     String? patientName,
     String? doctorName,
     String? message,
@@ -23,6 +24,7 @@ class AppointmentService {
       doctorId: doctorId,
       status: AppointmentStatus.requested,
       requestedAt: DateTime.now(),
+      preferredConsultationAt: preferredConsultationAt,
       patientName: patientName,
       doctorName: doctorName,
       message: message,

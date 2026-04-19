@@ -36,7 +36,8 @@ class DoctorAddEditPrescriptionPage extends StatefulWidget {
 class _PrescriptionDraftItem {
   const _PrescriptionDraftItem({
     required this.name,
-    required this.dosage,
+    required this.dosageValue,
+    required this.dosageUnit,
     required this.frequency,
     required this.times,
     required this.isInsulin,
@@ -46,13 +47,16 @@ class _PrescriptionDraftItem {
   });
 
   final String name;
-  final String dosage;
+  final int dosageValue;
+  final String dosageUnit;
   final String frequency;
   final List<String> times;
   final bool isInsulin;
   final String? insulinType;
   final String? adjustmentInstructions;
   final int mealOffsetMinutes;
+
+  String get dosage => Medicine.buildDosageText(dosageValue, dosageUnit);
 
   bool get hasMealRelative => times.any(Medicine.isMealRelativeTime);
 }
@@ -70,7 +74,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   TimeOfDay _time1 = const TimeOfDay(hour: 9, minute: 0);
   String _whenToTake2 = 'specific';
   TimeOfDay _time2 = const TimeOfDay(hour: 19, minute: 0);
-  String _frequency = 'daily';
+  String _whenToTake3 = 'specific';
+  TimeOfDay _time3 = const TimeOfDay(hour: 22, minute: 0);
+  String _frequency = 'once_daily';
+  String _dosageUnit = 'tablet';
   int _mealOffsetMinutes = 30;
   bool _isInsulin = false;
   String _insulinType = 'rapid_acting';
@@ -78,9 +85,21 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   final List<_PrescriptionDraftItem> _draftItems = [];
 
   static const List<Map<String, String>> frequencies = [
-    {'value': 'daily', 'label': 'Once daily'},
+    {'value': 'once_daily', 'label': 'Once daily'},
     {'value': 'twice_daily', 'label': 'Twice daily'},
-    {'value': 'weekly', 'label': 'Weekly'},
+    {'value': 'thrice_daily', 'label': 'Thrice daily'},
+    {'value': 'once_weekly', 'label': 'Once a week'},
+    {'value': 'once_biweekly', 'label': 'Once every 2 weeks'},
+  ];
+
+  static const List<String> dosageUnits = [
+    'tablet',
+    'mg',
+    'spoon',
+    'capsule',
+    'drop',
+    'ml',
+    'unit',
   ];
 
   static const List<Map<String, String>> insulinTypes = [
@@ -91,18 +110,42 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     {'value': 'mixed', 'label': 'Mixed'},
   ];
 
+  String _normalizeFrequency(String raw) {
+    switch (raw) {
+      case 'daily':
+        return 'once_daily';
+      case 'weekly':
+        return 'once_weekly';
+      case 'twice_weekly':
+        return 'once_weekly'; // Legacy fallback for removed option
+      default:
+        return frequencies.any((f) => f['value'] == raw)
+            ? raw
+            : 'once_daily';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     final m = widget.medicine;
     if (m != null) {
       _nameController.text = m.name;
-      _dosageController.text = m.dosage;
-      _frequency = m.frequency;
+      final dosageParts = Medicine.parseDosage(m.dosage);
+      _dosageController.text =
+          ((m.dosageValue ?? dosageParts.$1) ?? 1).toString();
+      _dosageUnit = (m.dosageUnit ?? dosageParts.$2 ?? 'tablet').toLowerCase();
+      if (!dosageUnits.contains(_dosageUnit)) {
+        _dosageUnit = 'tablet';
+      }
+      _frequency = _normalizeFrequency(m.frequency);
       final times = m.effectiveTimes;
       _applyTimeToState(isSecond: false, value: times.isNotEmpty ? times.first : m.time);
       if (times.length > 1) {
         _applyTimeToState(isSecond: true, value: times[1]);
+      }
+      if (times.length > 2) {
+        _applyTimeToState(isThird: true, value: times[2]);
       }
       _isInsulin = m.isInsulin;
       _insulinType = m.insulinType ?? 'rapid_acting';
@@ -129,9 +172,16 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     if (picked != null) setState(() => _time2 = picked);
   }
 
-  void _applyTimeToState({required bool isSecond, required String value}) {
+  Future<void> _pickTime3() async {
+    final picked = await showTimePicker(context: context, initialTime: _time3);
+    if (picked != null) setState(() => _time3 = picked);
+  }
+
+  void _applyTimeToState({bool isSecond = false, bool isThird = false, required String value}) {
     if (Medicine.isMealRelativeTime(value)) {
-      if (isSecond) {
+      if (isThird) {
+        _whenToTake3 = value;
+      } else if (isSecond) {
         _whenToTake2 = value;
       } else {
         _whenToTake1 = value;
@@ -145,7 +195,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             minute: int.tryParse(parts[1]) ?? 0,
           )
         : const TimeOfDay(hour: 9, minute: 0);
-    if (isSecond) {
+    if (isThird) {
+      _whenToTake3 = 'specific';
+      _time3 = t;
+    } else if (isSecond) {
       _whenToTake2 = 'specific';
       _time2 = t;
     } else {
@@ -159,27 +212,32 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
 
   String get _savedTime1 => _whenToTake1 == 'specific' ? _timeString(_time1) : _whenToTake1;
   String get _savedTime2 => _whenToTake2 == 'specific' ? _timeString(_time2) : _whenToTake2;
+  String get _savedTime3 => _whenToTake3 == 'specific' ? _timeString(_time3) : _whenToTake3;
 
   List<String> get _savedTimes {
     if (_frequency == 'twice_daily') {
       return [_savedTime1, _savedTime2];
     }
+    if (_frequency == 'thrice_daily') {
+      return [_savedTime1, _savedTime2, _savedTime3];
+    }
     return [_savedTime1];
   }
 
-  bool get _anyMealRelative =>
-      Medicine.isMealRelativeTime(_savedTime1) ||
-      (_frequency == 'twice_daily' && Medicine.isMealRelativeTime(_savedTime2));
+  bool get _anyMealRelative => _savedTimes.any(Medicine.isMealRelativeTime);
 
   void _resetForNext() {
     _nameController.clear();
     _dosageController.clear();
     _adjustmentInstructionsController.clear();
-    _frequency = 'daily';
+    _frequency = 'once_daily';
     _whenToTake1 = 'specific';
     _time1 = const TimeOfDay(hour: 9, minute: 0);
     _whenToTake2 = 'specific';
     _time2 = const TimeOfDay(hour: 19, minute: 0);
+    _whenToTake3 = 'specific';
+    _time3 = const TimeOfDay(hour: 22, minute: 0);
+    _dosageUnit = 'tablet';
     _isInsulin = false;
     _insulinType = 'rapid_acting';
     _mealOffsetMinutes = 30;
@@ -192,9 +250,11 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
 
   _PrescriptionDraftItem _buildDraftFromForm() {
     final times = _savedTimes;
+    final dosageValue = int.parse(_dosageController.text.trim());
     return _PrescriptionDraftItem(
       name: _nameController.text.trim(),
-      dosage: _dosageController.text.trim(),
+      dosageValue: dosageValue,
+      dosageUnit: _dosageUnit,
       frequency: _frequency,
       times: times,
       isInsulin: _isInsulin,
@@ -394,15 +454,22 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
       );
       return;
     }
-    final bytes = await _buildPrescriptionPdfBytes(
-      patient: widget.patient,
-      items: items,
-      includeDraftCount: true,
-    );
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
-    );
+    try {
+      final bytes = await _buildPrescriptionPdfBytes(
+        patient: widget.patient,
+        items: items,
+        includeDraftCount: true,
+      );
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _showAfterSaveDialog(Prescription prescription, {required int savedCount}) async {
@@ -480,8 +547,15 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             );
           }
           doc.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(32), build: (_) => [header(), pw.SizedBox(height: 16), table()]));
-          final bytes = await doc.save();
-          await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'prescription_${widget.patient.uid}.pdf');
+          try {
+            final bytes = await doc.save();
+            await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'prescription_${widget.patient.uid}.pdf');
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red),
+            );
+          }
         }
         Navigator.pop(context, true);
         break;
@@ -510,7 +584,12 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
           id: existing.id,
           userId: patient.uid,
           name: _nameController.text.trim(),
-          dosage: _dosageController.text.trim(),
+          dosage: Medicine.buildDosageText(
+            int.parse(_dosageController.text.trim()),
+            _dosageUnit,
+          ),
+          dosageValue: int.parse(_dosageController.text.trim()),
+          dosageUnit: _dosageUnit,
           time: times.first,
           times: times.length > 1 ? times : null,
           frequency: _frequency,
@@ -545,6 +624,8 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             userId: patient.uid,
             name: item.name,
             dosage: item.dosage,
+            dosageValue: item.dosageValue,
+            dosageUnit: item.dosageUnit,
             time: times.first,
             times: times.length > 1 ? times : null,
             frequency: item.frequency,
@@ -754,12 +835,36 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
               const SizedBox(height: 16),
               TextFormField(
                 controller: _dosageController,
+                keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Dosage',
-                  hintText: 'e.g. 5mg, 1 tablet',
+                  labelText: 'Dosage amount',
+                  hintText: 'Enter an integer (e.g. 1, 2, 10)',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Required';
+                  final n = int.tryParse(v.trim());
+                  if (n == null || n <= 0) {
+                    return 'Enter a valid positive integer';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _dosageUnit,
+                decoration: const InputDecoration(
+                  labelText: 'Dosage unit',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.straighten),
+                ),
+                items: dosageUnits
+                    .map((u) => DropdownMenuItem<String>(
+                          value: u,
+                          child: Text(u),
+                        ))
+                    .toList(),
+                onChanged: (v) => setState(() => _dosageUnit = v ?? 'tablet'),
               ),
               const SizedBox(height: 16),
               const Text('When to take', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -779,6 +884,24 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                   onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
                   timeText: _timeString(_time2),
                   onPickTime: _pickTime2,
+                ),
+              ],
+              if (_frequency == 'thrice_daily') ...[
+                const SizedBox(height: 12),
+                _dosePicker(
+                  label: 'Dose 2',
+                  whenValue: _whenToTake2,
+                  onWhenChanged: (v) => setState(() => _whenToTake2 = v ?? 'specific'),
+                  timeText: _timeString(_time2),
+                  onPickTime: _pickTime2,
+                ),
+                const SizedBox(height: 12),
+                _dosePicker(
+                  label: 'Dose 3',
+                  whenValue: _whenToTake3,
+                  onWhenChanged: (v) => setState(() => _whenToTake3 = v ?? 'specific'),
+                  timeText: _timeString(_time3),
+                  onPickTime: _pickTime3,
                 ),
               ],
               if (_anyMealRelative) ...[
