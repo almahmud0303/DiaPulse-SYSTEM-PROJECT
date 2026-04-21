@@ -2,6 +2,7 @@ import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/admin/screens/admin_home_page.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_home_page.dart';
+import 'package:dia_plus/features/doctor/screens/doctor_appointments_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_home_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_profile_section_page.dart';
 import 'package:dia_plus/features/patient/screens/history_page.dart';
@@ -123,12 +124,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       homePage,
       user.isPatient
           ? const ReadingsPage()
-          : Center(
-              child: Text(
-                'Data',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
+          : const DoctorAppointmentsPage(),
       user.isPatient
           ? const HistoryPage()
           : const Center(child: Text('History - Coming Soon')),
@@ -194,10 +190,14 @@ class _NavScaffoldState extends State<_NavScaffold> {
                 activeIcon: Icon(Icons.dashboard_rounded),
                 label: 'Dashboard',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.analytics_outlined),
-                activeIcon: Icon(Icons.analytics_rounded),
-                label: 'Readings',
+              BottomNavigationBarItem(
+                icon: Icon(
+                  widget.user.isPatient ? Icons.analytics_outlined : Icons.schedule_outlined,
+                ),
+                activeIcon: Icon(
+                  widget.user.isPatient ? Icons.analytics_rounded : Icons.schedule,
+                ),
+                label: widget.user.isPatient ? 'Readings' : 'Schedule',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.history_outlined),

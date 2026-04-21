@@ -25,6 +25,14 @@ class ReminderNotificationService {
   bool _timezoneInitialized = false;
   bool _initialized = false;
 
+  /// Local scheduled notifications are not supported by this app's web runtime.
+  bool get isSchedulingSupported => !kIsWeb;
+
+  Future<bool> _areNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('notificationsEnabled') ?? true;
+  }
+
   /// Android setup note:
   /// Ensure a channel is created and Android 13+ notification permission is requested.
   /// If exact alarms are used later, add require5 exact alarm permissions in AndroidManifest.
@@ -39,6 +47,11 @@ class ReminderNotificationService {
       tz.initializeTimeZones();
       await _configureLocalTimezone();
       _timezoneInitialized = true;
+    }
+
+    if (!isSchedulingSupported) {
+      _initialized = true;
+      return;
     }
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -73,6 +86,10 @@ class ReminderNotificationService {
   Future<bool> requestPermissions() async {
     await initialize();
 
+    if (!isSchedulingSupported) {
+      return true;
+    }
+
     final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -101,6 +118,14 @@ class ReminderNotificationService {
     await initialize();
 
     if (!reminder.isEnabled) {
+      return reminder.copyWith(notificationIds: const []);
+    }
+
+    if (!isSchedulingSupported) {
+      return reminder.copyWith(notificationIds: const []);
+    }
+
+    if (!await _areNotificationsEnabled()) {
       return reminder.copyWith(notificationIds: const []);
     }
 
@@ -213,6 +238,9 @@ class ReminderNotificationService {
 
   Future<void> cancelReminderNotifications(List<int> notificationIds) async {
     await initialize();
+    if (!isSchedulingSupported) {
+      return;
+    }
     for (final id in notificationIds) {
       await _plugin.cancel(id);
     }
@@ -220,16 +248,39 @@ class ReminderNotificationService {
 
   Future<void> cancelAllScheduled() async {
     await initialize();
+    if (!isSchedulingSupported) {
+      return;
+    }
     await _plugin.cancelAll();
   }
 
   /// Returns the list of pending notification requests from the OS.
   Future<List<PendingNotificationRequest>> getPendingRequests() async {
-    return await _plugin.pendingNotificationRequests();
+    await initialize();
+    if (!isSchedulingSupported) {
+      return const [];
+    }
+    if (!await _areNotificationsEnabled()) {
+      return const [];
+    }
+    try {
+      return await _plugin.pendingNotificationRequests();
+    } catch (e) {
+      debugPrint('[ReminderSchedule] failed to read pending requests: $e');
+      return const [];
+    }
   }
 
   Future<void> showTestNotification() async {
     await initialize();
+    if (!isSchedulingSupported) {
+      debugPrint('[ReminderSchedule] test notification skipped (unsupported platform)');
+      return;
+    }
+    if (!await _areNotificationsEnabled()) {
+      debugPrint('[ReminderSchedule] test notification skipped (notifications disabled)');
+      return;
+    }
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         'diapulse_reminders_channel',
@@ -258,6 +309,13 @@ class ReminderNotificationService {
     MealRoutine? mealRoutine,
   }) async {
     await initialize();
+    if (!isSchedulingSupported) {
+      return;
+    }
+    if (!await _areNotificationsEnabled()) {
+      await cancelMedicineReminders();
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final previousIds = prefs.getStringList(_scheduledMedicineIdsKey);
     if (previousIds != null) {
@@ -362,6 +420,9 @@ class ReminderNotificationService {
   /// Cancels all scheduled medicine-time notifications.
   Future<void> cancelMedicineReminders() async {
     await initialize();
+    if (!isSchedulingSupported) {
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final ids = prefs.getStringList(_scheduledMedicineIdsKey);
     if (ids != null) {

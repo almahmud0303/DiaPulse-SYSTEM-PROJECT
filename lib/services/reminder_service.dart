@@ -23,8 +23,15 @@ class ReminderService {
     }
 
     await _notificationService.initialize();
-    await _reconcileSchedulesWithStorage();
+    if (_notificationService.isSchedulingSupported) {
+      await _reconcileSchedulesWithStorage();
+    }
     _initialized = true;
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _notificationService.cancelAllScheduled();
+    await _notificationService.cancelMedicineReminders();
   }
 
   Future<List<Reminder>> getAllReminders() async {
@@ -119,6 +126,11 @@ class ReminderService {
   Future<void> updateSettings(ReminderSettings settings) async {
     await _storageService.saveSettings(settings);
 
+    if (!settings.allRemindersEnabled) {
+      await cancelAllNotifications();
+      return;
+    }
+
     final reminders = await _storageService.getReminders();
     final updated = <Reminder>[];
 
@@ -145,9 +157,6 @@ class ReminderService {
 
     await _storageService.saveReminders(updated);
 
-    if (!settings.allRemindersEnabled) {
-      await _notificationService.cancelAllScheduled();
-    }
   }
 
   Future<bool> requestNotificationPermissions() {

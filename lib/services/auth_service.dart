@@ -3,6 +3,7 @@ import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/user_role.dart';
 import 'package:dia_plus/services/invite_access_request_service.dart';
 import 'package:dia_plus/services/role_service.dart';
+import 'package:dia_plus/services/reminder_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Handles Firebase Authentication and user info in Firestore.
@@ -12,6 +13,7 @@ class AuthService {
   final RoleService _roleService = RoleService();
   final InviteAccessRequestService _inviteAccessRequestService =
       InviteAccessRequestService();
+  final ReminderService _reminderService = ReminderService();
 
   User? get currentUser => _auth.currentUser;
 
@@ -182,6 +184,7 @@ class AuthService {
 
   /// Sign out.
   Future<void> signOut() async {
+    await _reminderService.cancelAllNotifications();
     await _auth.signOut();
   }
 
