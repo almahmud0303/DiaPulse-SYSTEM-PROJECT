@@ -6,6 +6,7 @@ import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
 import 'package:dia_plus/features/shared/screens/reminder_settings_page.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/services/auth_service.dart';
+import 'package:dia_plus/services/reminder_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _nameController = TextEditingController();
   final _initialsController = TextEditingController();
   final _authService = AuthService();
+  final _reminderService = ReminderService();
   AppUser? _currentUser;
 
   bool _notificationsEnabled = true;
@@ -56,6 +58,10 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs.setString('userInitials', _initialsController.text);
     await prefs.setBool('notificationsEnabled', _notificationsEnabled);
     await prefs.setBool('darkModeEnabled', _darkModeEnabled);
+
+    if (!_notificationsEnabled) {
+      await _reminderService.cancelAllNotifications();
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

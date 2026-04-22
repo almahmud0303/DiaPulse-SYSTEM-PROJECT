@@ -1,6 +1,7 @@
 import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:dia_plus/services/reminder_notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class EmergencyNotificationService {
@@ -31,6 +32,11 @@ class EmergencyNotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
 
   bool _initialized = false;
+
+  Future<bool> _areNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('notificationsEnabled') ?? true;
+  }
 
   Future<void> initialize() async {
     if (_initialized) {
@@ -67,6 +73,9 @@ class EmergencyNotificationService {
     bool vibrationEnabled = true,
   }) async {
     await initialize();
+    if (!await _areNotificationsEnabled()) {
+      return;
+    }
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -101,6 +110,9 @@ class EmergencyNotificationService {
     required String message,
   }) async {
     await initialize();
+    if (!await _areNotificationsEnabled()) {
+      return;
+    }
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -127,6 +139,9 @@ class EmergencyNotificationService {
     required String uniqueId,
   }) async {
     await initialize();
+    if (!await _areNotificationsEnabled()) {
+      return;
+    }
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -155,6 +170,9 @@ class EmergencyNotificationService {
 
   Future<void> showTestEmergency(EmergencyAlertType type) async {
     await initialize();
+    if (!await _areNotificationsEnabled()) {
+      return;
+    }
 
     final title = type == EmergencyAlertType.criticalLow
         ? 'Critical Low Glucose Alert'
