@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/consultation_note.dart';
 import 'package:dia_plus/services/consultation_note_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,6 +105,7 @@ class _DoctorAddEditConsultationNotePageState extends State<DoctorAddEditConsult
     final isEdit = widget.note != null;
     final df = DateFormat('MMM d, yyyy');
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: Text(isEdit ? 'Edit consultation note' : 'Add consultation note'),
         backgroundColor: Colors.blue,
@@ -130,13 +132,19 @@ class _DoctorAddEditConsultationNotePageState extends State<DoctorAddEditConsult
             children: [
               Text(
                 'Patient: ${widget.patient.displayName.isEmpty ? "—" : widget.patient.displayName}',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textSecondaryColor(context),
+                ),
               ),
               if (widget.note != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   'Created ${df.format(widget.note!.createdAt)}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
                 ),
               ],
               const SizedBox(height: 20),

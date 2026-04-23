@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/widgets/pattern_insight_card.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_pattern_insight.dart';
 import 'package:dia_plus/services/pattern_detection_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -176,7 +177,7 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Smart Insights'),
         actions: [
@@ -250,6 +251,7 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
       child: ActionChip(
         avatar: const Icon(Icons.date_range_outlined, size: 18),
         label: Text(_customRangeLabel()),
+        backgroundColor: AppTheme.surfaceAltColor(context),
         onPressed: _selectCustomRange,
       ),
     );
@@ -259,7 +261,7 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(child: CircularProgressIndicator()),
@@ -270,7 +272,7 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -281,7 +283,10 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
           Text(
             _error ?? 'Something went wrong.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+            style: TextStyle(
+              color: AppTheme.textSecondaryColor(context),
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
@@ -302,7 +307,7 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -318,7 +323,10 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            style: TextStyle(
+              color: AppTheme.textSecondaryColor(context),
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -336,7 +344,10 @@ class _PatternInsightsPageState extends State<PatternInsightsPage> {
         Text(
           'Please log in to view smart insights.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+          style: TextStyle(
+            fontSize: 16,
+            color: AppTheme.textSecondaryColor(context),
+          ),
         ),
       ],
     );

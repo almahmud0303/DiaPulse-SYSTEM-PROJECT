@@ -104,7 +104,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: () => AppRouter.goToStart(context),
-                  icon: const Icon(Icons.login),
+                  icon: Icon(Icons.login),
                   label: const Text('Sign In'),
                 ),
               ],
@@ -177,9 +177,9 @@ class _NavScaffoldState extends State<_NavScaffold> {
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
-            backgroundColor: AppTheme.cardTintLavender,
+            backgroundColor: AppTheme.cardTintLavenderColor(context),
             selectedItemColor: AppTheme.primaryMint,
-            unselectedItemColor: AppTheme.textSecondary,
+            unselectedItemColor: AppTheme.textSecondaryColor(context),
             selectedLabelStyle: Theme.of(
               context,
             ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -286,7 +286,7 @@ class _BadgeIcon extends StatelessWidget {
               child: Text(
                 count > 99 ? '99+' : '$count',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -298,3 +298,4 @@ class _BadgeIcon extends StatelessWidget {
     );
   }
 }
+

@@ -73,7 +73,7 @@ class _HistoryStatCard extends StatelessWidget {
       width: cardWidth,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -97,10 +97,10 @@ class _HistoryStatCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
-          Text(title, style: const TextStyle(color: AppTheme.textSecondary)),
+          Text(title, style: TextStyle(color: AppTheme.textSecondaryColor(context))),
         ],
       ),
     );

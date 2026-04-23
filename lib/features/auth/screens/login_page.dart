@@ -26,7 +26,10 @@ class _LoginPageState extends State<LoginPage> {
 
   bool get _allowDevEmailBypass =>
       kDebugMode &&
-      const bool.fromEnvironment('BYPASS_EMAIL_VERIFICATION', defaultValue: false);
+      const bool.fromEnvironment(
+        'BYPASS_EMAIL_VERIFICATION',
+        defaultValue: false,
+      );
 
   @override
   void dispose() {
@@ -112,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reset Password'),
-        backgroundColor: AppTheme.cardTintLavender,
+        backgroundColor: AppTheme.cardTintLavenderColor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         content: Form(
           key: formKey,
@@ -193,9 +196,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppTheme.background, AppTheme.cardTintLavender],
+            colors: [
+              AppTheme.backgroundColor(context),
+              AppTheme.cardTintLavenderColor(context),
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -224,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     'Sign in to continue your wellness journey',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -232,7 +238,7 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppTheme.cardTintMint,
+                      color: AppTheme.cardTintMintColor(context),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: const [
                         BoxShadow(
@@ -265,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
+                            prefixIcon: Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword

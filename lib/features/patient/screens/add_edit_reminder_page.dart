@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/reminder.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/reminder_repeat_mode.dart';
 import 'package:dia_plus/models/reminder_type.dart';
 import 'package:dia_plus/services/reminder_service.dart';
@@ -212,7 +213,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
     final showDatePicker = _repeatMode != ReminderRepeatMode.selectedWeekdays;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: Text(widget.isEditMode ? 'Edit Reminder' : 'Add Reminder'),
       ),
@@ -241,7 +242,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
             const SizedBox(height: 6),
             Text(
               _typeDescription(_type),
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -277,6 +278,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
             const SizedBox(height: 12),
             if (showDatePicker)
               Card(
+                color: AppTheme.surfaceColor(context),
                 child: ListTile(
                   leading: const Icon(Icons.event_outlined),
                   title: const Text('Date'),
@@ -286,6 +288,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
               ),
             if (showDatePicker) const SizedBox(height: 10),
             Card(
+              color: AppTheme.surfaceColor(context),
               child: ListTile(
                 leading: const Icon(Icons.access_time_outlined),
                 title: const Text('Time'),

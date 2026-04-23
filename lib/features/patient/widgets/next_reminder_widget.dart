@@ -60,22 +60,22 @@ class NextReminderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final item = reminder;
     return Card(
-      color: AppTheme.cardTintLavender,
+      color: AppTheme.cardTintLavenderColor(context),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: item == null
-            ? const Text(
+            ? Text(
                 'No upcoming reminders',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -101,15 +101,15 @@ class NextReminderWidget extends StatelessWidget {
                           children: [
                             Text(
                               item.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
                             ),
                             Text(
                               item.reminderType.label,
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
+                              style: TextStyle(
+                                color: AppTheme.textSecondaryColor(context),
                               ),
                             ),
                           ],
@@ -121,13 +121,13 @@ class NextReminderWidget extends StatelessWidget {
                     const SizedBox(height: 10),
                     Text(
                       DateFormat('EEE, MMM d • hh:mm a').format(nextTrigger!),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ],
                   const SizedBox(height: 4),
                   Text(
                     _repeatText(item),
-                    style: const TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                   ),
                 ],
               ),

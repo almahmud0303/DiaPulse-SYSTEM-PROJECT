@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -20,12 +21,12 @@ class PdfBytesPreviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: Text(title),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.grey[800],
+        foregroundColor: AppTheme.textPrimaryColor(context),
         surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
@@ -52,7 +53,11 @@ class PdfBytesPreviewPage extends StatelessWidget {
         onError: (context, error) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Could not render PDF preview.\n\n$error'),
+            child: Text(
+              'Could not render PDF preview.\n\n$error',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textPrimaryColor(context)),
+            ),
           ),
         ),
       ),

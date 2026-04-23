@@ -42,7 +42,7 @@ class _PatientStepCardState extends State<PatientStepCard>
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: AppTheme.cardTintMint,
+      color: AppTheme.cardTintMintColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -62,9 +62,9 @@ class _PatientStepCardState extends State<PatientStepCard>
                     color: AppTheme.primaryMint.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.directions_walk_rounded,
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.textPrimaryColor(context),
                     size: 26,
                   ),
                 ),
@@ -84,9 +84,9 @@ class _PatientStepCardState extends State<PatientStepCard>
                 if (msg != null) {
                   return Text(
                     msg,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                       height: 1.35,
                     ),
                   );
@@ -100,7 +100,7 @@ class _PatientStepCardState extends State<PatientStepCard>
                       children: [
                         Text(
                           '$steps',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
@@ -109,9 +109,9 @@ class _PatientStepCardState extends State<PatientStepCard>
                         const SizedBox(width: 8),
                         Text(
                           'steps',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppTheme.textSecondary,
+                            color: AppTheme.textSecondaryColor(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -124,11 +124,11 @@ class _PatientStepCardState extends State<PatientStepCard>
             const SizedBox(height: 8),
             Text(
               'Uses your phone’s motion sensors. Carried in a pocket works best.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 height: 1.4,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
             ),
           ],

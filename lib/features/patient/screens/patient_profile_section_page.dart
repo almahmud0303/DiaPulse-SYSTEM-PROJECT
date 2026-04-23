@@ -16,7 +16,8 @@ class PatientProfileSectionPage extends StatefulWidget {
   final AppUser? user;
 
   @override
-  State<PatientProfileSectionPage> createState() => _PatientProfileSectionPageState();
+  State<PatientProfileSectionPage> createState() =>
+      _PatientProfileSectionPageState();
 }
 
 class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
@@ -76,7 +77,9 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
   void _openSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => SettingsPage(user: _user ?? widget.user)),
+      MaterialPageRoute(
+        builder: (_) => SettingsPage(user: _user ?? widget.user),
+      ),
     );
   }
 
@@ -97,13 +100,13 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
     final diabetesType = _stringOrNA(user.extra['diabetesType']);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
           IconButton(
             onPressed: _openSettings,
-            icon: const Icon(Icons.settings_outlined),
+            icon: Icon(Icons.settings_outlined),
             tooltip: 'Settings',
           ),
         ],
@@ -116,7 +119,7 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.cardTintMint,
+                color: AppTheme.cardTintMintColor(context),
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: const [
                   BoxShadow(
@@ -133,7 +136,7 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
                     backgroundColor: AppTheme.primaryMint,
                     child: Text(
                       user.initials,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
@@ -143,21 +146,23 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
                   const SizedBox(height: 12),
                   Text(
                     user.displayName.isEmpty ? 'N/A' : user.displayName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.textPrimaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user.email,
-                    style: const TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor(context),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _openEditor,
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: Icon(Icons.edit_outlined),
                     label: const Text('Edit Profile'),
                   ),
                 ],
@@ -167,11 +172,11 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.surfaceColor(context),
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x14000000),
+                    color: AppTheme.shadowColor(context),
                     blurRadius: 10,
                     offset: Offset(0, 5),
                   ),
@@ -180,12 +185,12 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Patient Information',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.textPrimaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -196,8 +201,14 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
                         ? 'N/A'
                         : DateFormat('MMMM d, yyyy').format(dateOfBirth),
                   ),
-                  _infoRow('Weight', weight == null ? 'N/A' : '${weight.toStringAsFixed(1)} kg'),
-                  _infoRow('Height', height == null ? 'N/A' : '${height.toStringAsFixed(1)} cm'),
+                  _infoRow(
+                    'Weight',
+                    weight == null ? 'N/A' : '${weight.toStringAsFixed(1)} kg',
+                  ),
+                  _infoRow(
+                    'Height',
+                    height == null ? 'N/A' : '${height.toStringAsFixed(1)} cm',
+                  ),
                   _infoRow('Diabetes type', diabetesType),
                   _infoRow('Phone', _stringOrNA(user.phone)),
                 ],
@@ -207,11 +218,11 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.surfaceColor(context),
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x14000000),
+                    color: AppTheme.shadowColor(context),
                     blurRadius: 10,
                     offset: Offset(0, 5),
                   ),
@@ -220,42 +231,39 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Meal routine',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.textPrimaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Used for medicines scheduled before or after meals.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textSecondaryColor(context),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   _infoRow(
                     'Breakfast',
                     _hmOrDefault(_mealRoutine?.breakfast, '08:00'),
                   ),
-                  _infoRow(
-                    'Lunch',
-                    _hmOrDefault(_mealRoutine?.lunch, '12:30'),
-                  ),
+                  _infoRow('Lunch', _hmOrDefault(_mealRoutine?.lunch, '12:30')),
                   _infoRow(
                     'Dinner',
                     _hmOrDefault(_mealRoutine?.dinner, '19:00'),
                   ),
-                  _infoRow(
-                    'Snack',
-                    _hmOrDefault(_mealRoutine?.snack, '15:30'),
-                  ),
+                  _infoRow('Snack', _hmOrDefault(_mealRoutine?.snack, '15:30')),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _openMealRoutine,
-                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      icon: Icon(Icons.edit_outlined, size: 20),
                       label: const Text('Edit meal times'),
                     ),
                   ),
@@ -278,8 +286,8 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -287,8 +295,8 @@ class _PatientProfileSectionPageState extends State<PatientProfileSectionPage> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
+              style: TextStyle(
+                color: AppTheme.textPrimaryColor(context),
                 fontWeight: FontWeight.w600,
               ),
             ),

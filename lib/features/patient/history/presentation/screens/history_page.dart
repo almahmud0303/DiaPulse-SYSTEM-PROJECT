@@ -54,7 +54,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
@@ -62,7 +62,7 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         backgroundColor: AppTheme.primaryMint,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.picture_as_pdf_outlined),
+        icon: Icon(Icons.picture_as_pdf_outlined),
         label: const Text('Export'),
       ),
       body: SafeArea(
@@ -136,9 +136,9 @@ class _HistoryPageState extends State<HistoryPage> {
             const SizedBox(height: 16),
             Text(
               'Please log in to view history reports.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
             ),
           ],
@@ -159,9 +159,9 @@ class _HistoryPageState extends State<HistoryPage> {
             Text(
               _viewModel.errorMessage ?? 'Something went wrong.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -179,7 +179,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Material(
-        color: AppTheme.cardTintMint,
+        color: AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -208,12 +208,12 @@ class _HistoryPageState extends State<HistoryPage> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppTheme.cardTintLavender,
+                    color: AppTheme.cardTintLavenderColor(context),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.insights_outlined,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -233,7 +233,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         'Detect glucose patterns and trends from your recent logs.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textSecondaryColor(context),
                         ),
                       ),
                     ],
@@ -242,7 +242,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.textSecondaryColor(context),
                 ),
               ],
             ),

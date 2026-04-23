@@ -25,7 +25,7 @@ class AnnouncementsPage extends StatelessWidget {
           return Center(
             child: Text(
               'Failed to load announcements: ${snap.error}',
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
           );
         }
@@ -45,10 +45,10 @@ class AnnouncementsPage extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'No announcements',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                   ),
                 ],
@@ -66,7 +66,7 @@ class AnnouncementsPage extends StatelessWidget {
             final ts = a.publishedAt ?? a.createdAt;
             final time = ts == null ? '—' : fmt.format(ts.toLocal());
             return Card(
-              color: AppTheme.cardTintLavender,
+              color: AppTheme.cardTintLavenderColor(context),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -94,14 +94,14 @@ class AnnouncementsPage extends StatelessWidget {
                 },
                 leading: CircleAvatar(
                   backgroundColor: AppTheme.accentPeach.withValues(alpha: 0.4),
-                  child: const Icon(
+                  child: Icon(
                     Icons.campaign_outlined,
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.textPrimaryColor(context),
                   ),
                 ),
                 title: Text(
                   a.title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
                   a.body,
@@ -110,8 +110,8 @@ class AnnouncementsPage extends StatelessWidget {
                 ),
                 trailing: Text(
                   time,
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor(context),
                     fontSize: 12,
                   ),
                 ),

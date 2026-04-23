@@ -1,3 +1,4 @@
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/consultation_note.dart';
 import 'package:dia_plus/models/glucose_reading.dart';
@@ -88,7 +89,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
     final diabetesType = patient.extra['diabetesType'];
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Patient Profile'),
         elevation: 0,
@@ -106,7 +107,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                       children: [
                         Icon(Icons.error_outline, size: 48, color: Colors.grey.shade600),
                         const SizedBox(height: 16),
-                        Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade700)),
+                        Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppTheme.textSecondaryColor(context),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         FilledButton.icon(onPressed: _loadData, icon: const Icon(Icons.refresh), label: const Text('Retry')),
                       ],
@@ -161,9 +168,15 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor(context),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -182,7 +195,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Text('Patient', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                Text(
+                  'Patient',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
+                ),
               ],
             ),
           ),
@@ -196,9 +215,15 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor(context),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +250,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondaryColor(context),
+                ),
+              ),
               const SizedBox(height: 2),
               SelectableText(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
             ],
@@ -241,9 +272,15 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor(context),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +288,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
           Text('Basic info', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           if (!hasAny)
-            Text('No additional info provided yet.', style: TextStyle(color: Colors.grey.shade600, fontSize: 14))
+            Text(
+              'No additional info provided yet.',
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
+                fontSize: 14,
+              ),
+            )
           else ...[
             if (age != null) _infoRow(context, 'Age', _formatValue(age)),
             if (weight != null) _infoRow(context, 'Weight', '${_formatValue(weight)} kg'),
@@ -270,7 +313,16 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          SizedBox(width: 120, child: Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600))),
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.textSecondaryColor(context),
+              ),
+            ),
+          ),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
         ],
       ),
@@ -302,10 +354,16 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
         border: Border(left: BorderSide(color: color, width: 4)),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor(context),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,13 +393,20 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
           const SizedBox(height: 12),
           Text(
             risk.summary,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
+            style: TextStyle(
+              fontSize: 14,
+              color: AppTheme.textPrimaryColor(context),
+              height: 1.4,
+            ),
           ),
           if (risk.averageGlucose != null && risk.readingCount > 0) ...[
             const SizedBox(height: 12),
             Text(
               'Based on ${risk.readingCount} readings in last 7 days · Avg ${risk.averageGlucose!.toStringAsFixed(0)} mg/dL',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryColor(context),
+              ),
             ),
           ],
         ],
@@ -355,7 +420,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         context,
         title: 'Glucose trend',
         icon: Icons.show_chart,
-        child: Text('No readings yet.', style: TextStyle(color: Colors.grey.shade600)),
+        child: Text(
+          'No readings yet.',
+          style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+        ),
       );
     }
     final now = DateTime.now();
@@ -366,7 +434,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         context,
         title: 'Glucose trend (last 7 days)',
         icon: Icons.show_chart,
-        child: Text('No readings in the last 7 days.', style: TextStyle(color: Colors.grey.shade600)),
+        child: Text(
+          'No readings in the last 7 days.',
+          style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+        ),
       );
     }
     final levels = weekReadings.map((r) => r.glucoseLevel).toList();
@@ -394,7 +465,13 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       children: [
         Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondaryColor(context),
+          ),
+        ),
       ],
     );
   }
@@ -405,7 +482,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       title: 'Recent glucose',
       icon: Icons.history,
       child: _recentReadings.isEmpty
-          ? Text('No readings yet.', style: TextStyle(color: Colors.grey.shade600))
+          ? Text(
+              'No readings yet.',
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+            )
           : Column(
               children: _recentReadings.take(8).map((r) => _readingTile(r)).toList(),
             ),
@@ -436,12 +516,24 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${r.glucoseLevel.toStringAsFixed(0)} mg/dL', style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(df.format(r.date), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text(
+                  df.format(r.date),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
+                ),
               ],
             ),
           ),
           if (r.mealTime.isNotEmpty)
-            Text(r.mealTime, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Text(
+              r.mealTime,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryColor(context),
+              ),
+            ),
         ],
       ),
     );
@@ -466,7 +558,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       icon: Icons.medication,
       trailing: null,
       child: _medicines.isEmpty
-          ? Text('No prescriptions yet. Tap + to add medicine.', style: TextStyle(color: Colors.grey.shade600))
+          ? Text(
+              'No prescriptions yet. Tap + to add medicine.',
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+            )
           : _buildPrescriptionGroups(context),
     );
   }
@@ -484,6 +579,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       groups.add(
         Card(
           margin: const EdgeInsets.only(bottom: 8),
+          color: AppTheme.surfaceAltColor(context),
           child: Column(
             children: [
               ListTile(
@@ -492,7 +588,10 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
                   'Prescription · ${df.format(rx.createdAt)}',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                subtitle: Text('${list.length} medicine${list.length == 1 ? '' : 's'}'),
+                subtitle: Text(
+                  '${list.length} medicine${list.length == 1 ? '' : 's'}',
+                  style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+                ),
                 trailing: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
                 onTap: () {
                   setState(() {
@@ -548,12 +647,19 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       groups.add(
         Card(
           margin: const EdgeInsets.only(bottom: 8),
+          color: AppTheme.surfaceAltColor(context),
           child: Column(
             children: [
               ListTile(
-                leading: Icon(Icons.medication_outlined, color: Colors.grey.shade600),
+                leading: Icon(
+                  Icons.medication_outlined,
+                  color: AppTheme.textSecondaryColor(context),
+                ),
                 title: const Text('Other medicines', style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text('${legacy.length} item${legacy.length == 1 ? '' : 's'}'),
+                subtitle: Text(
+                  '${legacy.length} item${legacy.length == 1 ? '' : 's'}',
+                  style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+                ),
                 trailing: Icon(_expandedPrescriptionIds.contains('legacy') ? Icons.expand_less : Icons.expand_more),
                 onTap: () {
                   setState(() {
@@ -593,10 +699,14 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
         : '';
     return Card(
       margin: const EdgeInsets.only(bottom: 6),
+      color: AppTheme.surfaceAltColor(context),
       child: ListTile(
         leading: Icon(Icons.medication_outlined, color: Colors.blue.shade700, size: 20),
         title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text('$baseSubtitle$insulinLine$adjustmentLine'),
+        subtitle: Text(
+          '$baseSubtitle$insulinLine$adjustmentLine',
+          style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -624,9 +734,15 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowColor(context),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,7 +789,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
       child: _consultationNotes.isEmpty
           ? Text(
               'No notes yet. Tap Add note to record consultation notes and diagnosis.',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             )
           : Column(
               children: _consultationNotes.map((n) => _consultationNoteTile(context, n)).toList(),
@@ -688,6 +804,7 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
     final shortPreview = preview.length > 80 ? '${preview.substring(0, 80)}...' : preview;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      color: AppTheme.surfaceAltColor(context),
       child: ListTile(
         leading: Icon(Icons.note_outlined, color: Colors.blue.shade700),
         title: Text(
@@ -700,9 +817,23 @@ class _DoctorPatientProfilePageState extends State<DoctorPatientProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(shortPreview, style: TextStyle(fontSize: 13, color: Colors.grey.shade700), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(
+              shortPreview,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondaryColor(context),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 4),
-            Text(df.format(n.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+            Text(
+              df.format(n.createdAt),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryColor(context),
+              ),
+            ),
           ],
         ),
         isThreeLine: true,

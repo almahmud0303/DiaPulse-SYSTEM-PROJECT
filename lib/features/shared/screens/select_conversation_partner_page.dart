@@ -70,7 +70,7 @@ class _SelectConversationPartnerPageState
         ? 'Message a patient'
         : 'Message a doctor';
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(title: Text(title)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -84,12 +84,12 @@ class _SelectConversationPartnerPageState
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: _load,
-                      icon: const Icon(Icons.refresh),
+                      icon: Icon(Icons.refresh),
                       label: const Text('Retry'),
                     ),
                   ],
@@ -102,7 +102,7 @@ class _SelectConversationPartnerPageState
                 _currentUser?.isDoctor == true
                     ? 'No patients yet'
                     : 'No doctors available',
-                style: const TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               ),
             )
           : ListView.builder(
@@ -114,7 +114,7 @@ class _SelectConversationPartnerPageState
                     ? partner.displayName
                     : partner.email;
                 return Card(
-                  color: AppTheme.cardTintMint,
+                  color: AppTheme.cardTintMintColor(context),
                   margin: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 4,
@@ -133,24 +133,24 @@ class _SelectConversationPartnerPageState
                       ),
                       child: Text(
                         partner.initials,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.textPrimaryColor(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     title: Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
                       partner.email,
-                      style: const TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 14,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                     onTap: () {
                       if (_currentUser != null) {

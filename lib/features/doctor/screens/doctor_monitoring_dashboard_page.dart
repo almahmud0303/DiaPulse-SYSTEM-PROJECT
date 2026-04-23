@@ -117,12 +117,12 @@ class _DoctorMonitoringDashboardPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Monitoring Dashboard'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: _loading ? null : _load,
             tooltip: 'Refresh',
           ),
@@ -176,12 +176,12 @@ class _DoctorMonitoringDashboardPageState
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _load,
-              icon: const Icon(Icons.refresh),
+              icon: Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
           ],
@@ -218,7 +218,7 @@ class _DoctorMonitoringDashboardPageState
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -228,7 +228,7 @@ class _DoctorMonitoringDashboardPageState
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                   ),
                 ],
@@ -257,7 +257,7 @@ class _DoctorMonitoringDashboardPageState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             decoration: BoxDecoration(
-              color: AppTheme.cardTintMint,
+              color: AppTheme.cardTintMintColor(context),
               borderRadius: BorderRadius.circular(12),
               boxShadow: const [
                 BoxShadow(
@@ -280,7 +280,7 @@ class _DoctorMonitoringDashboardPageState
                     emptyMessage,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                   ),
                 ),
@@ -347,7 +347,7 @@ class _MonitoringTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      color: AppTheme.cardTintLavender,
+      color: AppTheme.cardTintLavenderColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
@@ -380,7 +380,7 @@ class _MonitoringTile extends StatelessWidget {
                   children: [
                     Text(
                       user.displayName.isEmpty ? 'No name' : user.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
@@ -410,7 +410,7 @@ class _MonitoringTile extends StatelessWidget {
                         'Avg ${risk.averageGlucose!.toStringAsFixed(0)} mg/dL · ${risk.readingCount} readings',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textSecondaryColor(context),
                         ),
                       ),
                     ],
@@ -420,7 +420,7 @@ class _MonitoringTile extends StatelessWidget {
                         'Latest: ${latestReadings.map((r) => r.glucoseLevel.toStringAsFixed(0)).join(', ')} mg/dL',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textSecondaryColor(context),
                         ),
                       ),
                     ],
@@ -429,7 +429,7 @@ class _MonitoringTile extends StatelessWidget {
                       risk.summary,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondaryColor(context),
                         fontStyle: FontStyle.italic,
                       ),
                       maxLines: 2,
@@ -438,10 +438,10 @@ class _MonitoringTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios,
                 size: 14,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
             ],
           ),

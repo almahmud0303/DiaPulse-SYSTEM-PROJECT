@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/doctor_alert.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_alert_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
@@ -82,7 +83,7 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('MMM d, HH:mm');
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Alerts'),
         elevation: 0,
@@ -135,7 +136,7 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -160,7 +161,7 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
             'No alerts',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey.shade600,
+              color: AppTheme.textSecondaryColor(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -170,7 +171,10 @@ class _DoctorAlertsPageState extends State<DoctorAlertsPage> {
             child: Text(
               'Critical low glucose (<60), critical/very high glucose (>=200), and missed medicines in the last 2 days will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -199,6 +203,7 @@ class _AlertTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
+      color: AppTheme.surfaceColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: color.withValues(alpha: 0.4)),
@@ -266,7 +271,7 @@ class _AlertTile extends StatelessWidget {
                       alert.message,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade700,
+                        color: AppTheme.textSecondaryColor(context),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -274,13 +279,17 @@ class _AlertTile extends StatelessWidget {
                       dateFmt.format(alert.timestamp),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade500,
+                        color: AppTheme.textSecondaryColor(context),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppTheme.textSecondaryColor(context),
+              ),
             ],
           ),
         ),

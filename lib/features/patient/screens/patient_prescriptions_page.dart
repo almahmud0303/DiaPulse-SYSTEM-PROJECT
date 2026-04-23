@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/patient_prescription_detail_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/auth_service.dart';
@@ -91,7 +92,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
   Widget build(BuildContext context) {
     final df = DateFormat('MMM d, yyyy · HH:mm');
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Prescriptions'),
         actions: [
@@ -105,12 +106,27 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(_error!)))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(
+                        color: AppTheme.textSecondaryColor(context),
+                      ),
+                    ),
+                  ),
+                )
               : _prescriptions.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24),
-                        child: Text('No prescriptions yet.', style: TextStyle(color: Colors.grey.shade700)),
+                        child: Text(
+                          'No prescriptions yet.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondaryColor(context),
+                          ),
+                        ),
                       ),
                     )
                   : RefreshIndicator(
@@ -125,6 +141,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                           final count = meds.length;
                           final previewNames = meds.map((m) => m.name).join(', ');
                           return Card(
+                            color: AppTheme.surfaceColor(context),
                             margin: const EdgeInsets.only(bottom: 12),
                             child: InkWell(
                               onTap: () => _open(rx),
@@ -150,7 +167,13 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                                           const SizedBox(height: 4),
                                           Text(
                                             'Issued by $issuedBy',
-                                            style: TextStyle(color: Colors.grey.shade800, fontSize: 13),
+                                            style: TextStyle(
+                                              color:
+                                                  AppTheme.textSecondaryColor(
+                                                    context,
+                                                  ),
+                                              fontSize: 13,
+                                            ),
                                           ),
                                           const SizedBox(height: 8),
                                           Row(
@@ -178,14 +201,22 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 height: 1.35,
-                                                color: Colors.grey.shade900,
+                                                color:
+                                                    AppTheme.textPrimaryColor(
+                                                      context,
+                                                    ),
                                               ),
                                             ),
                                           ],
                                         ],
                                       ),
                                     ),
-                                    Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: AppTheme.textSecondaryColor(
+                                        context,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

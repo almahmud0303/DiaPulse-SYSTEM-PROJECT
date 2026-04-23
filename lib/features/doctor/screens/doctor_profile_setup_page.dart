@@ -158,8 +158,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
 
         _inPersonFeeController.text =
             profile.inPersonFee?.toStringAsFixed(0) ?? '';
-        _onlineFeeController.text =
-            profile.onlineFee?.toStringAsFixed(0) ?? '';
+        _onlineFeeController.text = profile.onlineFee?.toStringAsFixed(0) ?? '';
         _paymentMethods.addAll(profile.paymentMethods);
 
         _bioController.text = profile.bio ?? '';
@@ -243,9 +242,9 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -264,7 +263,10 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
   }
 
   void _addTimeSlot() {
-    setState(() => _timeSlots.add(const TimeSlot(startTime: '09:00', endTime: '17:00')));
+    setState(
+      () =>
+          _timeSlots.add(const TimeSlot(startTime: '09:00', endTime: '17:00')),
+    );
   }
 
   Future<void> _pickTime(int index, bool isStart) async {
@@ -345,8 +347,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
         medicalLicenseNumber: _licenseController.text.trim().isNotEmpty
             ? _licenseController.text.trim()
             : null,
-        yearsOfExperience:
-            int.tryParse(_experienceController.text.trim()),
+        yearsOfExperience: int.tryParse(_experienceController.text.trim()),
         clinicName: _clinicNameController.text.trim().isNotEmpty
             ? _clinicNameController.text.trim()
             : null,
@@ -368,8 +369,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
         emergencyContact: _emergencyContactController.text.trim().isNotEmpty
             ? _emergencyContactController.text.trim()
             : null,
-        inPersonFee:
-            double.tryParse(_inPersonFeeController.text.trim()),
+        inPersonFee: double.tryParse(_inPersonFeeController.text.trim()),
         onlineFee: double.tryParse(_onlineFeeController.text.trim()),
         paymentMethods: _paymentMethods,
         bio: _bioController.text.trim().isNotEmpty
@@ -414,15 +414,13 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return WillPopScope(
       onWillPop: () async => !widget.isInitialSetup,
       child: Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.backgroundColor(context),
         appBar: AppBar(
           automaticallyImplyLeading: !widget.isInitialSetup,
           title: Text(
@@ -434,46 +432,48 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
         body: Form(
           key: _formKey,
           child: Stepper(
-          currentStep: _currentStep,
-          onStepContinue: () {
-            if (_currentStep < 6) {
-              setState(() => _currentStep++);
-            } else {
-              _save();
-            }
-          },
-          onStepCancel: () {
-            if (_currentStep > 0) {
-              setState(() => _currentStep--);
-            }
-          },
-          controlsBuilder: (context, details) {
-            final isLast = _currentStep == 6;
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                children: [
-                  FilledButton(
-                    onPressed: _saving ? null : details.onStepContinue,
-                    child: _saving && isLast
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(isLast ? 'Save Profile' : 'Continue'),
-                  ),
-                  const SizedBox(width: 12),
-                  if (_currentStep > 0)
-                    TextButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Back'),
+            currentStep: _currentStep,
+            onStepContinue: () {
+              if (_currentStep < 6) {
+                setState(() => _currentStep++);
+              } else {
+                _save();
+              }
+            },
+            onStepCancel: () {
+              if (_currentStep > 0) {
+                setState(() => _currentStep--);
+              }
+            },
+            controlsBuilder: (context, details) {
+              final isLast = _currentStep == 6;
+              return Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Row(
+                  children: [
+                    FilledButton(
+                      onPressed: _saving ? null : details.onStepContinue,
+                      child: _saving && isLast
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(isLast ? 'Save Profile' : 'Continue'),
                     ),
-                ],
-              ),
-            );
-          },
+                    const SizedBox(width: 12),
+                    if (_currentStep > 0)
+                      TextButton(
+                        onPressed: details.onStepCancel,
+                        child: const Text('Back'),
+                      ),
+                  ],
+                ),
+              );
+            },
             steps: [
               _buildBasicInfoStep(),
               _buildProfessionalStep(),
@@ -508,40 +508,57 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
                 backgroundImage: _profilePhoto != null
                     ? FileImage(_profilePhoto!)
                     : (_existingPhotoUrl != null
-                    ? _imageFromString(_existingPhotoUrl!)
-                    : null),
+                          ? _imageFromString(_existingPhotoUrl!)
+                          : null),
                 child: _profilePhoto == null && _existingPhotoUrl == null
-                    ? const Icon(Icons.camera_alt, size: 32, color: Colors.white)
+                    ? Icon(Icons.camera_alt, size: 32, color: Colors.white)
                     : null,
               ),
             ),
           ),
           const SizedBox(height: 8),
-          const Center(
-            child: Text('Tap to add photo', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          Center(
+            child: Text(
+              'Tap to add photo',
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
+                fontSize: 12,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _fullNameController,
-            decoration: const InputDecoration(labelText: 'Full Name *', border: OutlineInputBorder()),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            decoration: const InputDecoration(
+              labelText: 'Full Name *',
+              border: OutlineInputBorder(),
+            ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Required' : null,
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _gender,
-            decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
-            items: ['Male', 'Female', 'Other']
-                .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Gender',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              'Male',
+              'Female',
+              'Other',
+            ].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
             onChanged: (v) => setState(() => _gender = v),
           ),
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(_dateOfBirth != null
-                ? 'Date of Birth: ${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
-                : 'Date of Birth (optional)'),
-            trailing: const Icon(Icons.calendar_today),
+            title: Text(
+              _dateOfBirth != null
+                  ? 'Date of Birth: ${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
+                  : 'Date of Birth (optional)',
+            ),
+            trailing: Icon(Icons.calendar_today),
             onTap: _selectDateOfBirth,
           ),
           const SizedBox(height: 8),
@@ -592,7 +609,8 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
               labelText: 'Medical License Number *',
               border: OutlineInputBorder(),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Required' : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -637,15 +655,24 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _cityController,
-            decoration: const InputDecoration(labelText: 'City', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'City',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _countryController,
-            decoration: const InputDecoration(labelText: 'Country', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Country',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
-          const Text('Available Days', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Available Days',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -671,10 +698,13 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Time Slots', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text(
+                'Time Slots',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
               TextButton.icon(
                 onPressed: _addTimeSlot,
-                icon: const Icon(Icons.add, size: 18),
+                icon: Icon(Icons.add, size: 18),
                 label: const Text('Add Slot'),
               ),
             ],
@@ -703,7 +733,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: Icon(Icons.close, size: 18),
                     onPressed: () => setState(() => _timeSlots.removeAt(i)),
                   ),
                 ],
@@ -796,7 +826,10 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 16),
-          const Text('Payment Methods', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Payment Methods',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -835,8 +868,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
             contentPadding: EdgeInsets.zero,
             title: const Text('Enable Prescription Access'),
             value: _isPrescriptionAccessEnabled,
-            onChanged: (v) =>
-                setState(() => _isPrescriptionAccessEnabled = v),
+            onChanged: (v) => setState(() => _isPrescriptionAccessEnabled = v),
           ),
         ],
       ),
@@ -885,7 +917,10 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Certificates', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Certificates',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
           if (_certificateUrls.isNotEmpty)
             Wrap(
@@ -894,7 +929,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
               children: _certificateUrls.asMap().entries.map((entry) {
                 return Chip(
                   label: Text('Certificate ${entry.key + 1}'),
-                  deleteIcon: const Icon(Icons.close, size: 16),
+                  deleteIcon: Icon(Icons.close, size: 16),
                   onDeleted: () =>
                       setState(() => _certificateUrls.removeAt(entry.key)),
                 );
@@ -903,7 +938,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: _saving ? null : _pickCertificate,
-            icon: const Icon(Icons.upload_file),
+            icon: Icon(Icons.upload_file),
             label: const Text('Upload Certificate'),
           ),
           const SizedBox(height: 20),
@@ -926,10 +961,12 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: _pickIdProof,
-            icon: const Icon(Icons.badge),
-            label: Text(_existingIdProofUrl != null || _idProofFile != null
-                ? 'Change ID Proof'
-                : 'Upload ID Proof'),
+            icon: Icon(Icons.badge),
+            label: Text(
+              _existingIdProofUrl != null || _idProofFile != null
+                  ? 'Change ID Proof'
+                  : 'Upload ID Proof',
+            ),
           ),
           const SizedBox(height: 16),
           Container(
@@ -968,7 +1005,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(label, style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         if (items.isNotEmpty)
           Wrap(
@@ -977,7 +1014,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
             children: items.asMap().entries.map((entry) {
               return Chip(
                 label: Text(entry.value),
-                deleteIcon: const Icon(Icons.close, size: 16),
+                deleteIcon: Icon(Icons.close, size: 16),
                 onDeleted: () => setState(() => items.removeAt(entry.key)),
               );
             }).toList(),
@@ -1005,7 +1042,7 @@ class _DoctorProfileSetupPageState extends State<DoctorProfileSetupPage> {
             ),
             const SizedBox(width: 8),
             IconButton(
-              icon: const Icon(Icons.add_circle, color: AppTheme.primaryMint),
+              icon: Icon(Icons.add_circle, color: AppTheme.primaryMint),
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
                   setState(() {

@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/screens/meal_routine_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -169,6 +170,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: Text(widget.medicine != null ? 'Edit Medicine' : 'Add Medicine'),
         actions: [
@@ -234,7 +236,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 Text(
                   'Match what your doctor wrote on the prescription (e.g. 30 min before breakfast). '
                   'Usual meal times are on the Profile tab.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
@@ -301,7 +306,13 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondaryColor(context),
+          ),
+        ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: whenValue,
@@ -325,7 +336,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             trailing: const Icon(Icons.access_time),
             onTap: onPickTime,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            tileColor: Colors.grey.shade100,
+            tileColor: AppTheme.surfaceAltColor(context),
           ),
         ],
       ],

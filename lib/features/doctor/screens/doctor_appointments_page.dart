@@ -1,3 +1,4 @@
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/appointment.dart';
 import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
@@ -109,7 +110,7 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('MMM d, y • HH:mm');
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Appointments'),
         elevation: 0,
@@ -192,14 +193,14 @@ class _DoctorAppointmentsPageState extends State<DoctorAppointmentsPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: AppTheme.textSecondaryColor(context),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'When patients send appointment requests, they will appear here.',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -243,9 +244,10 @@ class _AppointmentTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
+      color: AppTheme.surfaceColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppTheme.borderColor(context)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -285,7 +287,7 @@ class _AppointmentTile extends StatelessWidget {
                           dateFmt.format(a.requestedAt),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.textSecondaryColor(context),
                           ),
                         ),
                         if (a.preferredConsultationAt != null) ...[
@@ -326,7 +328,7 @@ class _AppointmentTile extends StatelessWidget {
                   a.message!,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade700,
+                    color: AppTheme.textSecondaryColor(context),
                     fontStyle: FontStyle.italic,
                   ),
                   maxLines: 2,

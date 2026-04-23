@@ -16,7 +16,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -56,7 +56,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         reading.mealTime,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
@@ -85,14 +85,14 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   DateFormat('h:mm a').format(reading.date),
-                  style: const TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                 ),
                 if (reading.notes.trim().isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
                     reading.notes,
                     style: TextStyle(
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                       fontStyle: FontStyle.italic,
                     ),
                     maxLines: 2,
@@ -103,7 +103,7 @@ class GlucoseReadingHistoryTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          const Text('mg/dL', style: TextStyle(color: AppTheme.textSecondary)),
+          Text('mg/dL', style: TextStyle(color: AppTheme.textSecondaryColor(context))),
         ],
       ),
     );

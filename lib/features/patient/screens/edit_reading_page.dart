@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dia_plus/features/patient/screens/emergency_alert_details_page.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/app_config_item.dart';
 import 'package:dia_plus/models/emergency_alert.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
@@ -199,7 +200,7 @@ class _EditReadingPageState extends State<EditReadingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Edit Reading'),
         backgroundColor: Colors.transparent,
@@ -249,7 +250,7 @@ class _EditReadingPageState extends State<EditReadingPage> {
       trailing: const Icon(Icons.calendar_today),
       onTap: _selectDate,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tileColor: Colors.white,
+      tileColor: AppTheme.surfaceColor(context),
     );
   }
 
@@ -257,7 +258,7 @@ class _EditReadingPageState extends State<EditReadingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _colorForLevel(_glucoseLevel).withValues(alpha: 0.5),
@@ -273,9 +274,12 @@ class _EditReadingPageState extends State<EditReadingPage> {
               color: _colorForLevel(_glucoseLevel),
             ),
           ),
-          const Text(
+          Text(
             'mg/dL',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: AppTheme.textSecondaryColor(context),
+            ),
           ),
           Slider(
             value: _glucoseLevel,

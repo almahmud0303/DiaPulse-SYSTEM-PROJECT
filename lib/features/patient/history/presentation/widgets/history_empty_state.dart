@@ -15,7 +15,7 @@ class HistoryEmptyState extends StatelessWidget {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: AppTheme.cardTintLavender,
+              color: AppTheme.cardTintLavenderColor(context),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -33,7 +33,7 @@ class HistoryEmptyState extends StatelessWidget {
           Text(
             'Try a different date range to review your glucose history.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: AppTheme.textSecondaryColor(context)),
           ),
         ],
       ),

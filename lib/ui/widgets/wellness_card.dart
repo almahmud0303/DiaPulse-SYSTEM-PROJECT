@@ -25,7 +25,7 @@ class WellnessCard extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: tint ?? AppTheme.cardTintMint,
+        color: tint ?? AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(radius),
         boxShadow: const [
           BoxShadow(
