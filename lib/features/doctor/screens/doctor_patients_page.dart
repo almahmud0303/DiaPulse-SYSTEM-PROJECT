@@ -100,7 +100,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(title: const Text('My Patients')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -120,12 +120,12 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: _loadPatients,
-                      icon: const Icon(Icons.refresh),
+                      icon: Icon(Icons.refresh),
                       label: const Text('Retry'),
                     ),
                   ],
@@ -147,15 +147,15 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                     'No patients yet',
                     style: TextStyle(
                       fontSize: 18,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Patients who register will appear here.',
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor(context),
                       fontSize: 14,
                     ),
                   ),
@@ -216,22 +216,22 @@ class _PatientTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      color: AppTheme.cardTintMint,
+      color: AppTheme.cardTintMintColor(context),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: AppTheme.secondaryLavender.withValues(alpha: 0.35),
           child: Text(
             patient.initials,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.textPrimaryColor(context),
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
         title: Text(
           patient.displayName.isEmpty ? 'No name' : patient.displayName,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,9 +239,9 @@ class _PatientTile extends StatelessWidget {
           children: [
             Text(
               patient.email,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
             ),
             if (risk != null) ...[
@@ -264,10 +264,10 @@ class _PatientTile extends StatelessWidget {
             ],
           ],
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: AppTheme.textSecondary,
+          color: AppTheme.textSecondaryColor(context),
         ),
       ),
     );

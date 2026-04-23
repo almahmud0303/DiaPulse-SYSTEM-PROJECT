@@ -1,6 +1,7 @@
 import 'package:dia_plus/background/step_counter_background.dart';
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/core/theme/theme_notifier.dart';
 import 'package:dia_plus/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ Future<void> main() async {
     runApp(_FirebaseErrorApp(error: e.toString()));
     return;
   }
+  await ThemeNotifier.init();
   runApp(const DiaPlusApp());
   WidgetsBinding.instance.addPostFrameCallback((_) {
     registerStepBackgroundSync();
@@ -66,12 +68,19 @@ class DiaPlusApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dia Plus',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialRoute: AppRouter.start,
-      routes: AppRouter.routes,
+    return AnimatedBuilder(
+      animation: ThemeNotifier.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'Dia Plus',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeNotifier.instance.mode,
+          initialRoute: AppRouter.start,
+          routes: AppRouter.routes,
+        );
+      },
     );
   }
 }

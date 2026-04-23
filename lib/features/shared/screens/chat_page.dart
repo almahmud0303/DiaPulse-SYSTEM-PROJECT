@@ -110,11 +110,11 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         title: Text(
           otherName,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: AppTheme.primaryMint,
-        foregroundColor: AppTheme.textPrimary,
+        foregroundColor: AppTheme.textPrimaryColor(context),
       ),
       body: Column(
         children: [
@@ -126,7 +126,7 @@ class _ChatPageState extends State<ChatPage> {
                         child: Text(
                           'No messages yet. Say hello!',
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
+                            color: AppTheme.textSecondaryColor(context),
                             fontSize: 16,
                           ),
                         ),
@@ -174,7 +174,7 @@ class _ChatPageState extends State<ChatPage> {
                   controller: _controller,
                   decoration: InputDecoration(
                     hintText: 'Type a message…',
-                    hintStyle: TextStyle(color: AppTheme.textSecondary.withValues(alpha: 0.85)),
+                    hintStyle: TextStyle(color: AppTheme.textSecondaryColor(context).withValues(alpha: 0.85)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                       borderSide: BorderSide.none,
@@ -186,9 +186,9 @@ class _ChatPageState extends State<ChatPage> {
                       vertical: 12,
                     ),
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.textPrimaryColor(context),
                     height: 1.35,
                   ),
                   textCapitalization: TextCapitalization.sentences,
@@ -206,7 +206,7 @@ class _ChatPageState extends State<ChatPage> {
                         height: 24,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.send_rounded),
+                    : Icon(Icons.send_rounded),
                 style: IconButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D6B),
                   foregroundColor: Colors.white,
@@ -230,9 +230,9 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = DateFormat('HH:mm').format(message.createdAt);
     final bubbleBg = isMe ? const Color(0xFF2E7D6B) : Colors.white;
-    final textColor = isMe ? Colors.white : AppTheme.textPrimary;
+    final textColor = isMe ? Colors.white : AppTheme.textPrimaryColor(context);
     final timeColor =
-        isMe ? Colors.white.withValues(alpha: 0.88) : AppTheme.textSecondary;
+        isMe ? Colors.white.withValues(alpha: 0.88) : AppTheme.textSecondaryColor(context);
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(

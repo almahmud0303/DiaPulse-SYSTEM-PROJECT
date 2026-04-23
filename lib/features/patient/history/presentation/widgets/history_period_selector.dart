@@ -38,7 +38,7 @@ class HistoryPeriodSelector extends StatelessWidget {
                 child: Text(
                   period.label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    color: isSelected ? Colors.white : AppTheme.textSecondaryColor(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

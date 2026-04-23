@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_report_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -32,12 +33,12 @@ class PdfPreviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Report Preview'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.grey[800],
+        foregroundColor: AppTheme.textPrimaryColor(context),
         surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
@@ -74,14 +75,17 @@ class PdfPreviewPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
+                    color: AppTheme.textPrimaryColor(context),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '$error',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
                 ),
               ],
             ),

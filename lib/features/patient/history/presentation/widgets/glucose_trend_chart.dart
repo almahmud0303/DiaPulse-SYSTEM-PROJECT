@@ -23,7 +23,7 @@ class GlucoseTrendChart extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(22),
         boxShadow: const [
           BoxShadow(
@@ -43,7 +43,7 @@ class GlucoseTrendChart extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Daily, weekly, and monthly averages',
-            style: const TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: AppTheme.textSecondaryColor(context)),
           ),
           const SizedBox(height: 16),
           HistoryPeriodSelector(
@@ -57,7 +57,7 @@ class GlucoseTrendChart extends StatelessWidget {
                 ? Center(
                     child: Text(
                       'No data available for this period',
-                      style: const TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                     ),
                   )
                 : LineChart(_buildChartData(context)),
@@ -90,7 +90,7 @@ class GlucoseTrendChart extends StatelessWidget {
               final point = trendPoints[spot.x.toInt()];
               return LineTooltipItem(
                 '${point.label}\n${point.averageGlucose.round()} mg/dL\n${point.readingCount} readings',
-                const TextStyle(
+                TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
@@ -121,9 +121,9 @@ class GlucoseTrendChart extends StatelessWidget {
             getTitlesWidget: (value, meta) {
               return Text(
                 value.toInt().toString(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.textSecondaryColor(context),
                 ),
               );
             },
@@ -156,9 +156,9 @@ class GlucoseTrendChart extends StatelessWidget {
                 child: Text(
                   trendPoints[index].label,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                 ),
               );

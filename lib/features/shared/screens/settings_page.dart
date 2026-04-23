@@ -1,5 +1,6 @@
 import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
+import 'package:dia_plus/core/theme/theme_notifier.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_profile_setup_page.dart';
 import 'package:dia_plus/features/patient/screens/profile_page.dart';
 import 'package:dia_plus/features/shared/screens/emergency_settings_page.dart';
@@ -47,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _initialsController.text =
           prefs.getString('userInitials') ?? user?.initials ?? '';
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
-      _darkModeEnabled = prefs.getBool('darkModeEnabled') ?? false;
+      _darkModeEnabled = ThemeNotifier.instance.isDarkMode;
     });
   }
 
@@ -57,7 +58,6 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs.setString('userName', _nameController.text);
     await prefs.setString('userInitials', _initialsController.text);
     await prefs.setBool('notificationsEnabled', _notificationsEnabled);
-    await prefs.setBool('darkModeEnabled', _darkModeEnabled);
 
     if (!_notificationsEnabled) {
       await _reminderService.cancelAllNotifications();
@@ -90,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final user = _currentUser ?? widget.user;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
         child: Padding(
@@ -102,9 +102,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 _buildSectionTitle('Account'),
                 const SizedBox(height: 8),
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.badge,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: Text('Role: ${user.role.displayName}'),
                   subtitle: Text(user.email),
@@ -115,15 +115,15 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 15),
               if (user?.isPatient ?? false)
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.person,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: const Text('Edit Profile'),
                   subtitle: const Text(
                     'Name, age, weight, height, diabetes type',
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
                     color: Colors.grey,
@@ -143,15 +143,15 @@ class _SettingsPageState extends State<SettingsPage> {
               if (user?.isPatient ?? false) const SizedBox(height: 12),
               if (user?.isDoctor ?? false)
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.medical_information,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: const Text('Edit Doctor Profile'),
                   subtitle: const Text(
                     'Specialization, clinic, availability, fees',
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
                     color: Colors.grey,
@@ -209,10 +209,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: AppTheme.textPrimary,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -221,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: Theme.of(context).cardTheme.color ?? AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -244,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     _initialsController.text.isNotEmpty
                         ? _initialsController.text.toUpperCase()
                         : 'U',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -260,7 +260,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       color: AppTheme.secondaryLavender,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt,
                       color: Colors.white,
                       size: 20,
@@ -275,7 +275,6 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: const InputDecoration(
                 labelText: 'Full Name',
                 prefixIcon: Icon(Icons.person),
-                fillColor: Colors.white,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -291,7 +290,6 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: const InputDecoration(
                 labelText: 'Short Name / Initials',
                 prefixIcon: Icon(Icons.badge),
-                fillColor: Colors.white,
                 helperText: 'Max 3 characters (e.g., JD for John Doe)',
               ),
               validator: (value) {
@@ -310,10 +308,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildPreferencesCard() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintLavender,
+        color: isDarkMode ? AppTheme.darkSurfaceAlt : AppTheme.cardTintLavenderColor(context),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -331,23 +330,26 @@ class _SettingsPageState extends State<SettingsPage> {
             value: _notificationsEnabled,
             activeThumbColor: AppTheme.primaryMint,
             onChanged: (value) => setState(() => _notificationsEnabled = value),
-            secondary: const Icon(Icons.notifications),
+            secondary: Icon(Icons.notifications),
           ),
           const Divider(),
           SwitchListTile(
             title: const Text('Dark Mode'),
-            subtitle: const Text('Coming soon'),
+            subtitle: const Text('Switch app appearance instantly'),
             value: _darkModeEnabled,
             activeThumbColor: AppTheme.primaryMint,
-            onChanged: (value) => setState(() => _darkModeEnabled = value),
-            secondary: const Icon(Icons.dark_mode),
+            onChanged: (value) async {
+              setState(() => _darkModeEnabled = value);
+              await ThemeNotifier.instance.setDarkMode(value);
+            },
+            secondary: Icon(Icons.dark_mode),
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.alarm, color: AppTheme.textSecondary),
+            leading: Icon(Icons.alarm, color: AppTheme.textSecondaryColor(context)),
             title: const Text('Reminder Settings'),
             subtitle: const Text('Manage smart reminders & notifications'),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: Colors.grey,
@@ -359,12 +361,12 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.emergency, color: AppTheme.softError),
+            leading: Icon(Icons.emergency, color: AppTheme.softError),
             title: const Text('Emergency Settings'),
             subtitle: const Text(
               'Configure critical low/high emergency alerts',
             ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: Colors.grey,
@@ -380,10 +382,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildAboutCard() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: isDarkMode ? AppTheme.darkSurface : AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -412,8 +415,8 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Icon(icon, color: Colors.teal),
       title: Text(title),
       trailing: trailing != null && trailing.isNotEmpty
-          ? Text(trailing, style: const TextStyle(color: Colors.grey))
-          : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ? Text(trailing, style: TextStyle(color: Colors.grey))
+          : Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () {
         ScaffoldMessenger.of(
           context,

@@ -63,7 +63,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   Widget build(BuildContext context) {
     final pad = Responsive.pagePadding(context);
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       body: SafeArea(
         child: ResponsiveCenter(
           child: LayoutBuilder(
@@ -170,7 +170,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                         CircleAvatar(
                           radius: 30,
                           backgroundColor: AppTheme.primaryMint,
-                          child: const Icon(
+                          child: Icon(
                             Icons.medical_services,
                             color: Colors.white,
                             size: 36,
@@ -191,7 +191,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                                 'Manage your consultations',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: AppTheme.textSecondary,
+                                  color: AppTheme.textSecondaryColor(context),
                                 ),
                               ),
                             ],
@@ -238,7 +238,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
       borderRadius: BorderRadius.circular(16),
       child: WellnessCard(
         padding: const EdgeInsets.all(20),
-        tint: AppTheme.cardTintMint,
+        tint: AppTheme.cardTintMintColor(context),
         child: Row(
           children: [
             Container(
@@ -256,7 +256,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -266,15 +266,15 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textSecondaryColor(context),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              color: AppTheme.textSecondary,
+              color: AppTheme.textSecondaryColor(context),
               size: 18,
             ),
           ],
@@ -296,7 +296,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.cardTintLavender,
+          color: AppTheme.cardTintLavenderColor(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: AppTheme.secondaryLavender.withValues(alpha: 0.6),
@@ -317,9 +317,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 color: AppTheme.primaryMint.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.monitor_heart,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textPrimaryColor(context),
                 size: 28,
               ),
             ),
@@ -333,33 +333,33 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.textPrimaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 4),
                   if (_summaryLoading)
                     Text(
                       'Loading…',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondaryColor(context),
                       ),
                     )
                   else
                     Text(
                       '$_highRiskCount high risk · $_poorControlCount poor control',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondaryColor(context),
                       ),
                     ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: AppTheme.textSecondary,
+              color: AppTheme.textSecondaryColor(context),
             ),
           ],
         ),

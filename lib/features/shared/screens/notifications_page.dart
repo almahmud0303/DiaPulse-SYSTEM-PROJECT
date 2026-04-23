@@ -124,12 +124,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('MMM d • HH:mm');
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Notifications'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: _loading ? null : _load,
             tooltip: 'Refresh',
           ),
@@ -144,12 +144,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: Column(
                 children: [
                   Material(
-                    color: AppTheme.cardTintLavender,
-                    child: const TabBar(
-                      labelColor: AppTheme.textPrimary,
-                      unselectedLabelColor: AppTheme.textSecondary,
+                    color: AppTheme.cardTintLavenderColor(context),
+                    child: TabBar(
+                      labelColor: AppTheme.textPrimaryColor(context),
+                      unselectedLabelColor: AppTheme.textSecondaryColor(
+                        context,
+                      ),
                       indicatorColor: AppTheme.primaryMint,
-                      tabs: [
+                      tabs: const [
                         Tab(text: 'Notifications'),
                         Tab(text: 'Announcements'),
                       ],
@@ -202,12 +204,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _load,
-              icon: const Icon(Icons.refresh),
+              icon: Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
           ],
@@ -234,14 +236,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'New message alerts will show up here.',
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -269,7 +271,7 @@ class _NotificationTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      color: AppTheme.cardTintMint,
+      color: AppTheme.cardTintMintColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
@@ -286,7 +288,9 @@ class _NotificationTile extends StatelessWidget {
             n.type == AppNotificationType.message
                 ? Icons.chat_bubble_outline
                 : Icons.notifications,
-            color: isUnread ? AppTheme.textPrimary : AppTheme.textSecondary,
+            color: isUnread
+                ? AppTheme.textPrimaryColor(context)
+                : AppTheme.textSecondaryColor(context),
           ),
         ),
         title: Text(
@@ -298,7 +302,10 @@ class _NotificationTile extends StatelessWidget {
         subtitle: Text(n.body, maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: Text(
           dateFmt.format(n.createdAt),
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          style: TextStyle(
+            color: AppTheme.textSecondaryColor(context),
+            fontSize: 12,
+          ),
         ),
       ),
     );

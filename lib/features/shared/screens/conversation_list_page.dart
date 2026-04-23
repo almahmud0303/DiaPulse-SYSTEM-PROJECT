@@ -81,7 +81,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Messages'),
         actions: [
@@ -102,7 +102,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
                   icon: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const Icon(Icons.notifications),
+                      Icon(Icons.notifications),
                       if (count > 0)
                         Positioned(
                           right: -6,
@@ -122,7 +122,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
                             ),
                             child: Text(
                               count > 99 ? '99+' : '$count',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -136,7 +136,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
               },
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: _loading ? null : _load,
             tooltip: 'Refresh',
           ),
@@ -155,7 +155,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
                     .then((_) => _load());
               },
               backgroundColor: AppTheme.primaryMint,
-              child: const Icon(Icons.add),
+              child: Icon(Icons.add),
             )
           : null,
       body: _loading
@@ -212,12 +212,12 @@ class _ConversationListPageState extends State<ConversationListPage> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _load,
-              icon: const Icon(Icons.refresh),
+              icon: Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
           ],
@@ -241,7 +241,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
             'No conversations yet',
             style: TextStyle(
               fontSize: 18,
-              color: AppTheme.textSecondary,
+              color: AppTheme.textSecondaryColor(context),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -251,8 +251,8 @@ class _ConversationListPageState extends State<ConversationListPage> {
             child: Text(
               'When you or a patient sends a message, it will appear here.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
                 fontSize: 14,
               ),
             ),
@@ -278,7 +278,7 @@ class _ConversationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = DateFormat('MMM d').format(conversation.lastMessageAt);
     return Card(
-      color: AppTheme.cardTintMint,
+      color: AppTheme.cardTintMintColor(context),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -293,25 +293,25 @@ class _ConversationTile extends StatelessWidget {
           backgroundColor: AppTheme.secondaryLavender.withValues(alpha: 0.35),
           child: Text(
             otherName.isNotEmpty ? otherName[0].toUpperCase() : '?',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.textPrimaryColor(context),
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
         title: Text(
           otherName,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           conversation.lastMessageText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          style: TextStyle(color: AppTheme.textSecondaryColor(context), fontSize: 13),
         ),
         trailing: Text(
           time,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          style: TextStyle(color: AppTheme.textSecondaryColor(context), fontSize: 12),
         ),
       ),
     );

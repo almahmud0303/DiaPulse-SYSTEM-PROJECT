@@ -29,7 +29,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       body: StreamBuilder<DoctorProfile?>(
         stream: _profileService.watchProfile(widget.doctorUid),
         builder: (context, profileSnap) {
@@ -87,7 +87,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                           profile.fullName.isNotEmpty
                               ? profile.fullName[0].toUpperCase()
                               : 'D',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryMint,
@@ -98,7 +98,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                 const SizedBox(height: 12),
                 Text(
                   profile.fullName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -107,7 +107,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                 if (profile.specialization != null)
                   Text(
                     profile.specialization!,
-                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.white70),
                   ),
               ],
             ),
@@ -141,9 +141,13 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                 children: [
                   Icon(Icons.verified, color: Colors.green, size: 18),
                   SizedBox(width: 6),
-                  Text('Verified Doctor',
-                      style: TextStyle(
-                          color: Colors.green, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Verified Doctor',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -156,10 +160,12 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
               spacing: 8,
               runSpacing: 4,
               children: profile.qualifications
-                  .map((q) => Chip(
-                        label: Text(q, style: const TextStyle(fontSize: 12)),
-                        backgroundColor: AppTheme.cardTintLavender,
-                      ))
+                  .map(
+                    (q) => Chip(
+                      label: Text(q, style: TextStyle(fontSize: 12)),
+                      backgroundColor: AppTheme.cardTintLavenderColor(context),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 16),
@@ -167,7 +173,10 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
 
           // Experience
           if (profile.yearsOfExperience != null) ...[
-            _infoRow(Icons.work_outline, '${profile.yearsOfExperience} years of experience'),
+            _infoRow(
+              Icons.work_outline,
+              '${profile.yearsOfExperience} years of experience',
+            ),
             const SizedBox(height: 8),
           ],
 
@@ -183,7 +192,10 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
           if (profile.city != null || profile.country != null) ...[
             _infoRow(
               Icons.map_outlined,
-              [profile.city, profile.country].where((e) => e != null).join(', '),
+              [
+                profile.city,
+                profile.country,
+              ].where((e) => e != null).join(', '),
             ),
             const SizedBox(height: 16),
           ],
@@ -195,18 +207,25 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
               spacing: 8,
               runSpacing: 4,
               children: profile.availableDays
-                  .map((d) => Chip(
-                        label: Text(d, style: const TextStyle(fontSize: 12)),
-                        backgroundColor: AppTheme.cardTintMint,
-                      ))
+                  .map(
+                    (d) => Chip(
+                      label: Text(d, style: TextStyle(fontSize: 12)),
+                      backgroundColor: AppTheme.cardTintMintColor(context),
+                    ),
+                  )
                   .toList(),
             ),
             if (profile.timeSlots.isNotEmpty) ...[
               const SizedBox(height: 8),
-              ...profile.timeSlots.map((s) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: _infoRow(Icons.schedule, '${s.startTime} - ${s.endTime}'),
-                  )),
+              ...profile.timeSlots.map(
+                (s) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _infoRow(
+                    Icons.schedule,
+                    '${s.startTime} - ${s.endTime}',
+                  ),
+                ),
+              ),
             ],
             if (profile.isOnlineConsultationAvailable) ...[
               const SizedBox(height: 8),
@@ -219,19 +238,26 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
           if (profile.inPersonFee != null || profile.onlineFee != null) ...[
             _sectionTitle('Consultation Fees'),
             if (profile.inPersonFee != null)
-              _infoRow(Icons.person, 'In-person: \$${profile.inPersonFee!.toStringAsFixed(0)}'),
+              _infoRow(
+                Icons.person,
+                'In-person: \$${profile.inPersonFee!.toStringAsFixed(0)}',
+              ),
             if (profile.onlineFee != null) ...[
               const SizedBox(height: 4),
-              _infoRow(Icons.videocam, 'Online: \$${profile.onlineFee!.toStringAsFixed(0)}'),
+              _infoRow(
+                Icons.videocam,
+                'Online: \$${profile.onlineFee!.toStringAsFixed(0)}',
+              ),
             ],
             if (profile.paymentMethods.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 children: profile.paymentMethods
-                    .map((m) => Chip(
-                          label: Text(m, style: const TextStyle(fontSize: 11)),
-                        ))
+                    .map(
+                      (m) =>
+                          Chip(label: Text(m, style: TextStyle(fontSize: 11))),
+                    )
                     .toList(),
               ),
             ],
@@ -241,17 +267,19 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
           // Bio
           if (profile.bio != null && profile.bio!.isNotEmpty) ...[
             _sectionTitle('About'),
-            Text(profile.bio!, style: const TextStyle(fontSize: 14, height: 1.5)),
+            Text(profile.bio!, style: TextStyle(fontSize: 14, height: 1.5)),
             const SizedBox(height: 16),
           ],
 
           // Services
           if (profile.services.isNotEmpty) ...[
             _sectionTitle('Services Offered'),
-            ...profile.services.map((s) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: _infoRow(Icons.check_circle_outline, s),
-                )),
+            ...profile.services.map(
+              (s) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: _infoRow(Icons.check_circle_outline, s),
+              ),
+            ),
             const SizedBox(height: 16),
           ],
 
@@ -261,7 +289,9 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
             Wrap(
               spacing: 8,
               children: profile.languagesSpoken
-                  .map((l) => Chip(label: Text(l, style: const TextStyle(fontSize: 12))))
+                  .map(
+                    (l) => Chip(label: Text(l, style: TextStyle(fontSize: 12))),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 16),
@@ -281,11 +311,11 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -297,22 +327,28 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
             children: [
               Text(
                 profile.averageRating.toStringAsFixed(1),
-                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
               ),
               _buildStarRow(profile.averageRating),
               Text(
                 '${profile.totalReviews} reviews',
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                style: TextStyle(
+                  color: AppTheme.textSecondaryColor(context),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
           const SizedBox(width: 24),
-          Container(height: 60, width: 1, color: Colors.grey.shade200),
+          Container(height: 60, width: 1, color: AppTheme.borderColor(context)),
           const SizedBox(width: 24),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _infoRow(Icons.people, '${profile.totalPatientsTreated} patients treated'),
+              _infoRow(
+                Icons.people,
+                '${profile.totalPatientsTreated} patients treated',
+              ),
             ],
           ),
         ],
@@ -325,11 +361,11 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (i) {
         if (i < rating.floor()) {
-          return const Icon(Icons.star, color: Colors.amber, size: 18);
+          return Icon(Icons.star, color: Colors.amber, size: 18);
         } else if (i < rating) {
-          return const Icon(Icons.star_half, color: Colors.amber, size: 18);
+          return Icon(Icons.star_half, color: Colors.amber, size: 18);
         }
-        return const Icon(Icons.star_border, color: Colors.amber, size: 18);
+        return Icon(Icons.star_border, color: Colors.amber, size: 18);
       }),
     );
   }
@@ -346,11 +382,14 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
             future: _reviewService.hasReviewed(widget.doctorUid),
             builder: (context, snap) {
               if (snap.data == true) {
-                return const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
                     'You have already reviewed this doctor.',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor(context),
+                      fontSize: 13,
+                    ),
                   ),
                 );
               }
@@ -358,7 +397,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: OutlinedButton.icon(
                   onPressed: () => _showReviewDialog(),
-                  icon: const Icon(Icons.rate_review),
+                  icon: Icon(Icons.rate_review),
                   label: const Text('Write a Review'),
                 ),
               );
@@ -372,9 +411,9 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
             }
             final reviews = snap.data ?? [];
             if (reviews.isEmpty) {
-              return const Text(
+              return Text(
                 'No reviews yet.',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               );
             }
             return Column(
@@ -394,11 +433,11 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.08),
+            color: AppTheme.shadowColor(context),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -416,8 +455,11 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                   review.patientName.isNotEmpty
                       ? review.patientName[0].toUpperCase()
                       : 'P',
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -425,10 +467,20 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(review.patientName,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text(dateStr,
-                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                    Text(
+                      review.patientName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      dateStr,
+                      style: TextStyle(
+                        color: AppTheme.textSecondaryColor(context),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -437,7 +489,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
           ),
           if (review.comment != null && review.comment!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(review.comment!, style: const TextStyle(fontSize: 13, height: 1.4)),
+            Text(review.comment!, style: TextStyle(fontSize: 13, height: 1.4)),
           ],
         ],
       ),
@@ -514,9 +566,9 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
                       } catch (e) {
                         setDialogState(() => submitting = false);
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(content: Text('Failed: $e')),
-                          );
+                          ScaffoldMessenger.of(
+                            ctx,
+                          ).showSnackBar(SnackBar(content: Text('Failed: $e')));
                         }
                       }
                     },
@@ -539,7 +591,7 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -547,11 +599,9 @@ class _DoctorPublicProfilePageState extends State<DoctorPublicProfilePage> {
   Widget _infoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppTheme.textSecondary),
+        Icon(icon, size: 18, color: AppTheme.textSecondaryColor(context)),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(text, style: const TextStyle(fontSize: 14)),
-        ),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 14))),
       ],
     );
   }

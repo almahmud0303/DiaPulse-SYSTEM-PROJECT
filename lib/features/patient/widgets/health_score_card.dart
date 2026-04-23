@@ -20,7 +20,7 @@ class HealthScoreCard extends StatelessWidget {
   final VoidCallback? onTap;
   final String title;
 
-  Color _statusColor(String status) {
+  Color _statusColor(BuildContext context, String status) {
     switch (status.toLowerCase()) {
       case 'excellent':
         return const Color(0xFF61B18B);
@@ -31,11 +31,11 @@ class HealthScoreCard extends StatelessWidget {
       case 'poor':
         return AppTheme.softError;
       default:
-        return AppTheme.textSecondary;
+        return AppTheme.textSecondaryColor(context);
     }
   }
 
-  Color _trendColor(String trend) {
+  Color _trendColor(BuildContext context, String trend) {
     switch (trend.toLowerCase()) {
       case 'improving':
         return const Color(0xFF61B18B);
@@ -44,7 +44,7 @@ class HealthScoreCard extends StatelessWidget {
       case 'stable':
         return AppTheme.secondaryLavender;
       default:
-        return AppTheme.textSecondary;
+        return AppTheme.textSecondaryColor(context);
     }
   }
 
@@ -73,7 +73,7 @@ class HealthScoreCard extends StatelessWidget {
     final score = healthScore;
 
     return Material(
-      color: AppTheme.cardTintMint,
+      color: AppTheme.cardTintMintColor(context),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -81,7 +81,7 @@ class HealthScoreCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: AppTheme.cardTintMint,
+            color: AppTheme.cardTintMintColor(context),
             borderRadius: BorderRadius.circular(20),
             boxShadow: const [
               BoxShadow(
@@ -119,7 +119,7 @@ class HealthScoreCard extends StatelessWidget {
                                   end: Alignment.bottomRight,
                                 ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.monitor_heart_outlined,
                                 color: Colors.white,
                               ),
@@ -133,7 +133,7 @@ class HealthScoreCard extends StatelessWidget {
                                     title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -145,7 +145,7 @@ class HealthScoreCard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: AppTheme.textSecondary,
+                                      color: AppTheme.textSecondaryColor(context),
                                     ),
                                   ),
                                 ],
@@ -156,7 +156,7 @@ class HealthScoreCard extends StatelessWidget {
                                   ? IconButton(
                                       tooltip: 'View details',
                                       onPressed: onViewDetails,
-                                      icon: const Icon(Icons.arrow_forward_ios),
+                                      icon: Icon(Icons.arrow_forward_ios),
                                       iconSize: 16,
                                     )
                                   : TextButton(
@@ -177,6 +177,7 @@ class HealthScoreCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: _statusColor(
+                              context,
                               score.status,
                             ).withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(20),
@@ -184,7 +185,7 @@ class HealthScoreCard extends StatelessWidget {
                           child: Text(
                             score.status,
                             style: TextStyle(
-                              color: _statusColor(score.status),
+                              color: _statusColor(context, score.status),
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -203,7 +204,7 @@ class HealthScoreCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 40,
                                   fontWeight: FontWeight.bold,
-                                  color: _statusColor(score.status),
+                                  color: _statusColor(context, score.status),
                                   height: 1,
                                 ),
                               ),
@@ -214,7 +215,7 @@ class HealthScoreCard extends StatelessWidget {
                                   '/ 100',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: AppTheme.textSecondary,
+                                    color: AppTheme.textSecondaryColor(context),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -250,7 +251,7 @@ class HealthScoreCard extends StatelessWidget {
                         Icon(
                           _trendIcon(score.trend),
                           size: 18,
-                          color: _trendColor(score.trend),
+                          color: _trendColor(context, score.trend),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -259,7 +260,7 @@ class HealthScoreCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: _trendColor(score.trend),
+                              color: _trendColor(context, score.trend),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -285,8 +286,8 @@ class HealthScoreCard extends StatelessWidget {
                         ),
                         child: Text(
                           score.insights.first,
-                          style: const TextStyle(
-                            color: AppTheme.textPrimary,
+                          style: TextStyle(
+                            color: AppTheme.textPrimaryColor(context),
                             fontSize: 13,
                             height: 1.3,
                           ),
@@ -327,14 +328,14 @@ class _HealthScoreErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: AppTheme.softError),
+            Icon(Icons.error_outline, color: AppTheme.softError),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
           ],
         ),
@@ -354,14 +355,14 @@ class _HealthScoreEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.health_and_safety_outlined,
-              color: AppTheme.textSecondary,
+              color: AppTheme.textSecondaryColor(context),
             ),
             const SizedBox(height: 8),
             Text(
               'Health score is not available yet.',
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
           ],
         ),

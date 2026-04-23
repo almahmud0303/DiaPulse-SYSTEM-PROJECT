@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/appointment_service.dart';
 import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_patient_service.dart';
@@ -68,7 +69,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Doctor Consultation'),
         backgroundColor: Colors.blue,
@@ -111,7 +112,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
                               'Message or book an appointment with a doctor from your care team.',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey.shade600,
+                                color: AppTheme.textSecondaryColor(context),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -135,7 +136,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -157,21 +158,21 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.medical_services_outlined,
-                size: 64, color: Colors.grey.shade400),
+                size: 64, color: AppTheme.textSecondaryColor(context)),
             const SizedBox(height: 16),
             Text(
               'No doctors registered yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: AppTheme.textSecondaryColor(context),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Doctors will appear here once they are registered in the app.',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -229,11 +230,11 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -281,7 +282,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
                       doctor.email,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.textSecondaryColor(context),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -523,7 +524,7 @@ class _DoctorProfilePage extends StatelessWidget {
         : DateFormat('MMMM d, yyyy').format(doctor.createdAt!);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Doctor Profile'),
         backgroundColor: Colors.blue,
@@ -537,11 +538,11 @@ class _DoctorProfilePage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.surfaceColor(context),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.12),
+                    color: AppTheme.shadowColor(context),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -570,7 +571,7 @@ class _DoctorProfilePage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Doctor',
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                   ),
                   const SizedBox(height: 14),
                   Container(
@@ -592,6 +593,7 @@ class _DoctorProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             _infoCard(
+              context: context,
               title: 'Contact',
               rows: [
                 _InfoRow(label: 'Email', value: doctor.email),
@@ -600,6 +602,7 @@ class _DoctorProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             _infoCard(
+              context: context,
               title: 'Professional details',
               rows: [
                 _InfoRow(label: 'Speciality', value: speciality),
@@ -613,16 +616,20 @@ class _DoctorProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _infoCard({required String title, required List<_InfoRow> rows}) {
+  Widget _infoCard({
+    required BuildContext context,
+    required String title,
+    required List<_InfoRow> rows,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -646,7 +653,7 @@ class _DoctorProfilePage extends StatelessWidget {
                     width: 130,
                     child: Text(
                       row.label,
-                      style: TextStyle(color: Colors.grey.shade700),
+                      style: TextStyle(color: AppTheme.textSecondaryColor(context)),
                     ),
                   ),
                   Expanded(

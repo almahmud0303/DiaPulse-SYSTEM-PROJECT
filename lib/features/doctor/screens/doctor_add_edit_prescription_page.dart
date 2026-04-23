@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dia_plus/models/app_user.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
 import 'package:dia_plus/services/medicine_service.dart';
@@ -700,6 +701,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     final isEdit = widget.medicine != null;
     final isAppending = !isEdit && widget.appendToPrescriptionId != null && widget.appendToPrescriptionId!.isNotEmpty;
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: Text(isEdit ? 'Edit prescription' : (isAppending ? 'Add medicine' : 'Add prescription')),
         backgroundColor: Colors.blue,
@@ -787,7 +789,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             children: [
               Text(
                 'For ${widget.patient.displayName.isEmpty ? "patient" : widget.patient.displayName}',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textSecondaryColor(context),
+                ),
               ),
               const SizedBox(height: 20),
               if (!isEdit && _draftItems.isNotEmpty) ...[
@@ -913,7 +918,10 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                 const SizedBox(height: 4),
                 Text(
                   'Patient reminders use their meal routine ± this value.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor(context),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
@@ -1004,7 +1012,13 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondaryColor(context),
+          ),
+        ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: whenValue,
@@ -1028,7 +1042,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
             trailing: const Icon(Icons.access_time),
             onTap: onPickTime,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            tileColor: Colors.grey.shade100,
+            tileColor: AppTheme.surfaceAltColor(context),
           ),
         ],
       ],

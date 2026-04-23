@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/meal_routine.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/services/meal_routine_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:dia_plus/services/reminder_notification_service.dart';
@@ -107,12 +108,21 @@ class _MealRoutinePageState extends State<MealRoutinePage> {
   Widget _row(String label, TimeOfDay t, Future<void> Function() onTap) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimaryColor(context),
+        ),
+      ),
       subtitle: Text(_hm(t)),
-      trailing: const Icon(Icons.schedule),
+      trailing: Icon(
+        Icons.schedule,
+        color: AppTheme.textSecondaryColor(context),
+      ),
       onTap: () => onTap(),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tileColor: Colors.grey.shade100,
+      tileColor: AppTheme.surfaceAltColor(context),
     );
   }
 
@@ -122,6 +132,7 @@ class _MealRoutinePageState extends State<MealRoutinePage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Meal routine'),
         actions: [
@@ -144,7 +155,10 @@ class _MealRoutinePageState extends State<MealRoutinePage> {
             'When do you usually eat? This is used with medicines timed '
             '"before breakfast", "after lunch", etc. Reminders are set at '
             'your meal time minus or plus the minutes your doctor prescribed.',
-            style: TextStyle(color: Colors.grey.shade700, height: 1.4),
+            style: TextStyle(
+              color: AppTheme.textSecondaryColor(context),
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 24),
           _row(

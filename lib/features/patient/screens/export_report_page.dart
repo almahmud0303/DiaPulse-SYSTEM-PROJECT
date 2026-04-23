@@ -1,4 +1,5 @@
 import 'package:dia_plus/features/patient/history/models/history_date_range.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/patient/screens/pdf_preview_page.dart';
 import 'package:dia_plus/features/patient/widgets/export_report_button.dart';
 import 'package:dia_plus/features/patient/widgets/report_range_selector.dart';
@@ -143,12 +144,12 @@ class _ExportReportPageState extends State<ExportReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Export Report'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.grey[800],
+        foregroundColor: AppTheme.textPrimaryColor(context),
         surfaceTintColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -194,16 +195,19 @@ class _ExportReportPageState extends State<ExportReportPage> {
           ),
         ),
         const SizedBox(width: 14),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Glucose Report',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             Text(
               'Generate & export your health data',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor(context),
+                fontSize: 13,
+              ),
             ),
           ],
         ),

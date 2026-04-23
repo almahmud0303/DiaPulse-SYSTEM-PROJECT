@@ -81,7 +81,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       report,
-                      style: const TextStyle(fontFamily: 'monospace'),
+                      style: TextStyle(fontFamily: 'monospace'),
                     ),
                   ),
                 ),
@@ -99,7 +99,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.copy),
+                        icon: Icon(Icons.copy),
                         label: const Text('Copy'),
                       ),
                     ),
@@ -123,19 +123,19 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Reminder Settings'),
         actions: [
           if (_saving)
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.textSecondaryColor(context),
                 ),
               ),
             ),
@@ -148,9 +148,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 // ── Master switch ─────────────────────────────────────
                 _SectionHeader(title: 'Master Switch'),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.notifications,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: const Text('All Reminders'),
                   subtitle: const Text(
@@ -166,7 +166,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 // ── Per-category ──────────────────────────────────────
                 _SectionHeader(title: 'Reminder Categories'),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.medication,
                     color: AppTheme.secondaryLavender,
                   ),
@@ -180,7 +180,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                       : null,
                 ),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.water_drop,
                     color: AppTheme.secondaryLavender,
                   ),
@@ -194,7 +194,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                       : null,
                 ),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.fitness_center,
                     color: AppTheme.primaryMint,
                   ),
@@ -208,7 +208,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                       : null,
                 ),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.calendar_today,
                     color: AppTheme.accentPeach,
                   ),
@@ -226,9 +226,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 // ── Notification style ────────────────────────────────
                 _SectionHeader(title: 'Notification Style'),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.volume_up,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: const Text('Sound'),
                   activeThumbColor: AppTheme.primaryMint,
@@ -237,9 +237,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                       _update(_settings.copyWith(soundEnabled: v)),
                 ),
                 SwitchListTile(
-                  secondary: const Icon(
+                  secondary: Icon(
                     Icons.vibration,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textSecondaryColor(context),
                   ),
                   title: const Text('Vibration'),
                   activeThumbColor: AppTheme.primaryMint,
@@ -255,7 +255,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: FilledButton.icon(
                     onPressed: _sendTest,
-                    icon: const Icon(Icons.notifications_active),
+                    icon: Icon(Icons.notifications_active),
                     label: const Text('Send Test Notification'),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppTheme.primaryMint,
@@ -268,7 +268,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: OutlinedButton.icon(
                     onPressed: _showDiagnostics,
-                    icon: const Icon(Icons.bug_report_outlined),
+                    icon: Icon(Icons.bug_report_outlined),
                     label: const Text('View Scheduling Diagnostics'),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
@@ -295,7 +295,7 @@ class _SectionHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: AppTheme.textSecondary,
+          color: AppTheme.textSecondaryColor(context),
           letterSpacing: 0.8,
         ),
       ),

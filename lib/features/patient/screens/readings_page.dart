@@ -113,7 +113,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       body: SafeArea(
         child: Column(
           children: [
@@ -215,7 +215,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.analytics,
                   color: Colors.white,
                   size: 28,
@@ -250,13 +250,13 @@ class _ReadingsPageState extends State<ReadingsPage> {
           const SizedBox(height: 16),
           TextField(
             controller: _searchController,
-            style: const TextStyle(color: AppTheme.textPrimary),
+            style: TextStyle(color: AppTheme.textPrimaryColor(context)),
             decoration: InputDecoration(
               hintText: 'Search by value, type, notes, date...',
-              hintStyle: const TextStyle(color: AppTheme.textSecondary),
-              prefixIcon: const Icon(
+              hintStyle: TextStyle(color: AppTheme.textSecondaryColor(context)),
+              prefixIcon: Icon(
                 Icons.search,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
               ),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.88),
@@ -281,7 +281,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: AppTheme.cardTintMint,
+                color: AppTheme.cardTintMintColor(context),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -296,16 +296,16 @@ class _ReadingsPageState extends State<ReadingsPage> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textPrimaryColor(context),
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'Start tracking your glucose levels by adding your first reading',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textSecondaryColor(context),
                 height: 1.5,
               ),
             ),
@@ -368,7 +368,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
+              color: AppTheme.textPrimaryColor(context),
             ),
           ),
         ),
@@ -385,7 +385,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.cardTintMint,
+        color: AppTheme.cardTintMintColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -455,7 +455,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
                     ),
                     child: Text(
                       status,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -477,7 +477,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
+                            color: AppTheme.textPrimaryColor(context),
                           ),
                         ),
                       ),
@@ -490,9 +490,9 @@ class _ReadingsPageState extends State<ReadingsPage> {
                       const SizedBox(width: 6),
                       Text(
                         DateFormat('h:mm a').format(reading.date),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textSecondaryColor(context),
                         ),
                       ),
                     ],
@@ -501,9 +501,9 @@ class _ReadingsPageState extends State<ReadingsPage> {
                     const SizedBox(height: 6),
                     Text(
                       reading.notes,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondaryColor(context),
                         fontStyle: FontStyle.italic,
                       ),
                       maxLines: 2,
@@ -516,7 +516,7 @@ class _ReadingsPageState extends State<ReadingsPage> {
             Column(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined),
+                  icon: Icon(Icons.edit_outlined),
                   onPressed: () async {
                     final updated = await Navigator.push<bool>(
                       context,

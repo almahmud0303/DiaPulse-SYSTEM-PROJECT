@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
@@ -25,10 +27,12 @@ class DoctorPrescriptionDetailPage extends StatefulWidget {
   final List<Medicine>? medicines;
 
   @override
-  State<DoctorPrescriptionDetailPage> createState() => _DoctorPrescriptionDetailPageState();
+  State<DoctorPrescriptionDetailPage> createState() =>
+      _DoctorPrescriptionDetailPageState();
 }
 
-class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailPage> {
+class _DoctorPrescriptionDetailPageState
+    extends State<DoctorPrescriptionDetailPage> {
   final MedicineService _medicineService = MedicineService();
   List<Medicine>? _medicines;
   bool _loading = true;
@@ -75,9 +79,14 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Prescription', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Prescription',
+            style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 6),
-          pw.Text('Patient: ${patient.displayName.isNotEmpty ? patient.displayName : patient.email}'),
+          pw.Text(
+            'Patient: ${patient.displayName.isNotEmpty ? patient.displayName : patient.email}',
+          ),
           pw.Text('Date: ${df.format(rx.createdAt)}'),
           pw.Text('Medicines: ${list.length}'),
         ],
@@ -87,7 +96,9 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
     pw.Widget table() {
       final data = list.map((m) {
         final when = Medicine.medicineTimesLabel(m);
-        final name = m.isInsulin ? '${m.name} (${Medicine.insulinTypeLabel(m.insulinType)})' : m.name;
+        final name = m.isInsulin
+            ? '${m.name} (${Medicine.insulinTypeLabel(m.insulinType)})'
+            : m.name;
         return [name, m.dosage, when, m.frequency.replaceAll('_', ' ')];
       }).toList();
       return pw.TableHelper.fromTextArray(
@@ -109,25 +120,39 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
     }
 
     pw.Widget notes() {
-      final withNotes = list.where((m) => m.adjustmentInstructions != null && m.adjustmentInstructions!.trim().isNotEmpty).toList();
+      final withNotes = list
+          .where(
+            (m) =>
+                m.adjustmentInstructions != null &&
+                m.adjustmentInstructions!.trim().isNotEmpty,
+          )
+          .toList();
       if (withNotes.isEmpty) return pw.SizedBox.shrink();
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.SizedBox(height: 14),
-          pw.Text('Notes', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Notes',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 6),
-          ...withNotes.map((m) => pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 6),
-            child: pw.RichText(
-              text: pw.TextSpan(
-                children: [
-                  pw.TextSpan(text: '${m.name}: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(text: m.adjustmentInstructions!.trim()),
-                ],
+          ...withNotes.map(
+            (m) => pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              child: pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(
+                      text: '${m.name}: ',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.TextSpan(text: m.adjustmentInstructions!.trim()),
+                  ],
+                ),
               ),
             ),
-          )),
+          ),
         ],
       );
     }
@@ -145,7 +170,10 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
   Future<void> _generatePdf() async {
     if (medicines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No medicines in this prescription'), backgroundColor: Colors.orange),
+        const SnackBar(
+          content: Text('No medicines in this prescription'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -153,12 +181,16 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
       final bytes = await _buildPdfBytes();
       await Printing.layoutPdf(
         onLayout: (_) async => bytes,
-        name: 'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
+        name:
+            'prescription_${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.uid}.pdf',
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -181,12 +213,20 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete prescription?'),
-        content: const Text('This will delete the whole prescription (all medicines).'),
+        content: const Text(
+          'This will delete the whole prescription (all medicines).',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -208,6 +248,7 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
     final list = medicines;
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('View prescription'),
         backgroundColor: Colors.blue,
@@ -239,21 +280,41 @@ class _DoctorPrescriptionDetailPageState extends State<DoctorPrescriptionDetailP
                 children: [
                   Text(
                     'Prescription · ${df.format(rx.createdAt)}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  Text('Patient: ${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.email}'),
+                  Text(
+                    'Patient: ${widget.patient.displayName.isNotEmpty ? widget.patient.displayName : widget.patient.email}',
+                    style: TextStyle(color: AppTheme.textSecondaryColor(context)),
+                  ),
                   const SizedBox(height: 20),
                   if (list.isEmpty)
-                    Text('No medicines in this prescription.', style: TextStyle(color: Colors.grey.shade600))
+                    Text(
+                      'No medicines in this prescription.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondaryColor(context),
+                      ),
+                    )
                   else
                     ...list.map((m) {
-                      final sub = '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
+                      final sub =
+                          '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
+                        color: AppTheme.surfaceColor(context),
                         child: ListTile(
                           leading: const Icon(Icons.medication_outlined),
-                          title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text(sub),
+                          title: Text(
+                            m.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            sub,
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor(context),
+                            ),
+                          ),
                         ),
                       );
                     }),

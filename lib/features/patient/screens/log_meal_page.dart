@@ -1,4 +1,5 @@
 import 'package:dia_plus/models/app_config_item.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/meal.dart';
 import 'package:dia_plus/services/config_service.dart';
 import 'package:dia_plus/services/meal_service.dart';
@@ -93,6 +94,7 @@ class _LogMealPageState extends State<LogMealPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Log Meal'),
         backgroundColor: Colors.transparent,
@@ -146,7 +148,9 @@ class _LogMealPageState extends State<LogMealPage> {
                   }
                   return Text(
                     'No meal categories available. Please contact admin.',
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor(context),
+                    ),
                   );
                 }
 

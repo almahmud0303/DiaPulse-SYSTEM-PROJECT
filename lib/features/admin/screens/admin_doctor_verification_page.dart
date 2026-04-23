@@ -37,7 +37,7 @@ class _AdminDoctorVerificationPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Doctor Verification'),
         bottom: TabBar(
@@ -75,7 +75,7 @@ class _AdminDoctorVerificationPageState
           return Center(
             child: Text(
               'No ${status.displayName.toLowerCase()} profiles',
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondaryColor(context)),
             ),
           );
         }
@@ -119,13 +119,13 @@ class _AdminDoctorVerificationPageState
                       profile.fullName.isNotEmpty
                           ? profile.fullName[0].toUpperCase()
                           : 'D',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold),
                     )
                   : null,
             ),
             title: Text(profile.fullName,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
+                style: TextStyle(fontWeight: FontWeight.w600)),
             subtitle: Text(profile.specialization ?? 'No specialization'),
             trailing: _statusChip(profile.verificationStatus),
           ),
@@ -184,7 +184,7 @@ class _AdminDoctorVerificationPageState
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () => _approve(profile),
-                      icon: const Icon(Icons.check, size: 18),
+                      icon: Icon(Icons.check, size: 18),
                       label: const Text('Approve'),
                       style: FilledButton.styleFrom(
                           backgroundColor: Colors.green),
@@ -194,7 +194,7 @@ class _AdminDoctorVerificationPageState
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(profile),
-                      icon: const Icon(Icons.close, size: 18),
+                      icon: Icon(Icons.close, size: 18),
                       label: const Text('Reject'),
                       style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red),
@@ -215,12 +215,12 @@ class _AdminDoctorVerificationPageState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.red, size: 18),
+                    Icon(Icons.info_outline, color: Colors.red, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Rejection reason: ${profile.rejectionReason}',
-                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                        style: TextStyle(fontSize: 12, color: Colors.red),
                       ),
                     ),
                   ],
@@ -266,11 +266,11 @@ class _AdminDoctorVerificationPageState
           SizedBox(
             width: 100,
             child: Text(label,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 13)),
+                style: TextStyle(
+                    color: AppTheme.textSecondaryColor(context), fontSize: 13)),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(fontSize: 13)),
+            child: Text(value, style: TextStyle(fontSize: 13)),
           ),
         ],
       ),
@@ -295,11 +295,11 @@ class _AdminDoctorVerificationPageState
                   width: 60,
                   height: 60,
                   color: Colors.grey.shade200,
-                  child: const Icon(Icons.broken_image, size: 24),
+                  child: Icon(Icons.broken_image, size: 24),
                 ),
               ),
             ),
-            Text(label, style: const TextStyle(fontSize: 10)),
+            Text(label, style: TextStyle(fontSize: 10)),
           ],
         ),
       ),
@@ -318,7 +318,7 @@ class _AdminDoctorVerificationPageState
               automaticallyImplyLeading: false,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],

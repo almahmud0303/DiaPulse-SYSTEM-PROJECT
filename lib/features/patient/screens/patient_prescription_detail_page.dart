@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/features/shared/screens/pdf_bytes_preview_page.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
@@ -180,7 +181,7 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
     final issuedBy = (rx.issuedByName ?? '').trim().isNotEmpty ? rx.issuedByName!.trim() : 'Doctor';
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         title: const Text('Prescription'),
         actions: [
@@ -199,21 +200,34 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                 padding: const EdgeInsets.all(16),
                 children: [
                   Card(
+                    color: AppTheme.surfaceColor(context),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.grey.shade200),
+                      side: BorderSide(color: AppTheme.borderColor(context)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Issued on', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                          Text(
+                            'Issued on',
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor(context),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(df.format(rx.createdAt), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 10),
-                          Text('Issued by', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                          Text(
+                            'Issued by',
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor(context),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(issuedBy, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                         ],
@@ -235,7 +249,10 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                             Expanded(
                               child: Text(
                                 _loadError!,
-                                style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
+                                style: TextStyle(
+                                  color: AppTheme.textPrimaryColor(context),
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ],
@@ -247,7 +264,10 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         'No medicines are linked to this prescription yet. Pull to refresh, or ask your doctor to save the prescription again.',
-                        style: TextStyle(color: Colors.grey.shade800, height: 1.4),
+                        style: TextStyle(
+                          color: AppTheme.textSecondaryColor(context),
+                          height: 1.4,
+                        ),
                       ),
                     )
                   else ...[
@@ -256,7 +276,7 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: Colors.grey.shade900,
+                        color: AppTheme.textPrimaryColor(context),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -267,6 +287,7 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                       final sub =
                           '${m.dosage} · ${Medicine.medicineTimesLabel(m)} · ${m.frequency.replaceAll('_', ' ')}';
                       return Card(
+                        color: AppTheme.surfaceColor(context),
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: CircleAvatar(
@@ -274,7 +295,13 @@ class _PatientPrescriptionDetailPageState extends State<PatientPrescriptionDetai
                             child: const Icon(Icons.medication_outlined, color: Colors.teal),
                           ),
                           title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(sub, style: TextStyle(color: Colors.grey.shade800, height: 1.35)),
+                          subtitle: Text(
+                            sub,
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor(context),
+                              height: 1.35,
+                            ),
+                          ),
                           isThreeLine: sub.length > 48,
                         ),
                       );

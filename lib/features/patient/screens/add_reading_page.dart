@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dia_plus/models/app_config_item.dart';
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/emergency_alert_type.dart';
 import 'package:dia_plus/services/config_service.dart';
 import 'package:flutter/material.dart';
@@ -69,19 +70,6 @@ class _AddReadingPageState extends State<AddReadingPage> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Colors.teal.shade600,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null && picked != _selectedDate) {
@@ -276,18 +264,21 @@ class _AddReadingPageState extends State<AddReadingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundColor(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey[800]),
+          icon: Icon(
+            Icons.arrow_back,
+            color: AppTheme.textPrimaryColor(context),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Add Blood Glucose Reading',
           style: TextStyle(
-            color: Colors.grey[800],
+            color: AppTheme.textPrimaryColor(context),
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -317,11 +308,11 @@ class _AddReadingPageState extends State<AddReadingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -389,11 +380,11 @@ class _AddReadingPageState extends State<AddReadingPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -522,24 +513,13 @@ class _AddReadingPageState extends State<AddReadingPage> {
               ),
               const SizedBox(height: 8),
               // Scale indicators
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildScaleIndicator('40', Colors.blue),
-                    _buildScaleIndicator('100', Colors.green),
-                    _buildScaleIndicator('200', Colors.orange),
-                    _buildScaleIndicator('400', Colors.red),
-                  ],
-                ),
-              ),
+              _buildScaleIndicators(),
               const SizedBox(height: 16),
               // Reference ranges
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppTheme.surfaceAltColor(context),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -578,6 +558,43 @@ class _AddReadingPageState extends State<AddReadingPage> {
     );
   }
 
+  Widget _buildScaleIndicators() {
+    const minValue = 40.0;
+    const maxValue = 400.0;
+    const markerWidth = 36.0;
+    const sliderHorizontalInset = 24.0;
+    final markers = <({double value, String label, Color color})>[
+      (value: 40, label: '40', color: Colors.blue),
+      (value: 100, label: '100', color: Colors.green),
+      (value: 200, label: '200', color: Colors.orange),
+      (value: 400, label: '400', color: Colors.red),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final usableWidth = (constraints.maxWidth - sliderHorizontalInset * 2)
+            .clamp(0.0, double.infinity);
+        return SizedBox(
+          height: 30,
+          child: Stack(
+            children: markers.map((marker) {
+              final fraction = (marker.value - minValue) / (maxValue - minValue);
+              final left = (sliderHorizontalInset +
+                      fraction * usableWidth -
+                      markerWidth / 2)
+                  .clamp(0.0, constraints.maxWidth - markerWidth);
+              return Positioned(
+                left: left,
+                width: markerWidth,
+                child: _buildScaleIndicator(marker.label, marker.color),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildRangeInfo(Color color, String label, String range) {
     return Row(
       children: [
@@ -593,7 +610,10 @@ class _AddReadingPageState extends State<AddReadingPage> {
         ),
         Text(
           range,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondaryColor(context),
+          ),
         ),
       ],
     );
@@ -603,11 +623,11 @@ class _AddReadingPageState extends State<AddReadingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -621,10 +641,14 @@ class _AddReadingPageState extends State<AddReadingPage> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppTheme.surfaceAltColor(context),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.notes, color: Colors.grey.shade700, size: 24),
+                child: Icon(
+                  Icons.notes,
+                  color: AppTheme.textSecondaryColor(context),
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -652,11 +676,11 @@ class _AddReadingPageState extends State<AddReadingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.shadowColor(context),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -687,9 +711,12 @@ class _AddReadingPageState extends State<AddReadingPage> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Select when you took this reading',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 14,
+              color: AppTheme.textSecondaryColor(context),
+            ),
           ),
           const SizedBox(height: 16),
           StreamBuilder<List<AppConfigItem>>(
@@ -733,7 +760,9 @@ class _AddReadingPageState extends State<AddReadingPage> {
                                 ],
                               )
                             : null,
-                        color: isSelected ? null : Colors.grey.shade100,
+                        color: isSelected
+                            ? null
+                            : AppTheme.surfaceAltColor(context),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
                           color: isSelected
@@ -770,7 +799,7 @@ class _AddReadingPageState extends State<AddReadingPage> {
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
-                                  : Colors.grey.shade800,
+                                  : AppTheme.textPrimaryColor(context),
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.w500,

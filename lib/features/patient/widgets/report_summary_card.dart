@@ -1,3 +1,4 @@
+import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/glucose_report_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -5,7 +6,7 @@ import 'package:intl/intl.dart';
 /// Displays a preview summary of the upcoming report: period, statistics,
 /// status breakdown, and trend sentence.
 ///
-/// Purely presentational – all data comes from [reportData].
+/// Purely presentational - all data comes from [reportData].
 class ReportSummaryCard extends StatelessWidget {
   const ReportSummaryCard({super.key, required this.reportData});
 
@@ -21,14 +22,14 @@ class ReportSummaryCard extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        _buildPeriodCard(),
+        _buildPeriodCard(context),
         const SizedBox(height: 12),
         if (!reportData.stats.hasData)
-          _buildEmptyState()
+          _buildEmptyState(context)
         else ...[
-          _buildStatsRow(),
+          _buildStatsRow(context),
           const SizedBox(height: 12),
-          _buildStatusBreakdown(),
+          _buildStatusBreakdown(context),
           const SizedBox(height: 12),
           _buildTrendCard(),
         ],
@@ -36,11 +37,12 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPeriodCard() {
+  Widget _buildPeriodCard(BuildContext context) {
     final df = DateFormat('d MMM yyyy');
     final stats = reportData.stats;
 
     return _card(
+      context: context,
       child: Row(
         children: [
           Container(
@@ -69,8 +71,11 @@ class ReportSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${df.format(reportData.rangeStart)} – ${df.format(reportData.rangeEnd)}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  '${df.format(reportData.rangeStart)} - ${df.format(reportData.rangeEnd)}',
+                  style: TextStyle(
+                    color: AppTheme.textSecondaryColor(context),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -85,9 +90,12 @@ class ReportSummaryCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Text(
+              Text(
                 'readings',
-                style: TextStyle(color: Colors.grey, fontSize: 11),
+                style: TextStyle(
+                  color: AppTheme.textSecondaryColor(context),
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
@@ -96,8 +104,9 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return _card(
+      context: context,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
@@ -109,7 +118,7 @@ class ReportSummaryCard extends StatelessWidget {
               Text(
                 'No readings for this period',
                 style: TextStyle(
-                  color: Colors.grey.shade500,
+                  color: AppTheme.textSecondaryColor(context),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -117,7 +126,10 @@ class ReportSummaryCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Select a different date range to generate a report.',
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                style: TextStyle(
+                  color: AppTheme.textSecondaryColor(context),
+                  fontSize: 12,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -127,12 +139,13 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(BuildContext context) {
     final s = reportData.stats;
     return Row(
       children: [
         Expanded(
           child: _statCard(
+            context,
             'Average',
             s.averageGlucose.toStringAsFixed(1),
             'mg/dL',
@@ -142,6 +155,7 @@ class ReportSummaryCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _statCard(
+            context,
             'Highest',
             s.highestGlucose.toStringAsFixed(0),
             'mg/dL',
@@ -151,6 +165,7 @@ class ReportSummaryCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _statCard(
+            context,
             'Lowest',
             s.lowestGlucose.toStringAsFixed(0),
             'mg/dL',
@@ -161,16 +176,22 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _statCard(String label, String value, String unit, Color color) {
+  Widget _statCard(
+    BuildContext context,
+    String label,
+    String value,
+    String unit,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(14),
         border: Border(bottom: BorderSide(color: color, width: 3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.07),
+            color: AppTheme.shadowColor(context),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -179,7 +200,13 @@ class ReportSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.textSecondaryColor(context),
+              fontSize: 11,
+            ),
+          ),
           const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -202,9 +229,10 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBreakdown() {
+  Widget _buildStatusBreakdown(BuildContext context) {
     final s = reportData.stats;
     return _card(
+      context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -215,15 +243,32 @@ class ReportSummaryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _breakdownItem('Low', s.lowCount, Colors.blue)),
               Expanded(
-                child: _breakdownItem('Normal', s.normalCount, Colors.green),
+                child: _breakdownItem(context, 'Low', s.lowCount, Colors.blue),
               ),
               Expanded(
-                child: _breakdownItem('High', s.highCount, Colors.orange),
+                child: _breakdownItem(
+                  context,
+                  'Normal',
+                  s.normalCount,
+                  Colors.green,
+                ),
               ),
               Expanded(
-                child: _breakdownItem('Very High', s.veryHighCount, Colors.red),
+                child: _breakdownItem(
+                  context,
+                  'High',
+                  s.highCount,
+                  Colors.orange,
+                ),
+              ),
+              Expanded(
+                child: _breakdownItem(
+                  context,
+                  'Very High',
+                  s.veryHighCount,
+                  Colors.red,
+                ),
               ),
             ],
           ),
@@ -232,7 +277,12 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _breakdownItem(String label, int count, Color color) {
+  Widget _breakdownItem(
+    BuildContext context,
+    String label,
+    int count,
+    Color color,
+  ) {
     return Column(
       children: [
         Text(
@@ -246,7 +296,10 @@ class ReportSummaryCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 11, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 11,
+            color: AppTheme.textSecondaryColor(context),
+          ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -281,15 +334,15 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _card({required Widget child}) {
+  Widget _card({required BuildContext context, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.08),
+            color: AppTheme.shadowColor(context),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
