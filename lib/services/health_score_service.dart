@@ -10,24 +10,28 @@ class HealthScoreService {
     required HealthScorePeriod period,
   }) async {
     final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
     DateTime start;
     DateTime end;
     String periodLabel;
 
     switch (period) {
       case HealthScorePeriod.today:
-        start = DateTime(now.year, now.month, now.day);
-        end = now;
+        start = todayStart;
+        end = todayEnd;
         periodLabel = 'Today';
         break;
       case HealthScorePeriod.last7Days:
-        start = now.subtract(const Duration(days: 7));
-        end = now;
+        // Inclusive 7-day window: today + previous 6 days.
+        start = todayStart.subtract(const Duration(days: 6));
+        end = todayEnd;
         periodLabel = 'Last 7 days';
         break;
       case HealthScorePeriod.last30Days:
-        start = now.subtract(const Duration(days: 30));
-        end = now;
+        // Inclusive 30-day window: today + previous 29 days.
+        start = todayStart.subtract(const Duration(days: 29));
+        end = todayEnd;
         periodLabel = 'Last 30 days';
         break;
     }
@@ -46,15 +50,15 @@ class HealthScoreService {
     final levels = readings.map((r) => r.glucoseLevel).toList();
     final lowest = levels.reduce((a, b) => a < b ? a : b);
 
-    // Simple score 0–100: best 70–140, penalize outside
-    double score = 100;
-    for (final v in levels) {
-      if (v < 70 || v > 140) {
-        final dist = v < 70 ? (70 - v) : (v - 140);
-        score -= (dist / 3).clamp(0, 25);
-      }
-    }
-    score = score.clamp(0, 100);
+    // Score 0–100: best range 70–140. Use average penalty so score does not
+    // become unfairly lower just because the user logged more readings.
+    final penalties = levels.map((v) {
+      if (v >= 70 && v <= 140) return 0.0;
+      final dist = v < 70 ? (70 - v) : (v - 140);
+      return (dist / 3).clamp(0, 25).toDouble();
+    }).toList();
+    final avgPenalty = penalties.reduce((a, b) => a + b) / penalties.length;
+    double score = (100 - avgPenalty).clamp(0, 100).toDouble();
 
     String status;
     if (score >= 80) {
@@ -67,6 +71,12 @@ class HealthScoreService {
       status = 'Poor';
     }
 
+    final readingMax = period == HealthScorePeriod.today
+        ? 10.0
+        : (period == HealthScorePeriod.last7Days ? 21.0 : 90.0);
+    final readingScore =
+      readings.length.toDouble().clamp(0, readingMax).toDouble();
+
     final breakdown = <HealthScoreBreakdownItem>[
       HealthScoreBreakdownItem(
         category: 'Glucose control',
@@ -76,8 +86,8 @@ class HealthScoreService {
       ),
       HealthScoreBreakdownItem(
         category: 'Readings',
-        score: readings.length.toDouble(),
-        maxScore: period == HealthScorePeriod.today ? 10 : (period == HealthScorePeriod.last7Days ? 21 : 90),
+        score: readingScore,
+        maxScore: readingMax,
         note: '${readings.length} in period',
       ),
     ];
@@ -89,7 +99,12 @@ class HealthScoreService {
     if (lowest < 70) {
       insights.add('You had low glucose readings. Monitor for hypoglycemia.');
     }
-    if (readings.length < 3 && period != HealthScorePeriod.today) {
+    final minReadings = switch (period) {
+      HealthScorePeriod.today => 1,
+      HealthScorePeriod.last7Days => 7,
+      HealthScorePeriod.last30Days => 15,
+    };
+    if (readings.length < minReadings && period != HealthScorePeriod.today) {
       insights.add('Log more readings for a more accurate score.');
     }
 

@@ -7,6 +7,7 @@ import 'package:dia_plus/features/patient/screens/log_activity_page.dart';
 import 'package:dia_plus/features/patient/screens/log_meal_page.dart';
 import 'package:dia_plus/features/patient/screens/take_medicine_page.dart';
 import 'package:dia_plus/features/patient/screens/patient_prescriptions_page.dart';
+import 'package:dia_plus/features/patient/screens/patient_ocr_page.dart';
 import 'package:dia_plus/features/patient/widgets/health_score_card.dart';
 import 'package:dia_plus/features/patient/widgets/patient_step_card.dart';
 import 'package:dia_plus/features/patient/widgets/next_reminder_widget.dart';
@@ -754,7 +755,17 @@ class _PatientHomePageState extends State<PatientHomePage> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(child: SizedBox()),
+            Expanded(
+              child: _buildQuickActionButton(
+                'OCR Scan',
+                Icons.document_scanner_outlined,
+                Colors.indigo,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PatientOcrPage()),
+                ),
+              ),
+            ),
           ],
         ),
       ],

@@ -54,6 +54,12 @@ dependencies:
   # For charts (mini weekly graph)
   fl_chart: ^0.69.0
 
+  # Gemini OCR (extract text from captured images)
+  google_generative_ai: ^0.4.7
+
+  # On-device OCR (ML Kit)
+  google_mlkit_text_recognition: ^0.15.0
+
   # PDF report generation and preview/share
   pdf: ^3.10.8
   printing: ^5.13.1
