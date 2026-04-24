@@ -3,7 +3,9 @@ import 'package:dia_plus/core/navigation/app_router.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/core/theme/theme_notifier.dart';
 import 'package:dia_plus/firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
@@ -12,6 +14,12 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    if (kIsWeb) {
+      FirebaseFirestore.instance.settings = const Settings(
+        webExperimentalForceLongPolling: true,
+        webExperimentalAutoDetectLongPolling: false,
+      );
+    }
   } catch (e, stackTrace) {
     debugPrint('Firebase initialization error: $e');
     debugPrintStack(stackTrace: stackTrace);

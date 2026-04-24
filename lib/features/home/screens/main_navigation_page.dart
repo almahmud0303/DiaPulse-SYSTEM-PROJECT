@@ -15,6 +15,7 @@ import 'package:dia_plus/services/auth_service.dart';
 import 'package:dia_plus/services/doctor_profile_service.dart';
 import 'package:dia_plus/services/notification_service.dart';
 import 'package:dia_plus/features/doctor/screens/doctor_profile_setup_page.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -154,108 +155,233 @@ class _NavScaffoldState extends State<_NavScaffold> {
   final _notificationService = NotificationService();
   final _announcementService = AnnouncementService();
 
+  Stream<int>? _updatesCountStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _updatesCountStream = _buildUpdatesCountStream(
+      uid: widget.user.uid,
+      role: widget.user.role.value,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldUid = oldWidget.user.uid;
+    final oldRole = oldWidget.user.role.value;
+    final newUid = widget.user.uid;
+    final newRole = widget.user.role.value;
+    if (oldUid != newUid || oldRole != newRole) {
+      _updatesCountStream = _buildUpdatesCountStream(uid: newUid, role: newRole);
+    }
+  }
+
+  Stream<int> _buildUpdatesCountStream({required String uid, required String role}) {
+    final controller = StreamController<int>();
+    StreamSubscription<int>? notifSub;
+    StreamSubscription<int>? annSub;
+    var notifCount = 0;
+    var annCount = 0;
+
+    void emit() {
+      if (!controller.isClosed) {
+        controller.add(notifCount + annCount);
+      }
+    }
+
+    controller.onListen = () {
+      notifSub = _notificationService.streamUnreadCount(uid).listen(
+        (value) {
+          notifCount = value;
+          emit();
+        },
+        onError: controller.addError,
+      );
+
+      annSub = _announcementService.streamUnreadCount(uid: uid, role: role).listen(
+        (value) {
+          annCount = value;
+          emit();
+        },
+        onError: controller.addError,
+      );
+    };
+
+    controller.onCancel = () async {
+      await notifSub?.cancel();
+      await annSub?.cancel();
+    };
+
+    return controller.stream;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final uid = widget.user.uid;
-    final role = widget.user.role.value;
+    final isWide = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      body: widget.pages[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x12000000),
-              blurRadius: 12,
-              offset: Offset(0, -2),
+    return StreamBuilder<int>(
+      stream: _updatesCountStream,
+      initialData: 0,
+      builder: (context, snapshot) {
+        final updatesCount = snapshot.data ?? 0;
+
+        if (isWide) {
+          return Scaffold(
+            body: Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardTintLavenderColor(context),
+                    border: Border(
+                      right: BorderSide(color: AppTheme.borderColor(context)),
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: NavigationRail(
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: (index) {
+                        if (!mounted) return;
+                        setState(() => _currentIndex = index);
+                      },
+                      backgroundColor: AppTheme.cardTintLavenderColor(context),
+                      selectedIconTheme: const IconThemeData(color: AppTheme.primaryMint),
+                      unselectedIconTheme: IconThemeData(
+                        color: AppTheme.textSecondaryColor(context),
+                      ),
+                      selectedLabelTextStyle: Theme.of(context)
+                          .textTheme
+                          .labelSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                      unselectedLabelTextStyle: Theme.of(context).textTheme.labelSmall,
+                      labelType: NavigationRailLabelType.all,
+                      destinations: [
+                        const NavigationRailDestination(
+                          icon: Icon(Icons.dashboard_outlined),
+                          selectedIcon: Icon(Icons.dashboard_rounded),
+                          label: Text('Dashboard'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(
+                            widget.user.isPatient
+                                ? Icons.analytics_outlined
+                                : Icons.schedule_outlined,
+                          ),
+                          selectedIcon: Icon(
+                            widget.user.isPatient
+                                ? Icons.analytics_rounded
+                                : Icons.schedule,
+                          ),
+                          label: Text(
+                            widget.user.isPatient ? 'Readings' : 'Schedule',
+                          ),
+                        ),
+                        const NavigationRailDestination(
+                          icon: Icon(Icons.history_outlined),
+                          selectedIcon: Icon(Icons.history),
+                          label: Text('History'),
+                        ),
+                        NavigationRailDestination(
+                          icon: _BadgeIcon(
+                            icon: Icons.notifications_outlined,
+                            count: updatesCount,
+                          ),
+                          selectedIcon: _BadgeIcon(
+                            icon: Icons.notifications,
+                            count: updatesCount,
+                          ),
+                          label: const Text('Updates'),
+                        ),
+                        const NavigationRailDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: Text('Profile'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(child: widget.pages[_currentIndex]),
+              ],
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: AppTheme.cardTintLavenderColor(context),
-            selectedItemColor: AppTheme.primaryMint,
-            unselectedItemColor: AppTheme.textSecondaryColor(context),
-            selectedLabelStyle: Theme.of(
-              context,
-            ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
-            unselectedLabelStyle: Theme.of(context).textTheme.labelSmall,
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_outlined),
-                activeIcon: Icon(Icons.dashboard_rounded),
-                label: 'Dashboard',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  widget.user.isPatient ? Icons.analytics_outlined : Icons.schedule_outlined,
+          );
+        }
+
+        return Scaffold(
+          body: widget.pages[_currentIndex],
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x12000000),
+                  blurRadius: 12,
+                  offset: Offset(0, -2),
                 ),
-                activeIcon: Icon(
-                  widget.user.isPatient ? Icons.analytics_rounded : Icons.schedule,
-                ),
-                label: widget.user.isPatient ? 'Readings' : 'Schedule',
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) {
+                  if (!mounted) return;
+                  setState(() => _currentIndex = index);
+                },
+                type: BottomNavigationBarType.fixed,
+                backgroundColor: AppTheme.cardTintLavenderColor(context),
+                selectedItemColor: AppTheme.primaryMint,
+                unselectedItemColor: AppTheme.textSecondaryColor(context),
+                selectedLabelStyle: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+                unselectedLabelStyle: Theme.of(context).textTheme.labelSmall,
+                items: [
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.dashboard_outlined),
+                    activeIcon: Icon(Icons.dashboard_rounded),
+                    label: 'Dashboard',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      widget.user.isPatient
+                          ? Icons.analytics_outlined
+                          : Icons.schedule_outlined,
+                    ),
+                    activeIcon: Icon(
+                      widget.user.isPatient
+                          ? Icons.analytics_rounded
+                          : Icons.schedule,
+                    ),
+                    label: widget.user.isPatient ? 'Readings' : 'Schedule',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.history_outlined),
+                    activeIcon: Icon(Icons.history),
+                    label: 'History',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: _BadgeIcon(
+                      icon: Icons.notifications_outlined,
+                      count: updatesCount,
+                    ),
+                    activeIcon: _BadgeIcon(
+                      icon: Icons.notifications,
+                      count: updatesCount,
+                    ),
+                    label: 'Updates',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline),
+                    activeIcon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.history_outlined),
-                activeIcon: Icon(Icons.history),
-                label: 'History',
-              ),
-              BottomNavigationBarItem(
-                icon: StreamBuilder<int>(
-                  stream: _notificationService.streamUnreadCount(uid),
-                  builder: (context, notifSnap) {
-                    return StreamBuilder<int>(
-                      stream: _announcementService.streamUnreadCount(
-                        uid: uid,
-                        role: role,
-                      ),
-                      builder: (context, annSnap) {
-                        final n1 = notifSnap.data ?? 0;
-                        final n2 = annSnap.data ?? 0;
-                        final total = n1 + n2;
-                        return _BadgeIcon(
-                          icon: Icons.notifications_outlined,
-                          count: total,
-                        );
-                      },
-                    );
-                  },
-                ),
-                activeIcon: StreamBuilder<int>(
-                  stream: _notificationService.streamUnreadCount(uid),
-                  builder: (context, notifSnap) {
-                    return StreamBuilder<int>(
-                      stream: _announcementService.streamUnreadCount(
-                        uid: uid,
-                        role: role,
-                      ),
-                      builder: (context, annSnap) {
-                        final n1 = notifSnap.data ?? 0;
-                        final n2 = annSnap.data ?? 0;
-                        final total = n1 + n2;
-                        return _BadgeIcon(
-                          icon: Icons.notifications,
-                          count: total,
-                        );
-                      },
-                    );
-                  },
-                ),
-                label: 'Updates',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

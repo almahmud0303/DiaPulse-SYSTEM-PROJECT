@@ -274,64 +274,66 @@ class _FilterPanel extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            SizedBox(
-              width: 200,
-              child: DropdownButtonFormField<String?>(
-                key: ValueKey<String?>('action_$actionFilter'),
-                initialValue: actionFilter,
-                decoration: const InputDecoration(
-                  labelText: 'Action',
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(value: null, child: Text('All')),
-                  ...[
-                    AuditLogActions.loginSuccess,
-                    AuditLogActions.loginBlocked,
-                    AuditLogActions.adminSetRole,
-                    AuditLogActions.adminSetBlocked,
-                    AuditLogActions.adminDeleteUser,
-                  ].map(
-                    (a) => DropdownMenuItem<String?>(
-                      value: a,
-                      child: Text(a, overflow: TextOverflow.ellipsis),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
+            children: [
+              SizedBox(
+                width: 180,
+                child: DropdownButtonFormField<String?>(
+                  key: ValueKey<String?>('action_$actionFilter'),
+                  initialValue: actionFilter,
+                  decoration: const InputDecoration(
+                    labelText: 'Action',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    const DropdownMenuItem<String?>(value: null, child: Text('All')),
+                    ...[
+                      AuditLogActions.loginSuccess,
+                      AuditLogActions.loginBlocked,
+                      AuditLogActions.adminSetRole,
+                      AuditLogActions.adminSetBlocked,
+                      AuditLogActions.adminDeleteUser,
+                    ].map(
+                      (a) => DropdownMenuItem<String?>(
+                        value: a,
+                        child: Text(a, overflow: TextOverflow.ellipsis),
+                      ),
                     ),
-                  ),
-                ],
-                onChanged: onActionChanged,
-              ),
-            ),
-            SizedBox(
-              width: 160,
-              child: DropdownButtonFormField<String?>(
-                key: ValueKey<String?>('cat_$categoryFilter'),
-                initialValue: categoryFilter,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  isDense: true,
-                  border: OutlineInputBorder(),
+                  ],
+                  onChanged: onActionChanged,
                 ),
-                items: const [
-                  DropdownMenuItem<String?>(value: null, child: Text('All')),
-                  DropdownMenuItem<String?>(
-                    value: AuditLogCategories.auth,
-                    child: Text('auth'),
-                  ),
-                  DropdownMenuItem<String?>(
-                    value: AuditLogCategories.admin,
-                    child: Text('admin'),
-                  ),
-                ],
-                onChanged: onCategoryChanged,
               ),
-            ),
-          ],
+              SizedBox(
+                width: 150,
+                child: DropdownButtonFormField<String?>(
+                  key: ValueKey<String?>('cat_$categoryFilter'),
+                  initialValue: categoryFilter,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem<String?>(value: null, child: Text('All')),
+                    DropdownMenuItem<String?>(
+                      value: AuditLogCategories.auth,
+                      child: Text('auth'),
+                    ),
+                    DropdownMenuItem<String?>(
+                      value: AuditLogCategories.admin,
+                      child: Text('admin'),
+                    ),
+                  ],
+                  onChanged: onCategoryChanged,
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
         TextField(

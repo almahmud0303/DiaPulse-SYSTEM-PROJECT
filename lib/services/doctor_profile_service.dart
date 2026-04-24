@@ -43,18 +43,12 @@ class DoctorProfileService {
     });
   }
 
-  /// Streams all doctor profiles with a given verification status.
+  /// Streams all doctor profiles with a given verification status (filtered in Dart to avoid index requirement).
   Stream<List<DoctorProfile>> watchByVerificationStatus(
       VerificationStatus status) {
-    return _firestore
-        .collectionGroup(_subCollection)
-        .where('verificationStatus', isEqualTo: status.name)
-        .snapshots()
-        .map((snap) => snap.docs.map((d) {
-              // Extract uid from path: users/{uid}/doctor_profile/profile
-              final uid = d.reference.parent.parent!.id;
-              return DoctorProfile.fromMap(uid, d.data());
-            }).toList());
+    return watchAllProfiles().map((profiles) {
+      return profiles.where((p) => p.verificationStatus == status).toList();
+    });
   }
 
   /// Fetches all doctor profiles (for admin listing).
