@@ -364,6 +364,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
     final name = doctor.displayName.isNotEmpty
         ? doctor.displayName
         : doctor.email;
+    final messenger = ScaffoldMessenger.maybeOf(context);
     final noteController = TextEditingController();
     var selectedDateTime = DateTime.now().add(const Duration(hours: 1));
     String? validationError;
@@ -398,7 +399,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (dialogBuilderContext, setDialogState) => AlertDialog(
           title: Text('Book appointment with $name'),
           content: SingleChildScrollView(
             child: Column(
@@ -472,7 +473,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
                   noteController.dispose();
                   if (!mounted) return;
                   Navigator.pop(dialogContext);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger?.showSnackBar(
                     SnackBar(
                       content: Text(
                         'Appointment request sent to $name for ${DateFormat('MMM d, y • HH:mm').format(selectedDateTime)}.',
@@ -482,7 +483,7 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
                   );
                 } catch (e) {
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger?.showSnackBar(
                     SnackBar(
                       content: Text('Failed to send request: $e'),
                       backgroundColor: Colors.red,

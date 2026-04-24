@@ -26,11 +26,9 @@ Future<void> main() async {
     runApp(_FirebaseErrorApp(error: e.toString()));
     return;
   }
+  await registerStepBackgroundSync();
   await ThemeNotifier.init();
   runApp(const DiaPlusApp());
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    registerStepBackgroundSync();
-  });
 }
 
 /// Shown when Firebase fails to initialize.
