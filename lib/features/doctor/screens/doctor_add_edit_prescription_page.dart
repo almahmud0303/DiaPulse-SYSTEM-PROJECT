@@ -1,9 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'package:dia_plus/models/app_user.dart';
 import 'package:dia_plus/core/theme/app_theme.dart';
 import 'package:dia_plus/models/medicine.dart';
 import 'package:dia_plus/models/prescription.dart';
+import 'package:dia_plus/services/drug_suggestion_service.dart';
 import 'package:dia_plus/services/medicine_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
@@ -67,8 +69,12 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   final _nameController = TextEditingController();
   final _dosageController = TextEditingController();
   final _adjustmentInstructionsController = TextEditingController();
+  final DrugSuggestionService _drugSuggestionService = DrugSuggestionService();
   final MedicineService _medicineService = MedicineService();
   final NotificationService _notificationService = NotificationService();
+  Timer? _medicineSuggestionDebounce;
+  List<String> _medicineSuggestions = const [];
+  bool _loadingMedicineSuggestions = false;
 
   /// 'specific' = use time picker; otherwise meal-relative key (after_lunch, etc.)
   String _whenToTake1 = 'specific';
@@ -129,6 +135,7 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
   @override
   void initState() {
     super.initState();
+    _nameController.addListener(_onMedicineNameChanged);
     final m = widget.medicine;
     if (m != null) {
       _nameController.text = m.name;
@@ -157,10 +164,62 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
 
   @override
   void dispose() {
+    _medicineSuggestionDebounce?.cancel();
+    _nameController.removeListener(_onMedicineNameChanged);
     _nameController.dispose();
     _dosageController.dispose();
     _adjustmentInstructionsController.dispose();
     super.dispose();
+  }
+
+  void _onMedicineNameChanged() {
+    final query = _nameController.text.trim();
+    _medicineSuggestionDebounce?.cancel();
+
+    if (query.length < 2) {
+      if (_medicineSuggestions.isNotEmpty || _loadingMedicineSuggestions) {
+        setState(() {
+          _medicineSuggestions = const [];
+          _loadingMedicineSuggestions = false;
+        });
+      }
+      return;
+    }
+
+    _medicineSuggestionDebounce = Timer(const Duration(milliseconds: 350), () {
+      _fetchMedicineSuggestions(query);
+    });
+  }
+
+  Future<void> _fetchMedicineSuggestions(String query) async {
+    setState(() => _loadingMedicineSuggestions = true);
+    try {
+      final suggestions = await _drugSuggestionService.suggestMedicineNames(query);
+      if (!mounted) return;
+      if (_nameController.text.trim() != query) return;
+      setState(() {
+        _medicineSuggestions = suggestions;
+        _loadingMedicineSuggestions = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _medicineSuggestions = const [];
+        _loadingMedicineSuggestions = false;
+      });
+    }
+  }
+
+  void _applyMedicineSuggestion(String value) {
+    _medicineSuggestionDebounce?.cancel();
+    _nameController.text = value;
+    _nameController.selection = TextSelection.fromPosition(
+      TextPosition(offset: value.length),
+    );
+    setState(() {
+      _medicineSuggestions = const [];
+      _loadingMedicineSuggestions = false;
+    });
   }
 
   Future<void> _pickTime() async {
@@ -832,11 +891,55 @@ class _DoctorAddEditPrescriptionPageState extends State<DoctorAddEditPrescriptio
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Medicine name',
+                  hintText: 'Type at least 2 letters for suggestions',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.medication),
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
+              if (_loadingMedicineSuggestions || _medicineSuggestions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardTintMintColor(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.borderColor(context)),
+                  ),
+                  child: _loadingMedicineSuggestions
+                      ? const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              SizedBox(width: 10),
+                              Text('Loading medicine suggestions...'),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: _medicineSuggestions.length,
+                          separatorBuilder: (_, __) => Divider(
+                            height: 1,
+                            color: AppTheme.borderColor(context),
+                          ),
+                          itemBuilder: (context, index) {
+                            final suggestion = _medicineSuggestions[index];
+                            return ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.medication_outlined),
+                              title: Text(suggestion),
+                              onTap: () => _applyMedicineSuggestion(suggestion),
+                            );
+                          },
+                        ),
+                ),
+              ],
               const SizedBox(height: 16),
               TextFormField(
                 controller: _dosageController,

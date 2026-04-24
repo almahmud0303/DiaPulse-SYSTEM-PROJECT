@@ -44,6 +44,9 @@ dependencies:
   # For storing user settings locally
   shared_preferences: ^2.2.2
 
+  # HTTP client for external drug suggestion APIs
+  http: ^1.2.2
+
   # Password hashing for second-password protection
   crypto: ^3.0.3
 
