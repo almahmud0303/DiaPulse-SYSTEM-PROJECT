@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:workmanager/workmanager.dart';
 
 const String _kStepSyncUniqueName = 'dia_plus_step_sync';
+const String _kStepSyncNowUniqueName = 'dia_plus_step_sync_now';
 
 /// Android: runs periodically (minimum ~15 minutes) to read the hardware step
 /// counter and sync [users/{uid}/daily_steps]. Requires the user to be signed in.
@@ -37,6 +38,17 @@ Future<void> registerStepBackgroundSync() async {
       _kStepSyncUniqueName,
       _kStepSyncUniqueName,
       frequency: const Duration(minutes: 15),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
+      initialDelay: const Duration(minutes: 1),
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+      ),
+    );
+    await Workmanager().registerOneOffTask(
+      _kStepSyncNowUniqueName,
+      _kStepSyncUniqueName,
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+      initialDelay: const Duration(seconds: 10),
       constraints: Constraints(
         networkType: NetworkType.connected,
       ),
