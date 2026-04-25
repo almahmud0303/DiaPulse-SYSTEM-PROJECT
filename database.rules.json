@@ -9,6 +9,17 @@
           ".validate": "newData.hasChildren(['senderId', 'receiverId', 'text', 'createdAt']) && newData.child('senderId').isString() && newData.child('receiverId').isString() && newData.child('text').isString() && newData.child('text').val().length <= 8000"
         }
       }
+    },
+    "users": {
+      "$uid": {
+        "daily_steps": {
+          "$day": {
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": "auth != null && auth.uid == $uid",
+            ".validate": "newData.hasChildren(['steps', 'date', 'updatedAt']) && newData.child('steps').isNumber() && newData.child('steps').val() >= 0 && newData.child('date').isString() && newData.child('updatedAt').isNumber()"
+          }
+        }
+      }
     }
   }
 }
