@@ -443,7 +443,6 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
           actions: [
             TextButton(
               onPressed: () {
-                noteController.dispose();
                 Navigator.pop(dialogContext);
               },
               child: const Text('Cancel'),
@@ -470,7 +469,6 @@ class _DoctorConsultationPageState extends State<DoctorConsultationPage> {
                         ? null
                         : noteController.text.trim(),
                   );
-                  noteController.dispose();
                   if (!mounted) return;
                   Navigator.pop(dialogContext);
                   messenger?.showSnackBar(

@@ -155,14 +155,26 @@ class _NavScaffoldState extends State<_NavScaffold> {
   final _notificationService = NotificationService();
   final _announcementService = AnnouncementService();
 
+  StreamController<int>? _updatesCountController;
   Stream<int>? _updatesCountStream;
 
   @override
   void initState() {
     super.initState();
-    _updatesCountStream = _buildUpdatesCountStream(
+    _initializeUpdatesStream(
       uid: widget.user.uid,
       role: widget.user.role.value,
+    );
+  }
+
+  void _initializeUpdatesStream({required String uid, required String role}) {
+    _updatesCountController?.close();
+    final controller = StreamController<int>();
+    _updatesCountController = controller;
+    _updatesCountStream = _buildUpdatesCountStream(
+      controller: controller,
+      uid: uid,
+      role: role,
     );
   }
 
@@ -174,12 +186,21 @@ class _NavScaffoldState extends State<_NavScaffold> {
     final newUid = widget.user.uid;
     final newRole = widget.user.role.value;
     if (oldUid != newUid || oldRole != newRole) {
-      _updatesCountStream = _buildUpdatesCountStream(uid: newUid, role: newRole);
+      _initializeUpdatesStream(uid: newUid, role: newRole);
     }
   }
 
-  Stream<int> _buildUpdatesCountStream({required String uid, required String role}) {
-    final controller = StreamController<int>();
+  @override
+  void dispose() {
+    _updatesCountController?.close();
+    super.dispose();
+  }
+
+  Stream<int> _buildUpdatesCountStream({
+    required StreamController<int> controller,
+    required String uid,
+    required String role,
+  }) {
     StreamSubscription<int>? notifSub;
     StreamSubscription<int>? annSub;
     var notifCount = 0;
