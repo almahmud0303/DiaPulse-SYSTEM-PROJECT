@@ -8,6 +8,8 @@ class ChatMessage {
     required this.text,
     required this.createdAt,
     this.read = false,
+    this.editedAt,
+    this.deletedAt,
   });
 
   final String id;
@@ -17,6 +19,11 @@ class ChatMessage {
   final String text;
   final DateTime createdAt;
   final bool read;
+  final DateTime? editedAt;
+  final DateTime? deletedAt;
+
+  bool get isEdited => editedAt != null && !isDeleted;
+  bool get isDeleted => deletedAt != null;
 
   bool isFromSender(String userId) => senderId == userId;
 
@@ -28,6 +35,8 @@ class ChatMessage {
       'text': text,
       'createdAt': createdAt.toUtc().toIso8601String(),
       'read': read,
+      if (editedAt != null) 'editedAt': editedAt!.toUtc().toIso8601String(),
+      if (deletedAt != null) 'deletedAt': deletedAt!.toUtc().toIso8601String(),
     };
   }
 
@@ -40,6 +49,8 @@ class ChatMessage {
       text: map['text'] as String? ?? '',
       createdAt: _parseCreatedAt(map['createdAt']),
       read: map['read'] as bool? ?? false,
+      editedAt: _parseOptionalDate(map['editedAt']),
+      deletedAt: _parseOptionalDate(map['deletedAt']),
     );
   }
 
@@ -60,5 +71,13 @@ class ChatMessage {
     }
     return DateTime.now();
   }
-}
 
+  static DateTime? _parseOptionalDate(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    if (v is double) return DateTime.fromMillisecondsSinceEpoch(v.round());
+    if (v is num) return DateTime.fromMillisecondsSinceEpoch(v.toInt());
+    if (v is String) return DateTime.tryParse(v);
+    return null;
+  }
+}
