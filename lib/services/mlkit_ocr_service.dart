@@ -11,6 +11,9 @@ class MlKitOcrService {
     if (kIsWeb) {
       throw Exception('ML Kit OCR is not supported on Flutter web.');
     }
+    if (_closed) {
+      throw Exception('OCR service has been closed. Create a new instance.');
+    }
     if (imagePath.trim().isEmpty) {
       throw Exception('Invalid image path.');
     }

@@ -13,11 +13,17 @@ class ReminderStorageService {
     final raw = prefs.getString(_remindersKey);
     if (raw == null || raw.isEmpty) return [];
 
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    return decoded
-        .whereType<Map>()
-        .map((item) => Reminder.fromMap(Map<String, dynamic>.from(item)))
-        .toList();
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .whereType<Map>()
+          .map((item) => Reminder.fromMap(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (_) {
+      // Corrupted or unreadable data — reset to avoid repeated failures.
+      await prefs.remove(_remindersKey);
+      return [];
+    }
   }
 
   Future<void> saveReminders(List<Reminder> reminders) async {
@@ -60,8 +66,14 @@ class ReminderStorageService {
       return const ReminderSettings();
     }
 
-    final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    return ReminderSettings.fromMap(decoded);
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return ReminderSettings.fromMap(decoded);
+    } catch (_) {
+      // Corrupted settings — fall back to defaults and reset storage.
+      await prefs.remove(_settingsKey);
+      return const ReminderSettings();
+    }
   }
 
   Future<void> saveSettings(ReminderSettings settings) async {

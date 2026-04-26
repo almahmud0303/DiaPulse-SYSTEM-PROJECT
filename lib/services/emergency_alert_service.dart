@@ -150,14 +150,22 @@ class EmergencyAlertService {
       return [];
     }
 
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    final alerts = decoded
-        .whereType<Map>()
-        .map((item) => EmergencyAlert.fromMap(Map<String, dynamic>.from(item)))
-        .toList();
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      final alerts = decoded
+          .whereType<Map>()
+          .map(
+            (item) => EmergencyAlert.fromMap(Map<String, dynamic>.from(item)),
+          )
+          .toList();
 
-    alerts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return alerts;
+      alerts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return alerts;
+    } catch (_) {
+      // Corrupted or unreadable stored data — reset and return empty.
+      await prefs.remove(_alertsHistoryKey);
+      return [];
+    }
   }
 
   Future<void> markAlertAcknowledged(String alertId) async {
