@@ -3,17 +3,12 @@ import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb;
+import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb, debugPrint;
 import 'package:intl/intl.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Device step counter for **patients** (Android / iOS). Not supported on web.
-///
-/// The OS keeps updating the hardware step counter while the app is closed.
-/// This service reconnects on resume and can run a periodic Android task to
-/// sync [users/{uid}/daily_steps].
 class StepCounterService {
   StepCounterService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -24,22 +19,23 @@ class StepCounterService {
   static const _prefsDay = 'step_counter_calendar_day';
   static const _prefsBaseline = 'step_counter_baseline_steps';
   static const _prefsFirstReadingDone = 'step_counter_first_reading_done';
+  static const _prefsTodayDelta = 'step_counter_today_delta';
+
+  // In-memory guard so concurrent pedometer callbacks can't each re-anchor
+  // the baseline before the prefs write from the first call completes.
+  static bool _firstReadingDoneInMemory = false;
+  static String _lastDayInMemory = '';
 
   StreamSubscription<StepCount>? _subscription;
   Timer? _syncDebounce;
   String? _uid;
-  bool _firstReadingDone = false;
 
-  /// Latest step count for today (best effort; resets when the calendar day changes).
   final ValueNotifier<int> todaySteps = ValueNotifier<int>(0);
-
-  /// `null` = OK; non-null = user-facing hint (permission, unsupported, error).
   final ValueNotifier<String?> statusMessage = ValueNotifier<String?>(null);
 
   static bool get isSupported =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-  /// Call when auth is known so we can sync to `users/{uid}/daily_steps/{date}`.
   void setUserId(String? uid) {
     _uid = uid;
   }
@@ -53,8 +49,10 @@ class StepCounterService {
     return true;
   }
 
-  /// Updates prefs from raw device steps; optionally syncs cloud stores immediately
-  /// (used by background sync). Returns today's delta for the UI.
+  /// Ingests raw cumulative OS step count and returns today's delta.
+  ///
+  /// On the first reading of a new day the baseline is anchored to
+  /// `rawSteps - knownTodaySteps` so any cloud-restored value is preserved.
   static Future<int> ingestRawSteps(
     int rawSteps,
     String? uid, {
@@ -64,23 +62,42 @@ class StepCounterService {
     final prefs = await SharedPreferences.getInstance();
     final day = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final storedDay = prefs.getString(_prefsDay);
-    final hadFirstReading = prefs.getBool(_prefsFirstReadingDone) ?? false;
+
+    // Reset in-memory guard when the calendar day rolls over.
+    if (_lastDayInMemory != day) {
+      _firstReadingDoneInMemory = false;
+      _lastDayInMemory = day;
+    }
+
+    // Combine in-memory flag (set synchronously) with persisted flag so
+    // concurrent async calls all agree after the first one claims the anchor.
+    final hadFirstReading =
+        _firstReadingDoneInMemory || (prefs.getBool(_prefsFirstReadingDone) ?? false);
     var baseline = prefs.getInt(_prefsBaseline) ?? 0;
 
     if (storedDay != day) {
-      final adjustedBaseline = rawSteps - (knownTodaySteps < 0 ? 0 : knownTodaySteps);
-      baseline = adjustedBaseline < 0 ? 0 : adjustedBaseline;
+      // New calendar day — anchor baseline so existing cloud steps are preserved.
+      final carry = knownTodaySteps < 0 ? 0 : knownTodaySteps;
+      baseline = (rawSteps - carry).clamp(0, rawSteps);
+      _firstReadingDoneInMemory = false;
+      _lastDayInMemory = day;
       await prefs.setString(_prefsDay, day);
       await prefs.setInt(_prefsBaseline, baseline);
       await prefs.setBool(_prefsFirstReadingDone, false);
     } else if (!hadFirstReading) {
-      baseline = rawSteps;
+      // First sensor reading of this day — claim the anchor synchronously
+      // before the first await so no concurrent call can re-anchor.
+      _firstReadingDoneInMemory = true;
+      final carry = knownTodaySteps < 0 ? 0 : knownTodaySteps;
+      baseline = (rawSteps - carry).clamp(0, rawSteps);
       await prefs.setInt(_prefsBaseline, baseline);
       await prefs.setBool(_prefsFirstReadingDone, true);
     }
 
-    final delta = rawSteps - baseline;
-    final steps = delta < 0 ? 0 : delta;
+    final steps = (rawSteps - baseline).clamp(0, 1000000);
+
+    // Cache so start() can display steps before the pedometer fires.
+    await prefs.setInt(_prefsTodayDelta, steps);
 
     if (syncNow && uid != null && uid.isNotEmpty) {
       await _writeCloud(uid, day, steps);
@@ -103,37 +120,29 @@ class StepCounterService {
           .collection('daily_steps')
           .doc(day)
           .set(
-        {
-          'steps': steps,
-          'date': day,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
+        {'steps': steps, 'date': day, 'updatedAt': FieldValue.serverTimestamp()},
         SetOptions(merge: true),
       );
     } catch (_) {}
   }
 
-  static Future<void> _writeRealtimeDatabase(String uid, String day, int steps) async {
+  static Future<void> _writeRealtimeDatabase(
+      String uid, String day, int steps) async {
     try {
       final ts = DateTime.now().millisecondsSinceEpoch;
-      final ref = _realtimeDb.ref('users/$uid/daily_steps/$day');
-      await ref.update({
-        'steps': steps,
-        'date': day,
-        'updatedAt': ts,
-      });
+      await _realtimeDb.ref('users/$uid/daily_steps/$day').update(
+        {'steps': steps, 'date': day, 'updatedAt': ts},
+      );
     } catch (_) {}
   }
 
   static Future<int> _readTodayStepsFromCloud(String uid) async {
     final day = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
     try {
-      final snap = await _realtimeDb.ref('users/$uid/daily_steps/$day/steps').get();
-      final value = snap.value;
-      if (value is num) return value.toInt();
+      final snap =
+          await _realtimeDb.ref('users/$uid/daily_steps/$day/steps').get();
+      if (snap.value is num) return (snap.value as num).toInt();
     } catch (_) {}
-
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
@@ -141,16 +150,54 @@ class StepCounterService {
           .collection('daily_steps')
           .doc(day)
           .get();
-      final data = doc.data();
-      final value = data?['steps'];
+      final value = doc.data()?['steps'];
       if (value is num) return value.toInt();
     } catch (_) {}
-
     return 0;
   }
 
-  /// Called from Android [Workmanager] while the app process may be in the background.
-  /// Reads one sample from the step sensor and syncs Firestore (needs signed-in user).
+  /// Fetches up to [days] entries from Firestore for the step history screen.
+  static Future<Map<String, int>> getStepHistory(String uid,
+      {int days = 30}) async {
+    final result = <String, int>{};
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('daily_steps')
+          .orderBy('date', descending: true)
+          .limit(days)
+          .get();
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final date = data['date'];
+        final steps = data['steps'];
+        if (date is String && steps is num) {
+          result[date] = steps.toInt();
+        }
+      }
+    } catch (_) {}
+
+    // Fallback: read entire Realtime DB subtree in one request.
+    if (result.isEmpty) {
+      try {
+        final snap =
+            await _realtimeDb.ref('users/$uid/daily_steps').get();
+        final raw = snap.value;
+        if (raw is Map) {
+          raw.forEach((key, value) {
+            if (key is String && value is Map) {
+              final s = value['steps'];
+              if (s is num) result[key] = s.toInt();
+            }
+          });
+        }
+      } catch (_) {}
+    }
+    return result;
+  }
+
+  /// Called from WorkManager while the app is in the background.
   static Future<void> backgroundIngestForUid(String uid) async {
     if (!isSupported || uid.isEmpty) return;
     if (Platform.isAndroid) {
@@ -168,22 +215,14 @@ class StepCounterService {
         if (!completer.isCompleted) completer.completeError(e);
       },
     );
-
     try {
-      final raw = await completer.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => -1,
-      );
+      final raw = await completer.future
+          .timeout(const Duration(seconds: 10), onTimeout: () => -1);
       if (raw < 0) return;
       final knownTodaySteps = await _readTodayStepsFromCloud(uid);
-      await ingestRawSteps(
-        raw,
-        uid,
-        syncNow: true,
-        knownTodaySteps: knownTodaySteps,
-      );
+      await ingestRawSteps(raw, uid,
+          syncNow: true, knownTodaySteps: knownTodaySteps);
     } catch (_) {
-      // Permission/sensor errors in background — skip.
     } finally {
       await sub.cancel();
     }
@@ -206,14 +245,27 @@ class StepCounterService {
     }
     statusMessage.value = 'Initializing step counter...';
 
+    // 1. Immediately restore last cached delta so the UI shows something fast.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedDay = prefs.getString(_prefsDay);
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      if (storedDay == today) {
+        final cached = prefs.getInt(_prefsTodayDelta) ?? 0;
+        if (cached > todaySteps.value) todaySteps.value = cached;
+      }
+    } catch (_) {}
+
+    // 2. Try cloud — may be higher than local cache (e.g., after background sync).
     final uid = _uid;
     if (uid != null && uid.isNotEmpty) {
-      final cloudSteps = await _readTodayStepsFromCloud(uid);
-      if (cloudSteps > todaySteps.value) {
-        todaySteps.value = cloudSteps;
-      }
+      try {
+        final cloudSteps = await _readTodayStepsFromCloud(uid);
+        if (cloudSteps > todaySteps.value) todaySteps.value = cloudSteps;
+      } catch (_) {}
     }
 
+    // 3. Subscribe to live sensor stream.
     try {
       _subscription = Pedometer.stepCountStream.listen(
         _onStepCount,
@@ -227,7 +279,6 @@ class StepCounterService {
     }
   }
 
-  /// Re-subscribe so the next sensor reading includes steps taken while the app was away.
   Future<void> refresh() async {
     stop();
     await start();
@@ -249,14 +300,14 @@ class StepCounterService {
   String _todayKey() => DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   Future<void> _onStepCount(StepCount event) async {
-    final knownValue = _firstReadingDone ? todaySteps.value : 0;
+    // Always pass current todaySteps so the baseline is anchored correctly
+    // even when cloud-restored steps are already showing.
     final delta = await ingestRawSteps(
       event.steps,
       _uid,
       syncNow: false,
-      knownTodaySteps: knownValue,
+      knownTodaySteps: todaySteps.value,
     );
-    _firstReadingDone = true;
     todaySteps.value = delta;
     _scheduleCloudSync();
   }
@@ -264,12 +315,11 @@ class StepCounterService {
   void _scheduleCloudSync() {
     final uid = _uid;
     if (uid == null || uid.isEmpty) return;
-
     _syncDebounce?.cancel();
     _syncDebounce = Timer(const Duration(seconds: 2), () async {
       final day = _todayKey();
-      print('[StepCounter] Syncing $todaySteps.value steps to cloud for day $day');
-      
+      final steps = todaySteps.value;
+      debugPrint('[StepCounter] Syncing $steps steps for $day');
       try {
         await _firestore
             .collection('users')
@@ -277,28 +327,21 @@ class StepCounterService {
             .collection('daily_steps')
             .doc(day)
             .set(
-          {
-            'steps': todaySteps.value,
-            'date': day,
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
+          {'steps': steps, 'date': day, 'updatedAt': FieldValue.serverTimestamp()},
           SetOptions(merge: true),
         );
-        print('[StepCounter] Firestore write success');
+        debugPrint('[StepCounter] Firestore write success');
       } catch (e) {
-        print('[StepCounter] Firestore write failed: $e');
+        debugPrint('[StepCounter] Firestore write failed: $e');
       }
-
       try {
         final ts = DateTime.now().millisecondsSinceEpoch;
-        await _realtimeDb.ref('users/$uid/daily_steps/$day').set({
-          'steps': todaySteps.value,
-          'date': day,
-          'updatedAt': ts,
-        });
-        print('[StepCounter] Realtime DB write success');
+        await _realtimeDb.ref('users/$uid/daily_steps/$day').update(
+          {'steps': steps, 'date': day, 'updatedAt': ts},
+        );
+        debugPrint('[StepCounter] Realtime DB write success');
       } catch (e) {
-        print('[StepCounter] Realtime DB write failed: $e');
+        debugPrint('[StepCounter] Realtime DB write failed: $e');
       }
     });
   }

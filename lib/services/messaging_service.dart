@@ -23,10 +23,10 @@ class MessagingService {
   final NotificationService _notificationService = NotificationService();
 
   MessagingService({FirebaseApp? app})
-      : _db = FirebaseDatabase.instanceFor(
-          app: app ?? Firebase.app(),
-          databaseURL: _databaseUrl,
-        );
+    : _db = FirebaseDatabase.instanceFor(
+        app: app ?? Firebase.app(),
+        databaseURL: _databaseUrl,
+      );
 
   /// conversationId = sorted [uid1, uid2] joined by '_'
   String conversationId(String uid1, String uid2) {
@@ -72,6 +72,37 @@ class MessagingService {
     );
   }
 
+  Future<void> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String senderId,
+    required String text,
+  }) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) {
+      throw Exception('Message cannot be empty.');
+    }
+
+    await _messagesRef(conversationId).child(messageId).update({
+      'text': trimmed,
+      'editedAt': ServerValue.timestamp,
+    });
+
+    await _refreshConversationPreview(conversationId);
+  }
+
+  Future<void> deleteMessage({
+    required String conversationId,
+    required String messageId,
+    required String senderId,
+  }) async {
+    await _messagesRef(
+      conversationId,
+    ).child(messageId).update({'text': '', 'deletedAt': ServerValue.timestamp});
+
+    await _refreshConversationPreview(conversationId);
+  }
+
   /// List conversations for the current user, sorted by last message descending.
   Future<List<Conversation>> getConversations(String userId) async {
     final snapshot = await _firestore
@@ -108,9 +139,9 @@ class MessagingService {
       final val = e.value;
       if (val is! Map) continue;
       final m = Map<String, dynamic>.from(
-        Map<Object?, Object?>.from(val).map(
-          (k, v) => MapEntry(k.toString(), v),
-        ),
+        Map<Object?, Object?>.from(
+          val,
+        ).map((k, v) => MapEntry(k.toString(), v)),
       );
       out.add(ChatMessage.fromMap(key, m));
     }
@@ -120,16 +151,26 @@ class MessagingService {
 
   /// Last [limit] messages, **oldest first** (previous at top, newest at bottom).
   Future<List<ChatMessage>> getMessages(String cid, {int limit = 100}) async {
-    final q =
-        _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
+    final q = _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
     final snapshot = await q.get();
     return _parseChatSnapshot(snapshot, cid);
   }
 
   /// Live stream — same order as [getMessages] (oldest → newest).
   Stream<List<ChatMessage>> streamMessages(String cid, {int limit = 100}) {
-    final q =
-        _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
+    final q = _messagesRef(cid).orderByChild('createdAt').limitToLast(limit);
     return q.onValue.map((e) => _parseChatSnapshot(e.snapshot, cid));
+  }
+
+  Future<void> _refreshConversationPreview(String cid) async {
+    final messages = await getMessages(cid, limit: 1);
+    if (messages.isEmpty) return;
+
+    final latest = messages.last;
+    await _firestore.collection(_conversationsCollection).doc(cid).set({
+      'lastMessageAt': Timestamp.fromDate(latest.createdAt),
+      'lastMessageText': latest.isDeleted ? 'Message deleted' : latest.text,
+      'lastMessageSenderId': latest.senderId,
+    }, SetOptions(merge: true));
   }
 }
